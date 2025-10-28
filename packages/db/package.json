@@ -6,6 +6,7 @@
   "types": "index.d.ts",
   "keywords": [],
   "scripts": {
+    "db:studio": "prisma studio",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev"
   },
