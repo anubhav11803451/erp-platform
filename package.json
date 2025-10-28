@@ -1,0 +1,25 @@
+{
+  "name": "erp-monorepo",
+  "version": "1.0.0",
+  "description": "A full-stack, modular Enterprise Resource Planning (ERP) system designed for educational institutions. This project is structured as a pnpm monorepo and features a NestJS backend, a React frontend, and a shared Prisma package to ensure end-to-end type safety.",
+  "main": "index.js",
+  "keywords": [],
+  "author": "Anubhav Gupta",
+  "license": "ISC",
+  "scripts": {
+    "dev:backend": "pnpm --filter @erp/backend dev",
+    "dev:frontend": "pnpm --filter @erp/frontend dev",
+    "db:generate": "pnpm --filter @erp/db db:generate",
+    "db:migrate": "pnpm --filter @erp/db db:migrate",
+    "build": "pnpm --filter \"./apps/*\" build"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@10.18.3"
+}

@@ -1,0 +1,4 @@
+# This file defines the "workspaces" in our monorepo.
+packages:
+  - 'apps/*'
+  - 'packages/*'
