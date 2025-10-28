@@ -1,12 +1,13 @@
-// We use class-validator to ensure data is correctly shaped
 import {
-    IsString,
     IsEmail,
     IsNotEmpty,
     IsOptional,
-    IsPhoneNumber,
-    IsDateString,
+    IsString,
+    IsObject,
+    ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateGuardianDto } from '../../guardians/dto/create-guardian.dto';
 
 export class CreateStudentDto {
     @IsString()
@@ -18,24 +19,22 @@ export class CreateStudentDto {
     last_name: string;
 
     @IsEmail()
-    email: string;
-
-    @IsPhoneNumber(undefined)
-    phone: string;
-
     @IsOptional()
-    @IsDateString()
-    dob?: string; // We take string and Prisma converts to DateTime
+    email?: string; // Student's own email
 
-    @IsOptional()
     @IsString()
+    @IsOptional()
+    phone?: string; // Student's own phone
+
+    @IsString()
+    @IsOptional()
     school_name?: string;
 
-    @IsOptional()
-    @IsString()
-    guardian_name?: string;
-
-    @IsOptional()
-    @IsPhoneNumber(undefined)
-    guardian_phone?: string;
+    // --- This is the new part ---
+    // We nest the guardian's info inside the student DTO
+    @IsObject()
+    @ValidateNested()
+    @Type(() => CreateGuardianDto)
+    guardian: CreateGuardianDto;
+    // --- End of new part ---
 }

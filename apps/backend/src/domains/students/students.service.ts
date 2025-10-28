@@ -1,18 +1,37 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/core/prisma.service';
+import { PrismaService } from '@/core/prisma.service';
 import { CreateStudentDto, UpdateStudentDto } from './dto';
 import { Student } from '@erp/db'; // <-- Importing our shared type!
+import { GuardiansService } from '../guardians/guardians.service';
 
 @Injectable()
 export class StudentsService {
     // Inject the PrismaService from CoreModule
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private prisma: PrismaService,
+        // Inject the GuardiansService here
+        private readonly guardiansService: GuardiansService,
+    ) {}
 
-    async create(createStudentDto: CreateStudentDto): Promise<Student> {
-        // DTO ensures data is validated before it gets here
+    async create(dto: CreateStudentDto): Promise<Student> {
+        // 1. Find or create the guardian
+        const guardianRecord = await this.guardiansService.findOrCreate(dto.guardian);
+
+        // 2. Create the student, linking them to the guardian
+        // --- THIS IS THE FIX ---
+        // We explicitly build the data object instead of using the spread operator (...dto).
+        // This avoids type conflicts between the DTO class and the Prisma type.
         return this.prisma.student.create({
-            data: createStudentDto,
+            data: {
+                first_name: dto.first_name,
+                last_name: dto.last_name,
+                email: dto.email,
+                phone: dto.phone,
+                school_name: dto.school_name,
+                guardianId: guardianRecord.id, // Link to the found/created guardian
+            },
         });
+        // --- END OF FIX ---
     }
 
     async findAll(): Promise<Student[]> {
@@ -20,12 +39,18 @@ export class StudentsService {
             orderBy: {
                 created_at: 'desc',
             },
+            include: {
+                guardian: true,
+            },
         });
     }
 
     async findOne(id: string): Promise<Student | null> {
         const student = await this.prisma.student.findUnique({
             where: { id },
+            include: {
+                guardian: true,
+            },
         });
         if (!student) {
             throw new NotFoundException(`Student with ID "${id}" not found`);
@@ -35,10 +60,22 @@ export class StudentsService {
 
     async update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student> {
         try {
-            return await this.prisma.student.update({
+            // --- PROACTIVE FIX ---
+            // We do the same explicit mapping for the update method.
+            // Since UpdateStudentDto is a Partial, we check which fields exist.
+            const dataToUpdate: Partial<Student> = {};
+            if (updateStudentDto.first_name) dataToUpdate.first_name = updateStudentDto.first_name;
+            if (updateStudentDto.last_name) dataToUpdate.last_name = updateStudentDto.last_name;
+            if (updateStudentDto.email) dataToUpdate.email = updateStudentDto.email;
+            if (updateStudentDto.phone) dataToUpdate.phone = updateStudentDto.phone;
+            if (updateStudentDto.school_name)
+                dataToUpdate.school_name = updateStudentDto.school_name;
+
+            return this.prisma.student.update({
                 where: { id },
-                data: updateStudentDto,
+                data: dataToUpdate,
             });
+            // --- END OF FIX ---
         } catch (error) {
             // Handle case where the student to update doesn't exist
             throw new NotFoundException(`Student with ID "${id}" not found`);
