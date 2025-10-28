@@ -10,13 +10,15 @@ async function bootstrap() {
 
     // Enable CORS for frontend connection
     app.enableCors({
-        origin: 'http://localhost:5173',
+        origin: '*',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-        credentials: true,
-        preflightContinue: true,
+        preflightContinue: false,
+        optionsSuccessStatus: 204,
     });
 
-    await app.listen(process.env.PORT ?? 3000);
-    console.log(`Application is running on: http://localhost:3000/v1/api`);
+    await app.listen(process.env.BACKEND_PORT ?? 3000);
+    console.log(
+        `Application is running on: http://localhost:${process.env.BACKEND_PORT ?? 3000}/v1/api`,
+    );
 }
 void bootstrap();

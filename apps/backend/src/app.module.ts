@@ -15,7 +15,9 @@ import { StudentsModule } from './domains/students/students.module';
         // This makes .env variables available everywhere via ConfigService
         ConfigModule.forRoot({
             isGlobal: true,
-            envFilePath: '.env', // Assumes .env file is in the backend root
+            // Tell ConfigModule to look up 2 directories
+            // for the .env file at the monorepo root.
+            envFilePath: '../../.env', // Assumes .env file is in the backend root
         }),
 
         // 2. Core Module: Provides core services like Prisma

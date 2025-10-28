@@ -8,10 +8,11 @@
   "license": "ISC",
   "scripts": {
     "dev:backend": "pnpm --filter @erp/backend start:dev",
-    "dev:frontend": "pnpm --filter @erp/frontend dev",
+    "dev:frontend": "pnpm --filter @erp/frontend start:dev",
     "db:generate": "pnpm --filter @erp/db db:generate",
     "db:migrate": "pnpm --filter @erp/db db:migrate",
-    "build": "pnpm --filter \"./apps/*\" build"
+    "build": "pnpm --filter \"./apps/*\" build",
+    "dev": "pnpm run --parallel start:dev --filter @erp/db"
   },
   "dependencies": {},
   "devDependencies": {
