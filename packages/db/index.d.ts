@@ -1,1 +1,1 @@
-export * from "@prisma/client/client";
+export * from "./node_modules/.prisma/client";
