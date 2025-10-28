@@ -1,21 +1,36 @@
 import { apiSlice } from '@/api/api-slice';
+import type { Guardian, Student } from '@erp/db';
 // THIS IS THE MAGIC! We import our Prisma types directly into the frontend.
-import type { Student } from '@erp/db';
+// --- NEW: Define the type for the data we get back from the 'findAll' endpoint ---
+// Prisma's `include` returns a combined type.
+type StudentWithGuardian = Student & {
+    guardian: Guardian;
+};
 
-// Define the shape of the data for creating a student.
-// It's our 'Student' type, minus the fields the DB generates.
-export type CreateStudentInput = Omit<Student, 'id' | 'created_at' | 'updated_at'>;
+// --- NEW: Define the type for creating a student ---
+// This must match the backend's CreateStudentDto
+type CreateStudentPayload = {
+    first_name: string;
+    last_name: string;
+    email?: string;
+    phone?: string;
+    school_name?: string;
+    guardian: {
+        first_name: string;
+        last_name: string;
+        email: string;
+        phone?: string;
+    };
+};
 // Define the shape for updating. It's a partial of the create input.
-type UpdateStudentInput = Partial<CreateStudentInput>;
+type UpdateStudentInput = Partial<CreateStudentPayload>;
 
 // Injects endpoints into the root apiSlice
 export const studentsApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         // Query: GET /domains/students
-        getStudents: builder.query<Student[], void>({
+        getStudents: builder.query<StudentWithGuardian[], void>({
             query: () => '/domains/students',
-            // Provides a 'Student' tag for the whole list.
-            // RTK Query will re-fetch this if the 'Student' tag is invalidated.
             providesTags: (result) =>
                 result
                     ? [
@@ -24,23 +39,20 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
                       ]
                     : [{ type: 'Student', id: 'LIST' }],
         }),
-
+        // Mutation: POST /domains/students
+        addStudent: builder.mutation<Student, CreateStudentPayload>({
+            query: (newStudent) => ({
+                url: '/domains/students',
+                method: 'POST',
+                body: newStudent,
+            }),
+            invalidatesTags: [{ type: 'Student', id: 'LIST' }],
+        }),
         // Query: GET /domains/students/:id
         getStudentById: builder.query<Student, string>({
             query: (id) => `/domains/students/${id}`,
             // Provides a specific tag for this student: { type: 'Student', id: '123' }
             providesTags: (result, error, id) => [{ type: 'Student', id }],
-        }),
-
-        // Mutation: POST /domains/students
-        createStudent: builder.mutation<Student, CreateStudentInput>({
-            query: (body) => ({
-                url: '/domains/students',
-                method: 'POST',
-                body,
-            }),
-            // Invalidates the 'Student' list tag, forcing a re-fetch of getStudents.
-            invalidatesTags: [{ type: 'Student', id: 'LIST' }],
         }),
 
         // Mutation: PATCH /domains/students/:id
@@ -76,7 +88,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
 export const {
     useGetStudentsQuery,
     useGetStudentByIdQuery,
-    useCreateStudentMutation,
+    useAddStudentMutation,
     useUpdateStudentMutation,
     useDeleteStudentMutation,
 } = studentsApiSlice;
