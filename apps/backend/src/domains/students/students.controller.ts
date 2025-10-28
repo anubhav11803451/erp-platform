@@ -29,7 +29,7 @@ export class StudentsController {
     }
 
     @Get(':id')
-    findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<Student> {
+    findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<Student | null> {
         // We use ParseUUIDPipe to validate that the ID is a CUID/UUID
         // Note: Prisma uses CUIDs, which pass UUID validation.
         // For stricter CUID validation, a custom pipe would be needed,
