@@ -2,7 +2,7 @@ import type { Action, ThunkAction } from '@reduxjs/toolkit';
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { rootReducer, type RootState } from './root-reducer';
-import { rootApiSlice } from '../api/root-api-slice';
+import { apiSlice } from '../api/api-slice';
 
 // The store setup is wrapped in `makeStore` to allow reuse
 // when setting up tests that need the same store config
@@ -12,7 +12,7 @@ export const makeStore = (preloadedState?: Partial<RootState>) => {
         // Adding the api middleware enables caching, invalidation, polling,
         // and other useful features of `rtk-query`.
         middleware: (getDefaultMiddleware) => {
-            return getDefaultMiddleware().concat(rootApiSlice.middleware);
+            return getDefaultMiddleware().concat(apiSlice.middleware);
         },
         preloadedState,
         devTools: !import.meta.env.PROD,
