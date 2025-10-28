@@ -8,7 +8,7 @@ import { GuardiansService } from '../guardians/guardians.service';
 export class StudentsService {
     // Inject the PrismaService from CoreModule
     constructor(
-        private prisma: PrismaService,
+        private readonly prisma: PrismaService,
         // Inject the GuardiansService here
         private readonly guardiansService: GuardiansService,
     ) {}

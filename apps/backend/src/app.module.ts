@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CoreModule } from '@/core/core.module';
+import { AuthModule } from '@/auth/auth.module';
 // We will import our domain/feature modules here as we create them
-// import { UsersModule } from './domains/users/users.module';
+import { UsersModule } from '@/domains/users/users.module';
 import { StudentsModule } from '@/domains/students/students.module';
 import { GuardiansModule } from '@/domains/guardians/guardians.module';
 // import { BatchesModule } from './domains/batches/batches.module';
@@ -23,9 +24,9 @@ import { GuardiansModule } from '@/domains/guardians/guardians.module';
 
         // 2. Core Module: Provides core services like Prisma
         CoreModule,
-
+        AuthModule,
         // 3. Domain Modules (uncomment as we build them)
-        // UsersModule,
+        UsersModule,
         StudentsModule,
         GuardiansModule,
         // BatchesModule,

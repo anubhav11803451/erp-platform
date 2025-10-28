@@ -1,12 +1,23 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '@/app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
     // Set global API prefix to match /api endpoint
     app.setGlobalPrefix('/v1/api');
+
+    // This tells NestJS to use the ValidationPipe on
+    // *every* incoming request for *all* controllers.
+    app.useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true, // Automatically strip properties that don't exist in the DTO
+            forbidNonWhitelisted: true, // Throw an error if non-DTO properties are sent
+            transform: true, // Automatically transform payloads to DTO class instances
+        }),
+    );
 
     // Enable CORS for frontend connection
     app.enableCors({
