@@ -17,3 +17,116 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL") // This loads from the .env file in apps/backend
 }
+
+// -------------------------------------
+// 1. STUDENTS & CORE
+// -------------------------------------
+
+model Student {
+  id             String    @id @default(cuid())
+  first_name     String
+  last_name      String
+  email          String    @unique
+  phone          String    @unique
+  dob            DateTime?
+  school_name    String? // New field for MVP
+  guardian_name  String?
+  guardian_phone String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  batches     StudentBatch[] // This student is in many batches
+  payments    Payment[] // This student has made many payments
+  attendances Attendance[] // This student has many attendance records
+
+  @@map("students")
+}
+
+// -------------------------------------
+// 2. BATCHES & ATTENDANCE
+// -------------------------------------
+
+model Batch {
+  id         String    @id @default(cuid())
+  name       String // e.g., "10th CBSE Maths - Section A"
+  subject    String? // e.g., "Maths"
+  teacher    String? // e.g., "Mr. Sharma"
+  start_date DateTime
+  end_date   DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  students    StudentBatch[] // This batch has many students
+  attendances Attendance[] // This batch has many attendance records
+  Payment     Payment[]
+
+  @@map("batches")
+}
+
+model Attendance {
+  id      String   @id @default(cuid())
+  date    DateTime
+  status  String // "PRESENT", "ABSENT", "LATE"
+  remarks String?
+
+  // Relations
+  student    Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  student_id String
+
+  batch    Batch  @relation(fields: [batch_id], references: [id], onDelete: Cascade)
+  batch_id String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([student_id, batch_id, date]) // A student can only be marked once per batch per day
+  @@map("attendances")
+}
+
+// -------------------------------------
+// 3. PAYMENTS
+// -------------------------------------
+
+model Payment {
+  id             String   @id @default(cuid())
+  amount         Float
+  date_paid      DateTime
+  payment_method String // "CASH", "UPI", "BANK_TRANSFER"
+  remarks        String?
+
+  // Relations
+  student    Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  student_id String
+
+  batch    Batch  @relation(fields: [batch_id], references: [id], onDelete: Cascade)
+  batch_id String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("payments")
+}
+
+// -------------------------------------
+// PIVOT TABLE (Many-to-Many)
+// -------------------------------------
+
+model StudentBatch {
+  // This is the "join" table
+  student    Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  student_id String
+
+  batch    Batch  @relation(fields: [batch_id], references: [id], onDelete: Cascade)
+  batch_id String
+
+  total_fee_agreed Float // The specific fee for this student in this batch
+
+  join_date DateTime @default(now())
+
+  @@id([student_id, batch_id]) // Primary key is the combination
+  @@map("student_batches")
+}

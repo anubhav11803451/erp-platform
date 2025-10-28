@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CoreModule } from './core/core.module';
 // We will import our domain/feature modules here as we create them
 // import { UsersModule } from './domains/users/users.module';
-// import { StudentsModule } from './domains/students/students.module';
+import { StudentsModule } from './domains/students/students.module';
 // import { BatchesModule } from './domains/batches/batches.module';
 // import { EnrollmentModule } from './features/enrollment/enrollment.module';
 // import { PaymentsModule } from './features/payments/payments.module';
@@ -23,7 +23,7 @@ import { CoreModule } from './core/core.module';
 
         // 3. Domain Modules (uncomment as we build them)
         // UsersModule,
-        // StudentsModule,
+        StudentsModule,
         // BatchesModule,
 
         // 4. Feature Modules (uncomment as we build them)
