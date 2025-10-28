@@ -1,0 +1,21 @@
+{
+  "name": "@erp/db",
+  "version": "1.0.0",
+  "description": "Shared Prisma client and types",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "keywords": [],
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.18.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.18.0"
+  },
+  "author": "Anubhav Gupta",
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.3"
+}
