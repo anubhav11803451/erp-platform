@@ -1,45 +1,19 @@
-/*
-  Warnings:
+-- CreateEnum
+CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'STAFF');
 
-  - You are about to drop the `attendances` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `batches` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `payments` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `student_batches` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `students` table. If the table is not empty, all the data it contains will be lost.
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
+    "password_hash" TEXT NOT NULL,
+    "role" "UserRole" NOT NULL DEFAULT 'STAFF',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-*/
--- DropForeignKey
-ALTER TABLE "public"."attendances" DROP CONSTRAINT "attendances_batch_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "public"."attendances" DROP CONSTRAINT "attendances_student_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "public"."payments" DROP CONSTRAINT "payments_batch_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "public"."payments" DROP CONSTRAINT "payments_student_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "public"."student_batches" DROP CONSTRAINT "student_batches_batch_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "public"."student_batches" DROP CONSTRAINT "student_batches_student_id_fkey";
-
--- DropTable
-DROP TABLE "public"."attendances";
-
--- DropTable
-DROP TABLE "public"."batches";
-
--- DropTable
-DROP TABLE "public"."payments";
-
--- DropTable
-DROP TABLE "public"."student_batches";
-
--- DropTable
-DROP TABLE "public"."students";
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Guardian" (
@@ -79,6 +53,7 @@ CREATE TABLE "Batch" (
     "end_date" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
+    "tutorId" TEXT,
 
     CONSTRAINT "Batch_pkey" PRIMARY KEY ("id")
 );
@@ -123,6 +98,9 @@ CREATE TABLE "Attendance" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Guardian_email_key" ON "Guardian"("email");
 
 -- CreateIndex
@@ -133,6 +111,9 @@ CREATE UNIQUE INDEX "StudentBatch_studentId_batchId_key" ON "StudentBatch"("stud
 
 -- AddForeignKey
 ALTER TABLE "Student" ADD CONSTRAINT "Student_guardianId_fkey" FOREIGN KEY ("guardianId") REFERENCES "Guardian"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Batch" ADD CONSTRAINT "Batch_tutorId_fkey" FOREIGN KEY ("tutorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "StudentBatch" ADD CONSTRAINT "StudentBatch_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

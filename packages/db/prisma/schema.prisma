@@ -6,11 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  // --- THIS IS THE FIX ---
-  // We explicitly tell Prisma where to output the generated client
-  // so that our monorepo can find it.
-  output   = "./node_modules/.prisma/client"
-  // --- END OF FIX ---
+  output   = "../generated"
 }
 
 datasource db {

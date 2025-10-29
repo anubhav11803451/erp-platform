@@ -2,14 +2,16 @@
   "name": "@erp/db",
   "version": "1.0.0",
   "description": "Shared Prisma client and types",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "private": true,
   "keywords": [],
   "scripts": {
     "db:studio": "dotenv -e ../../.env -- prisma studio",
     "db:generate": "dotenv -e ../../.env -- prisma generate",
     "db:migrate": "dotenv -e ../../.env -- prisma migrate dev",
-    "db:format": "dotenv -e ../../.env -- prisma format"
+    "db:format": "dotenv -e ../../.env -- prisma format",
+    "build": "pnpm db:generate"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",

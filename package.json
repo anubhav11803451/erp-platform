@@ -12,8 +12,10 @@
     "db:generate": "pnpm --filter @erp/db db:generate",
     "db:migrate": "pnpm --filter @erp/db db:migrate",
     "db:format": "pnpm --filter @erp/db db:format",
-    "build": "pnpm --filter \"./apps/*\" build",
-    "dev": "pnpm run --parallel start:dev --filter @erp/db"
+    "db:studio": "pnpm --filter @erp/db db:studio",
+    "build": "pnpm build",
+    "dev": "pnpm run --parallel start:dev --filter @erp/db",
+    "postinstall": "pnpm db:generate"
   },
   "dependencies": {},
   "devDependencies": {
