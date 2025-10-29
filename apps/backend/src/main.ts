@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '@/app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerDocumentOptions, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -19,12 +20,25 @@ async function bootstrap() {
         }),
     );
 
+    // Swagger API documentation
+    const config = new DocumentBuilder()
+        .setTitle('ERP Platform API')
+        .setDescription('ERP Platform API documentation for developers')
+        .setVersion('1.0')
+        .addBearerAuth()
+        .build();
+
+    const options: SwaggerDocumentOptions = {
+        deepScanRoutes: true,
+    };
+    const document = SwaggerModule.createDocument(app, config, options);
+    SwaggerModule.setup('api', app, document);
+
     // Enable CORS for frontend connection
     app.enableCors({
         origin: '*',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-        preflightContinue: false,
-        optionsSuccessStatus: 204,
+        preflightContinue: true,
     });
 
     await app.listen(process.env.BACKEND_PORT ?? 3000);
