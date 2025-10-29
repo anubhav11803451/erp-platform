@@ -11,6 +11,7 @@
     "dev:frontend": "pnpm --filter @erp/frontend start:dev",
     "db:generate": "pnpm --filter @erp/db db:generate",
     "db:migrate": "pnpm --filter @erp/db db:migrate",
+    "db:format": "pnpm --filter @erp/db db:format",
     "build": "pnpm --filter \"./apps/*\" build",
     "dev": "pnpm run --parallel start:dev --filter @erp/db"
   },

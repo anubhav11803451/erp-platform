@@ -38,6 +38,10 @@ model User {
   role          UserRole @default(STAFF)
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
+
+  // This defines the "one-to-many" relation
+  // One User (tutor) can have many Batches
+  batches Batch[]
 }
 
 // ----------------------------------------
@@ -90,7 +94,13 @@ model Batch {
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
 
+  // Relation: Many Batches belong to one Tutor
+  tutorId String? // Or String if it's required
+  tutor   User?   @relation(fields: [tutorId], references: [id])
+
+  // Relation: Many Batches have many Students
   students StudentBatch[]
+  // Relation: Many Batches have many Payments
   payments Payment[]
 }
 

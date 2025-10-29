@@ -6,7 +6,7 @@ import { AuthModule } from '@/auth/auth.module';
 import { UsersModule } from '@/domains/users/users.module';
 import { StudentsModule } from '@/domains/students/students.module';
 import { GuardiansModule } from '@/domains/guardians/guardians.module';
-// import { BatchesModule } from './domains/batches/batches.module';
+import { BatchesModule } from '@/domains/batches/batches.module';
 // import { EnrollmentModule } from './features/enrollment/enrollment.module';
 // import { PaymentsModule } from './features/payments/payments.module';
 // import { AttendanceModule } from './features/attendance/attendance.module';
@@ -29,7 +29,7 @@ import { GuardiansModule } from '@/domains/guardians/guardians.module';
         UsersModule,
         StudentsModule,
         GuardiansModule,
-        // BatchesModule,
+        BatchesModule,
 
         // 4. Feature Modules (uncomment as we build them)
         // EnrollmentModule,
