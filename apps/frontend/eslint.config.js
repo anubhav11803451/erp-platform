@@ -68,6 +68,16 @@ export default defineConfig([
                     ],
                 },
             ],
+            //add max line rule
+            'max-lines': [
+                'error',
+                {
+                    max: 500,
+                    skipBlankLines: true,
+                    skipComments: true,
+                },
+            ],
+
             'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
             'react/react-in-jsx-scope': 'off',
             'react/prop-types': 'off',
