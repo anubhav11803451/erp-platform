@@ -73,7 +73,9 @@ type SmartFormProps<
     /** Children can be a render prop to access form state */
     children:
         | React.ReactNode
-        | ((form: UseFormReturn<SchemaInput & FieldValues, any, SchemaOutput>) => React.ReactNode);
+        | ((
+              form: UseFormReturn<SchemaInput & FieldValues, SchemaInput, SchemaOutput>
+          ) => React.ReactNode);
 
     mode?: UseFormProps<SchemaInput & FieldValues>['mode'];
     className?: string;
@@ -127,7 +129,7 @@ export function SmartForm<
             // `onSubmit` prop expects z.output<TSchema>
             // This now matches perfectly.
             await onSubmit?.(data);
-        } catch (error: any) {
+        } catch (error: unknown) {
             form.setError('root', {
                 message: error instanceof Error ? error.message : 'Something went wrong',
             });
@@ -157,7 +159,7 @@ export function SmartForm<
                     <Button
                         form={id}
                         type="submit"
-                        className="mt-6!"
+                        className="mt-4!"
                         disabled={
                             // Your logic is preserved
                             (disableDirtyCheck ? !form.formState.isDirty : false) ||

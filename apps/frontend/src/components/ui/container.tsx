@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
-const containerVariants = cva('container', {
+const containerVariants = cva('container flex flex-col', {
     variants: {
         center: {
             true: 'mx-auto',
@@ -16,7 +16,7 @@ const containerVariants = cva('container', {
             true: 'h-full',
         },
         fullScreen: {
-            true: 'min-h-screen min-w-full',
+            true: 'min-h-dvh min-w-full',
         },
         maxWidth: {
             true: 'w-full md:max-w-5xl lg:max-w-[1120px]',

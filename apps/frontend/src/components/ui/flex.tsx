@@ -44,6 +44,9 @@ const flexVariants = cva('flex', {
             baseline: 'self-baseline',
             stretch: 'self-stretch',
         },
+        fullHeight: {
+            true: 'grow',
+        },
         fullWidth: {
             true: 'w-full',
         },
@@ -100,7 +103,7 @@ const flexVariants = cva('flex', {
         // {
         //     reverse: false,
         //     direction: "column",
-        //     className: "!flex-col",
+        //     className: "flex-col!",
         // },
     ],
 });
@@ -127,6 +130,7 @@ const Flex = React.forwardRef<HTMLDivElement, FlexProps>(
             wrap,
             direction,
             fullWidth,
+            fullHeight,
             gap,
             gapX,
             gapY,
@@ -150,6 +154,7 @@ const Flex = React.forwardRef<HTMLDivElement, FlexProps>(
                     wrap,
                     direction,
                     fullWidth,
+                    fullHeight,
                     gap,
                     gapX,
                     gapY,

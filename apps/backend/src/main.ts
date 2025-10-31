@@ -36,9 +36,10 @@ async function bootstrap() {
 
     // Enable CORS for frontend connection
     app.enableCors({
-        origin: '*',
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-        preflightContinue: true,
+        origin: 'http://localhost:5173',
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        allowedHeaders: 'Content-Type, Accept, Authorization',
+        credentials: true, // If you plan to use cookies or sessions
     });
 
     await app.listen(process.env.BACKEND_PORT ?? 3000);

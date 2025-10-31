@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Text, type TextProps } from './text';
+import { Typography as Text, type TypographyProps as TextProps } from './typography';
 
 export default function ErrorMessage({
     children,
