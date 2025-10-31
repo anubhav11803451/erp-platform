@@ -37,7 +37,26 @@ model User {
 
   // This defines the "one-to-many" relation
   // One User (tutor) can have many Batches
-  batches Batch[]
+  batches        Batch[]
+  // --- Relation to Refresh Tokens ---
+  refresh_tokens RefreshToken[]
+}
+
+// ----------------------------------------
+// NEW MODEL: RefreshToken
+// ----------------------------------------
+model RefreshToken {
+  id           String    @id @default(uuid())
+  hashed_token String    @unique // Hashed with sha256
+  user_agent   String?
+  ip           String?
+  created_at   DateTime  @default(now())
+  expires_at   DateTime
+  revoked_at   DateTime? // If this is set, the token is invalid
+
+  // Relation to User
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
 }
 
 // ----------------------------------------
