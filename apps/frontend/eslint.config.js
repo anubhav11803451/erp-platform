@@ -37,6 +37,7 @@ export default defineConfig([
             },
         },
         rules: {
+            'prettier/prettier': 'error',
             'no-undef': [0],
             '@typescript-eslint/consistent-type-definitions': [2, 'type'],
             '@typescript-eslint/consistent-type-imports': [
@@ -53,6 +54,8 @@ export default defineConfig([
                 'warn',
                 {
                     argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    caughtErrorsIgnorePattern: '^_',
                 },
             ],
             'no-restricted-imports': [

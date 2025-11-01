@@ -4,12 +4,10 @@ import { FieldGroup } from '@/components/ui/field';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { signInSchema } from './schemas';
-import { useLoginMutation } from './auth-api-slice';
+import { useAuth } from '@/hooks/use-auth';
 
 export function SignInForm() {
-    const [login, { isLoading, data }] = useLoginMutation();
-
-    console.log(data, isLoading);
+    const { handleSignIn } = useAuth();
 
     return (
         <Card className="w-full sm:max-w-md">
@@ -20,7 +18,7 @@ export function SignInForm() {
             <CardContent>
                 <SmartForm
                     schema={signInSchema}
-                    onSubmit={(data) => login(data).unwrap()}
+                    onSubmit={handleSignIn}
                     defaultValues={{
                         email: '',
                         password: '',

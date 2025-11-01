@@ -74,7 +74,7 @@ type SmartFormProps<
     children:
         | React.ReactNode
         | ((
-              form: UseFormReturn<SchemaInput & FieldValues, SchemaInput, SchemaOutput>
+              form: UseFormReturn<SchemaInput & FieldValues, SchemaOutput, SchemaOutput>
           ) => React.ReactNode);
 
     mode?: UseFormProps<SchemaInput & FieldValues>['mode'];

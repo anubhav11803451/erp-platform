@@ -7,6 +7,8 @@ export const signInSchema = createSmartFormSchema(
     })
 );
 
+export type SignInFormValues = z.infer<typeof signInSchema>;
+
 export const signUpSchema = createSmartFormSchema(
     z
         .object({
@@ -22,3 +24,5 @@ export const signUpSchema = createSmartFormSchema(
             path: ['confirmPassword'],
         })
 );
+
+export type SignUpFormValues = z.infer<typeof signUpSchema>;

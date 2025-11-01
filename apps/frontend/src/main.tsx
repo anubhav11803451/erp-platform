@@ -1,6 +1,8 @@
 import { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createBrowserRouter } from 'react-router';
+import { hydrateRoot } from 'react-dom/client';
+import { RouterProvider } from 'react-router/dom';
 import { Loader } from 'lucide-react';
 import { Provider } from 'react-redux';
 
@@ -9,6 +11,7 @@ import { store } from '@/app/store';
 import { routes } from './router.generated';
 
 import '@/index.css';
+import { Toaster } from './components/ui/sonner';
 
 if (import.meta.env) {
     console.log('Running in', import.meta.env.MODE, 'mode');
@@ -35,7 +38,8 @@ if (container) {
                             </div>
                         }
                     >
-                        <RouterProvider router={router} />
+                        <RouterProvider router={router} key={window.location.pathname} />
+                        <Toaster />
                     </Suspense>
                 </ThemeProvider>
             </Provider>

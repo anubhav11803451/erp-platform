@@ -9,6 +9,10 @@ import * as ReactRouter from 'react-router';
 
 export const routes = [{
     path: '/',
+    lazy: async () => {
+      const m = await import('./pages/_app.tsx');
+      return { Component: m.default, ...m };
+    },
     children: [
 {
       path: '',
@@ -16,18 +20,6 @@ export const routes = [{
         const m = await import('./pages/page.tsx');
         return { Component: m.default, ...m };
       },
-    },
-{
-      path: 'posts',
-      children: [
-{
-        path: ':slug',
-        lazy: async () => {
-          const m = await import('./pages/posts/[slug].tsx');
-          return { Component: m.default, ...m };
-        },
-      }
-      ],
     },
 {
       lazy: async () => {
@@ -42,6 +34,45 @@ export const routes = [{
           path: '',
           lazy: async () => {
             const m = await import('./pages/(auth)/signin/page.tsx');
+            return { Component: m.default, ...m };
+          },
+        }
+        ],
+      }
+      ],
+    },
+{
+      lazy: async () => {
+        const m = await import('./pages/(app)/_layout.tsx');
+        return { Component: m.default, ...m };
+      },
+      children: [
+{
+        path: 'posts',
+        children: [
+{
+          path: '',
+          lazy: async () => {
+            const m = await import('./pages/(app)/posts/page.tsx');
+            return { Component: m.default, ...m };
+          },
+        },
+{
+          path: ':slug',
+          lazy: async () => {
+            const m = await import('./pages/(app)/posts/[slug].tsx');
+            return { Component: m.default, ...m };
+          },
+        }
+        ],
+      },
+{
+        path: 'blog',
+        children: [
+{
+          path: '',
+          lazy: async () => {
+            const m = await import('./pages/(app)/blog/page.tsx');
             return { Component: m.default, ...m };
           },
         }
