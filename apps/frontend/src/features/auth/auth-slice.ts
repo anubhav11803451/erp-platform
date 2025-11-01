@@ -3,7 +3,7 @@ import type { RootState } from '@/app/root-reducer';
 import type { User } from '@erp/db';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-type AuthUser = {} & Omit<User, 'password_hash' | 'created_at' | 'updated_at'>;
+export type AuthUser = {} & Omit<User, 'password_hash' | 'created_at' | 'updated_at'>;
 
 type AuthState = {
     access_token: string | null;

@@ -18,7 +18,6 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
-            '@erp/db': path.resolve(__dirname, '../../packages/db'),
         },
     },
 });

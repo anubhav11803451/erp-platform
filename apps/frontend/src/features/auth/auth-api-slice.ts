@@ -7,6 +7,15 @@ export type Credentials = {
     password: string;
 };
 
+export type RegisterBody = Credentials & {
+    first_name: string;
+    last_name: string;
+};
+
+export type ForgotPasswordBody = {
+    email: string;
+};
+
 export type AuthResponse = {
     access_token: string;
     csrf_token: string;
@@ -69,6 +78,31 @@ const authApiSlice = apiSlice.injectEndpoints({
                     dispatch(logOut());
                 }
             },
+        }),
+
+        register: builder.mutation<AuthResponse, RegisterBody>({
+            query: (body) => ({
+                url: '/auth/register', // You will need to build this endpoint
+                method: 'POST',
+                body,
+            }),
+            onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
+                try {
+                    const { data } = await queryFulfilled;
+                    dispatch(setCredentials(data)); // Log user in immediately
+                } catch (_err) {
+                    // Handle error in component
+                }
+            },
+        }),
+
+        // --- NEW MUTATION ---
+        forgotPassword: builder.mutation<{ message: string }, ForgotPasswordBody>({
+            query: (body) => ({
+                url: '/auth/forgot-password', // You will need to build this endpoint
+                method: 'POST',
+                body,
+            }),
         }),
     }),
 });

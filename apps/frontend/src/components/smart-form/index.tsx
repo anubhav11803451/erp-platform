@@ -159,7 +159,7 @@ export function SmartForm<
                     <Button
                         form={id}
                         type="submit"
-                        className="mt-4!"
+                        className="mt-4! w-full"
                         disabled={
                             // Your logic is preserved
                             (disableDirtyCheck ? !form.formState.isDirty : false) ||

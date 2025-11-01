@@ -50,3 +50,16 @@ if (container) {
         "Root element with ID 'root' was not found in the document. Ensure there is a corresponding HTML element with the ID 'root' in your HTML file."
     );
 }
+
+// "exports": {
+//     "./client": {
+//       "import": "./generated/prisma/client.js",
+//       "types": "./generated/prisma/client.js",
+//       "default": "./generated/prisma/client.js"
+//     },
+//     "./browser": {
+//       "import": "./generated/prisma/browser.ts",
+//       "types": "./generated/prisma/browser.ts",
+//       "default": "./generated/prisma/browser.ts"
+//     }
+//   },

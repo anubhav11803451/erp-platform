@@ -28,12 +28,36 @@ export const routes = [{
       },
       children: [
 {
+        path: 'signup',
+        children: [
+{
+          path: '',
+          lazy: async () => {
+            const m = await import('./pages/(auth)/signup/page.tsx');
+            return { Component: m.default, ...m };
+          },
+        }
+        ],
+      },
+{
         path: 'signin',
         children: [
 {
           path: '',
           lazy: async () => {
             const m = await import('./pages/(auth)/signin/page.tsx');
+            return { Component: m.default, ...m };
+          },
+        }
+        ],
+      },
+{
+        path: 'forgot-password',
+        children: [
+{
+          path: '',
+          lazy: async () => {
+            const m = await import('./pages/(auth)/forgot-password/page.tsx');
             return { Component: m.default, ...m };
           },
         }

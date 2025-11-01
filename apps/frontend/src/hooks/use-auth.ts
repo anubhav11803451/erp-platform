@@ -1,32 +1,53 @@
+import { useAppSelector } from '@/app/hooks';
 import {
     useLoginMutation,
     useLogoutMutation,
     type Credentials,
 } from '@/features/auth/auth-api-slice';
+import {
+    selectCurrentUser,
+    selectIsAuthenticated,
+    selectIsAuthLoading,
+} from '@/features/auth/auth-slice';
 import { useNavigate } from 'react-router';
+import { toast } from 'sonner';
 
 export function useAuth() {
     // const dispatch = useAppDispatch();
 
+    const isAuthenticated = useAppSelector(selectIsAuthenticated);
+    const isAuthLoading = useAppSelector(selectIsAuthLoading);
+    const authUser = useAppSelector(selectCurrentUser);
+
     const navigate = useNavigate();
 
-    const [signIn] = useLoginMutation();
+    const [signIn, { isLoading: isSigningIn }] = useLoginMutation();
     const [logout] = useLogoutMutation();
 
     async function handleSignIn(values: Credentials) {
         try {
             await signIn(values).unwrap();
-            navigate('/posts/123');
+            toast.success('Logged in successfully');
+            navigate('/');
         } catch (_err) {
             console.error('Sign in failed', _err);
         }
     }
     function handleLogout() {
-        logout();
+        try {
+            logout().unwrap();
+            toast.success('Logged out successfully');
+            navigate('/');
+        } catch (_err) {
+            console.error('Sign out failed', _err);
+        }
     }
 
     return {
-        handleSignIn,
+        isAuthenticated,
+        isAuthLoading,
+        authUser,
+        signIn: { isSigningIn, handleSignIn },
         handleLogout,
     };
 }
