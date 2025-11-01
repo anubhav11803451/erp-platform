@@ -4,19 +4,27 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerDocumentOptions, SwaggerModule } from '@nestjs/swagger';
 
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+    // --- Security Headers ---
+    app.use(helmet());
+
+    // --- Cookie Parser ---
+    app.use(cookieParser());
 
     // Set global API prefix to match /api endpoint
     app.setGlobalPrefix('/v1/api');
 
-    // This tells NestJS to use the ValidationPipe on
-    // *every* incoming request for *all* controllers.
+    // Global ValidationPipe (unchanged)
     app.useGlobalPipes(
         new ValidationPipe({
-            whitelist: true, // Automatically strip properties that don't exist in the DTO
-            forbidNonWhitelisted: true, // Throw an error if non-DTO properties are sent
-            transform: true, // Automatically transform payloads to DTO class instances
+            whitelist: true,
+            forbidNonWhitelisted: true,
+            transform: true,
         }),
     );
 
@@ -34,12 +42,11 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config, options);
     SwaggerModule.setup('api', app, document);
 
-    // Enable CORS for frontend connection
     app.enableCors({
-        origin: 'http://localhost:5173',
+        origin: 'http://localhost:5173', // frontend URL
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-        allowedHeaders: 'Content-Type, Accept, Authorization',
-        credentials: true, // If you plan to use cookies or sessions
+        allowedHeaders: 'Content-Type, Accept, Authorization, X-CSRF-Token', // Added X-CSRF-Token
+        credentials: true, // This is CRITICAL for cookies
     });
 
     await app.listen(process.env.BACKEND_PORT ?? 3000);
