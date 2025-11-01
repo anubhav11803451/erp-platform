@@ -1,12 +1,12 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/pagination";
-import { useScopedI18n } from "@/locales/client";
+import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
+// import { useScopedI18n } from '@/locales/client';
 
-import { Flex } from "../ui/flex";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Flex } from '../ui/flex';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
-import { usePaginator } from "./use-paginator";
+import { usePaginator } from './use-paginator';
 
 type PaginatorProps = {
     totalItems: number;
@@ -34,11 +34,11 @@ export const Paginator = ({
         initialPage: 1,
         initialPageSize: 10,
     });
-    const scopedT = useScopedI18n("paginator");
+    // const scopedT = useScopedI18n('paginator');
     return (
         <Pagination className="justify-end gap-4">
             <Flex alignItems="center" gap={0.5}>
-                <span className="text-sm text-neutral-4/75">{scopedT("rowsPerPage")}</span>
+                <span className="text-neutral-4/75 text-sm">Rows per page:</span>
                 <Select
                     value={pageSize.toString()}
                     onValueChange={(value) => {
@@ -61,13 +61,13 @@ export const Paginator = ({
             <PaginationContent>
                 <PaginationItem>
                     <span className="text-neutral-4/75">
-                        {start} - {end} {scopedT("of")} {totalItems}
+                        {start} - {end} of {totalItems}
                     </span>
                 </PaginationItem>
 
                 <PaginationItem>
                     <button
-                        className="flex items-center justify-center rounded-xl p-1.5 hover:cursor-pointer enabled:hover:bg-neutral-6/20 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="enabled:hover:bg-neutral-6/20 flex items-center justify-center rounded-xl p-1.5 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={() => {
                             handlePrevious();
                             onPageChange?.(currentPage - 1);
@@ -80,7 +80,7 @@ export const Paginator = ({
 
                 <PaginationItem>
                     <button
-                        className="flex items-center justify-center rounded-xl p-1.5 hover:cursor-pointer enabled:hover:bg-neutral-6/20 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="enabled:hover:bg-neutral-6/20 flex items-center justify-center rounded-xl p-1.5 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={() => {
                             handleNext();
                             onPageChange?.(currentPage + 1);

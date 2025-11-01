@@ -22,7 +22,8 @@
     "db:generate": "dotenv -e ../../.env -- prisma generate",
     "db:migrate": "dotenv -e ../../.env -- prisma migrate dev",
     "db:format": "dotenv -e ../../.env -- prisma format",
-    "build": "pnpm db:generate"
+    "build": "pnpm db:generate",
+    "clean": "rm -rf ./generated node_modules"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",

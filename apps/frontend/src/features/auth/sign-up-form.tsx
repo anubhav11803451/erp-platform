@@ -9,7 +9,7 @@ import { UserRole } from '@erp/db/browser';
 
 export function SignUpForm() {
     const navigate = useNavigate();
-    const onSubmit = async (data: SignupFormValues) => {
+    const onSubmit = async (_data: SignupFormValues) => {
         try {
             // We only send the fields the backend expects
             // await register({

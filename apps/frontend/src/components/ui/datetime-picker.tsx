@@ -125,7 +125,7 @@ const DateTimePicker = React.forwardRef<Partial<DateTimePickerRef>, DateTimePick
             hour12: displayFormat?.hour12 ?? `PP hh:mm${granularity === 'second' ? ':ss' : ''} b`,
         };
 
-        const loc = locale ?? enUS;
+        // const loc = locale ?? enUS;
 
         const handleDateSelect = (newDate?: Date) => {
             if (!newDate) return;
@@ -173,7 +173,6 @@ const DateTimePicker = React.forwardRef<Partial<DateTimePickerRef>, DateTimePick
             >
                 <PopoverTrigger asChild disabled={disabled}>
                     <Button
-                        variant="select"
                         className={cn(
                             'justify-center rounded-md !bg-transparent !py-3 !text-xs',
                             !date && 'text-muted-foreground',
@@ -186,8 +185,7 @@ const DateTimePicker = React.forwardRef<Partial<DateTimePickerRef>, DateTimePick
                             <span className="flex items-center gap-1">
                                 {format(
                                     date,
-                                    hourCycle === 24 ? formatStrings.hour24 : formatStrings.hour12,
-                                    { locale: loc }
+                                    hourCycle === 24 ? formatStrings.hour24 : formatStrings.hour12
                                 )}
                             </span>
                         ) : (

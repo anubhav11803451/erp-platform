@@ -15,13 +15,13 @@ import { ModeToggle } from '@/components/theme-toggle';
 const AuthLayout = () => {
     const { isAuthenticated, isAuthLoading } = useAuth();
 
-    // if (isAuthLoading) {
-    //     return (
-    //         <div className="flex h-screen w-screen items-center justify-center">
-    //             <Loader className="text-primary h-10 w-10 animate-spin" />
-    //         </div>
-    //     );
-    // }
+    if (isAuthLoading) {
+        return (
+            <div className="flex h-screen w-screen items-center justify-center">
+                <Loader className="text-primary h-10 w-10 animate-spin" />
+            </div>
+        );
+    }
 
     if (isAuthenticated) {
         // User is logged in, redirect them to the app's home page

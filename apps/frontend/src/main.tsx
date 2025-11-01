@@ -1,7 +1,6 @@
 import { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter } from 'react-router';
-import { hydrateRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router/dom';
 import { Loader } from 'lucide-react';
 import { Provider } from 'react-redux';

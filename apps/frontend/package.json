@@ -10,7 +10,7 @@
     "lint-fix": "eslint . --fix",
     "prettier-check": "prettier src --check",
     "prettier-format": "prettier --write \"src/**/*.{ts, tsx}\"",
-    "clean": "rm -rf .next && rm -rf node_modules && npm install",
+    "clean": "rm -rf dist && rm -rf node_modules",
     "preview": "vite preview"
   },
   "dependencies": {

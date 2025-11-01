@@ -1,5 +1,5 @@
 import { apiSlice } from '@/api/api-slice';
-import type { Guardian, Student } from '@erp/db';
+import type { Guardian, Student } from '@erp/db/browser';
 // THIS IS THE MAGIC! We import our Prisma types directly into the frontend.
 // --- NEW: Define the type for the data we get back from the 'findAll' endpoint ---
 // Prisma's `include` returns a combined type.
@@ -52,7 +52,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
         getStudentById: builder.query<Student, string>({
             query: (id) => `/domains/students/${id}`,
             // Provides a specific tag for this student: { type: 'Student', id: '123' }
-            providesTags: (result, error, id) => [{ type: 'Student', id }],
+            providesTags: (_result, _error, id) => [{ type: 'Student', id }],
         }),
 
         // Mutation: PATCH /domains/students/:id
@@ -63,7 +63,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
                 body: data,
             }),
             // Invalidates both the list and the specific student's tag.
-            invalidatesTags: (result, error, { id }) => [
+            invalidatesTags: (_result, _error, { id }) => [
                 { type: 'Student', id },
                 { type: 'Student', id: 'LIST' },
             ],
@@ -76,7 +76,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
                 method: 'DELETE',
             }),
             // Invalidates both the list and the specific student's tag.
-            invalidatesTags: (result, error, id) => [
+            invalidatesTags: (_result, _error, id) => [
                 { type: 'Student', id },
                 { type: 'Student', id: 'LIST' },
             ],

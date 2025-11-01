@@ -1,5 +1,5 @@
 import { apiSlice } from '@/api/api-slice';
-import type { UserRole } from '@erp/db';
+import type { UserRole } from '@erp/db/browser';
 import { logOut, setCredentials } from './auth-slice';
 
 export type Credentials = {
