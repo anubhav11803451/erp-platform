@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/core/prisma.service';
 import { CreateGuardianDto, UpdateGuardianDto } from './dto';
-import { Guardian } from '@erp/db';
+import { Guardian } from '@erp/db/client';
 
 @Injectable()
 export class GuardiansService {

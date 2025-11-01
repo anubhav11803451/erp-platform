@@ -1,4 +1,4 @@
-import { UserRole } from '@erp/db';
+import { UserRole } from '@erp/db/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 

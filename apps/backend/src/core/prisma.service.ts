@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '@erp/db'; // <-- 1. IMPORT FROM OUR SHARED PACKAGE!
+import { PrismaClient } from '@erp/db/client'; // <-- 1. IMPORT FROM OUR SHARED PACKAGE!
 import { ConfigService } from '@nestjs/config';
 
 /**

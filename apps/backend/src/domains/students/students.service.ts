@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/core/prisma.service';
 import { CreateStudentDto, UpdateStudentDto } from './dto';
-import { Student } from '@erp/db'; // <-- Importing our shared type!
+import { Student } from '@erp/db/client';
 import { GuardiansService } from '../guardians/guardians.service';
 
 @Injectable()

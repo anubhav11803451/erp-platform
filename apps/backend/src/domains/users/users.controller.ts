@@ -1,7 +1,7 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User, UserRole } from '@erp/db';
+import { User, UserRole } from '@erp/db/client';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { Roles } from '@/common/decorators/roles.decorator';

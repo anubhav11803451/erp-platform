@@ -1,4 +1,4 @@
-import { UserRole } from '@erp/db';
+import { UserRole } from '@erp/db/client';
 import { SetMetadata } from '@nestjs/common';
 
 export const ROLES_KEY = 'roles';

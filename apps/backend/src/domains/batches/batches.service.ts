@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/core/prisma.service';
 import { CreateBatchDto, UpdateBatchDto } from './dto';
-import { Batch } from '@erp/db';
+import { Batch } from '@erp/db/client';
 
 @Injectable()
 export class BatchesService {

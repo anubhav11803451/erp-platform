@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { GuardiansService } from './guardians.service';
 import { CreateGuardianDto, UpdateGuardianDto } from './dto';
-import { Guardian, UserRole } from '@erp/db';
+import { Guardian, UserRole } from '@erp/db/client';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';

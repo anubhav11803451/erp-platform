@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { BatchesService } from './batches.service';
 import { CreateBatchDto, UpdateBatchDto } from './dto';
-import { Batch, UserRole } from '@erp/db';
+import { Batch, UserRole } from '@erp/db/client';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';

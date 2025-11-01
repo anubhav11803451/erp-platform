@@ -1,10 +1,21 @@
 {
   "name": "@erp/db",
   "version": "1.0.0",
-  "description": "Shared Prisma client and types",
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "description": "Shared Prisma client, types & enums for frontend and backend",
   "private": true,
+  "type": "module",
+  "exports": {
+    "./client": {
+      "import": "./generated/prisma/client.ts",
+      "types": "./generated/prisma/client.ts",
+      "default": "./generated/prisma/client.ts"
+    },
+    "./browser": {
+      "import": "./generated/prisma/browser.ts",
+      "types": "./generated/prisma/browser.ts",
+      "default": "./generated/prisma/browser.ts"
+    }
+  },
   "keywords": [],
   "scripts": {
     "db:studio": "dotenv -e ../../.env -- prisma studio",
@@ -18,7 +29,8 @@
     "dotenv-cli": "^10.0.0"
   },
   "devDependencies": {
-    "prisma": "^6.18.0"
+    "prisma": "catalog:prisma",
+    "prisma-generator-typescript-interfaces": "^3.1.0"
   },
   "author": "Anubhav Gupta",
   "license": "ISC",

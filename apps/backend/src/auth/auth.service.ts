@@ -9,7 +9,7 @@ import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '@/domains/users/users.service';
 import { PrismaService } from '@/core/prisma.service';
-import { User } from '@erp/db';
+import { User } from '@erp/db/client';
 import { AuthResponse, TokenPayload, UserWithoutPassword } from './types';
 
 @Injectable()

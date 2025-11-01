@@ -1,4 +1,4 @@
-import { User, UserRole } from '@erp/db';
+import { User, UserRole } from '@erp/db/client';
 
 // Define our token payload
 export interface TokenPayload {
