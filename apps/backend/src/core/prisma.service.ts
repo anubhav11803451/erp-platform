@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@erp/db/client'; // <-- 1. IMPORT FROM OUR SHARED PACKAGE!
 import { ConfigService } from '@nestjs/config';
 
@@ -10,7 +10,7 @@ import { ConfigService } from '@nestjs/config';
  * from our .env file before the client connects.
  */
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit {
+export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
     // 2. Inject ConfigService to access environment variables
     constructor(private configService: ConfigService) {
         super({
@@ -26,5 +26,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     // 4. Automatically connect to the DB when the app starts
     async onModuleInit() {
         await this.$connect();
+    }
+    async onModuleDestroy() {
+        await this.$disconnect();
     }
 }

@@ -1,11 +1,12 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from '@/app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerDocumentOptions, SwaggerModule } from '@nestjs/swagger';
 
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import { PrismaClientExceptionFilter } from '@/common/filters/prisma-client-exception.filter';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -27,6 +28,7 @@ async function bootstrap() {
             transform: true,
         }),
     );
+    app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
     // Swagger API documentation
     const config = new DocumentBuilder()
@@ -48,6 +50,9 @@ async function bootstrap() {
         allowedHeaders: 'Content-Type, Accept, Authorization, X-CSRF-Token', // Added X-CSRF-Token
         credentials: true, // This is CRITICAL for cookies
     });
+
+    const { httpAdapter } = app.get(HttpAdapterHost);
+    app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
     await app.listen(process.env.BACKEND_PORT ?? 3000);
     console.log(
