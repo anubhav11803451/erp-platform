@@ -20,4 +20,4 @@ export interface AuthResponse {
     };
 }
 
-export type UserWithoutPassword = Omit<User, 'password_hash'>;
+export type UserWithoutPassword = Omit<User, 'password'>;

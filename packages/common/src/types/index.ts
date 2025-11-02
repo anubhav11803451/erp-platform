@@ -10,7 +10,7 @@ export type User = {
   email: string;
   first_name: string;
   last_name: string;
-  password_hash: string;
+  password: string;
   role: UserRole;
   created_at: Date;
   updated_at: Date;

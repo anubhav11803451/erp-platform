@@ -41,14 +41,14 @@ enum UserRole {
 // NEW MODEL: User (Admin, Staff)
 // ----------------------------------------
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  first_name    String
-  last_name     String
-  password_hash String // We will never store the password directly
-  role          UserRole @default(STAFF)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id         String   @id @default(uuid())
+  email      String   @unique
+  first_name String
+  last_name  String
+  password   String // We will never store the password directly
+  role       UserRole @default(STAFF)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   // This defines the "one-to-many" relation
   // One User (tutor) can have many Batches

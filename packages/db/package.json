@@ -17,24 +17,31 @@
     }
   },
   "keywords": [],
+  "author": "Anubhav Gupta",
+  "license": "ISC",
   "scripts": {
     "db:studio": "dotenv -e ../../.env -- prisma studio",
     "db:generate": "dotenv -e ../../.env -- prisma generate",
     "db:migrate": "dotenv -e ../../.env -- prisma migrate dev",
     "db:format": "dotenv -e ../../.env -- prisma format",
+    "db:seed": "dotenv -e ../../.env -- prisma db seed",
     "build": "pnpm db:generate",
-    "clean": "rm -rf ./generated node_modules"
+    "clean": "rm -rf ./generated node_modules",
+    "clean:build": "rm -rf ./generated"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
     "dotenv-cli": "^10.0.0"
   },
   "devDependencies": {
+    "@types/node": "^24.9.2",
+    "bcrypt": "^6.0.0",
     "prisma": "catalog:prisma",
     "prisma-class-validator-generator": "^6.1.2",
     "prisma-generator-typescript-interfaces": "^3.1.0"
   },
-  "author": "Anubhav Gupta",
-  "license": "ISC",
+  "prisma": {
+    "seed": "node prisma/seed.ts"
+  },
   "packageManager": "pnpm@10.18.3"
 }

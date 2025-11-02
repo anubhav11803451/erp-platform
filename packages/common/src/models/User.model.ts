@@ -28,7 +28,7 @@ export class User {
     @IsDefined()
     @ApiProperty({ type: "string" })
     @IsString()
-    password_hash!: string;
+    password!: string;
 
     @IsDefined()
     @ApiProperty({ example: "STAFF", enum: Object.values(UserRole) })

@@ -13,9 +13,10 @@
     "db:migrate": "pnpm --filter @erp/db db:migrate",
     "db:format": "pnpm --filter @erp/db db:format",
     "db:studio": "pnpm --filter @erp/db db:studio",
-    "build": "pnpm build",
+    "build": "pnpm run --parallel build",
     "dev": "pnpm run --parallel start:dev --filter @erp/db",
     "clean": "pnpm run --parallel clean && rm -rf node_modules && pnpm install",
+    "clean:build": "pnpm run --parallel clean:build",
     "postinstall": "pnpm db:generate"
   },
   "dependencies": {},

@@ -1,27 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/core/prisma.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { User, UserRole } from '@erp/db/client';
+// import { CreateUserDto } from './dto/create-user.dto';
+import { Prisma, User, UserRole } from '@erp/db/client';
 import * as bcrypt from 'bcrypt';
+import { UserWithoutPassword } from '@/auth/types';
+import { omit } from 'lodash';
 
 @Injectable()
 export class UsersService {
     constructor(private readonly prisma: PrismaService) {}
 
-    async create(dto: CreateUserDto): Promise<User> {
+    async create(createUserInput: Prisma.UserCreateInput): Promise<UserWithoutPassword> {
         // Hash the password before saving
         const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(dto.password, saltRounds);
+        const hashedPassword = await bcrypt.hash(createUserInput.password as string, saltRounds);
 
-        return this.prisma.user.create({
+        const user = this.prisma.user.create({
             data: {
-                email: dto.email,
-                first_name: dto.first_name,
-                last_name: dto.last_name,
-                role: dto.role || UserRole.STAFF,
-                password_hash: hashedPassword,
+                ...createUserInput,
+                role: createUserInput.role || UserRole.STAFF,
+                password: hashedPassword,
             },
         });
+        return omit(user, ['password']) as UserWithoutPassword;
     }
 
     /**

@@ -31,7 +31,7 @@ export class AuthService {
     }
 
     private omitHashPassword(user: User): UserWithoutPassword {
-        return omit(user, 'password_hash');
+        return omit(user, 'password');
     }
 
     /**
@@ -41,7 +41,7 @@ export class AuthService {
     async validateUser(email: string, pass: string): Promise<UserWithoutPassword | null> {
         const user = await this.usersService.findByEmail(email);
         if (user) {
-            const encryptedPass: string = user.password_hash;
+            const encryptedPass: string = user.password;
             await bcrypt.compare(pass, encryptedPass);
             // Passwords match. Return user *without* the password hash.
 
