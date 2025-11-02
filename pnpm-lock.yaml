@@ -20,6 +20,9 @@ importers:
 
   apps/backend:
     dependencies:
+      '@erp/common':
+        specifier: workspace:*
+        version: link:../../packages/common
       '@erp/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -165,9 +168,9 @@ importers:
 
   apps/frontend:
     dependencies:
-      '@erp/db':
+      '@erp/common':
         specifier: workspace:*
-        version: link:../../packages/db
+        version: link:../../packages/common
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.65.0(react@19.2.0))
@@ -377,6 +380,18 @@ importers:
         specifier: ^7.1.7
         version: 7.1.12(@types/node@24.9.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.0)(tsx@4.20.6)
 
+  packages/common:
+    dependencies:
+      '@erp/db':
+        specifier: workspace:*
+        version: link:../db
+      '@nestjs/swagger':
+        specifier: ^11.2.1
+        version: 11.2.1(@nestjs/common@11.1.8(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)
+      class-validator:
+        specifier: ^0.14.2
+        version: 0.14.2
+
   packages/db:
     dependencies:
       '@prisma/client':
@@ -389,6 +404,9 @@ importers:
       prisma:
         specifier: catalog:prisma
         version: 6.18.0(typescript@5.9.3)
+      prisma-class-validator-generator:
+        specifier: ^6.1.2
+        version: 6.1.2(prisma@6.18.0(typescript@5.9.3))(typescript@5.9.3)
       prisma-generator-typescript-interfaces:
         specifier: ^3.1.0
         version: 3.1.0
@@ -1397,6 +1415,9 @@ packages:
   '@prisma/dmmf@6.18.0':
     resolution: {integrity: sha512-x0ItbLDxAnciEMFnGUm90Bkpzx2ja5Lp8Lz+9UkepIClZOMC4WvtMUHaMMfCFqfoBb+KUbxa/xV+FJ6EAaw4wQ==}
 
+  '@prisma/driver-adapter-utils@6.18.0':
+    resolution: {integrity: sha512-9wgSriEKs4j1ePxlv1/RNfJV9Gu5rzG37Neshg+DfrCcUY3amroERvTjyR04w5J1THdGdOTgGL9VdJcVaKRMmQ==}
+
   '@prisma/engines-version@6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f':
     resolution: {integrity: sha512-T7Af4QsJQnSgWN1zBbX+Cha5t4qjHRxoeoWpK4JugJzG/ipmmDMY5S+O0N1ET6sCBNVkf6lz+Y+ZNO9+wFU8pQ==}
 
@@ -1414,6 +1435,23 @@ packages:
 
   '@prisma/get-platform@6.18.0':
     resolution: {integrity: sha512-uXNJCJGhxTCXo2B25Ta91Rk1/Nmlqg9p7G9GKh8TPhxvAyXCvMNQoogj4JLEUy+3ku8g59cpyQIKFhqY2xO2bg==}
+
+  '@prisma/internals@6.18.0':
+    resolution: {integrity: sha512-BLqA1Dk3MEKgYJ6gLSGNHq3dgm+T5qPb0pq4h2iQw1QdaB8aS9tLg/XVRE1HNhARELJmGj2EZw3cckoGMS0NeQ==}
+    peerDependencies:
+      typescript: '>=5.1.0'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
+  '@prisma/prisma-schema-wasm@6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f':
+    resolution: {integrity: sha512-cftbH0phz6ozGkT6DVdPOkdtMFltE1bRO48/3NUbFdCOG6WRcajRKWDy1U1xood3k52J+B7yKm1DQXUiXW3VFA==}
+
+  '@prisma/schema-engine-wasm@6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f':
+    resolution: {integrity: sha512-1rEVuqs7LFkk+TLRxhgGGh9dj4nbbhXGuEwxrkcOer+8CBfM94LkhTTMHRnJbmzi/QZfT2XfSEr2ZKTdXidOyw==}
+
+  '@prisma/schema-files-loader@6.18.0':
+    resolution: {integrity: sha512-dtc6ct5rATNk/LaCRG+uyRZnlPwOKHstu9s7D6bJLJrzWDzKW3r0n5yZF7gX7RFAHdUQHUGSCvGkUVENCIoCNA==}
 
   '@radix-ui/number@1.1.1':
     resolution: {integrity: sha512-MkKCwxlXTgz6CFoJx3pCwn07GKp36+aZyu/u2Ln2VrA5DcdyCZkASEDBTd8x5whTQQL5CiYf4prXKLcgQdv29g==}
@@ -2734,6 +2772,9 @@ packages:
   arg@4.1.3:
     resolution: {integrity: sha512-58S9QDqG0Xx27YwPSt9fJxivjYl432YCwfDMfZ+71RAqUrZef7LrKQZ3LHLOwCS4FLNBplP533Zx895SeOCHvA==}
 
+  arg@5.0.2:
+    resolution: {integrity: sha512-PYjyFOLKQ9y57JvQ6QLo8dAgNqswh8M1RMJYdQduT6xbWSgK36P/Z/v+p888pM69jMMfS8Xd8F6I1kQ/I9HUGg==}
+
   argparse@1.0.10:
     resolution: {integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==}
 
@@ -3671,6 +3712,10 @@ packages:
   fs-extra@10.1.0:
     resolution: {integrity: sha512-oRXApq54ETRj4eMiFzGnHWGy+zo5raudjuxN0b8H7s/RU2oW0Wvsx9O0ACRN/kRq9E8Vu/ReskGB5o3ji+FzHQ==}
     engines: {node: '>=12'}
+
+  fs-extra@11.3.0:
+    resolution: {integrity: sha512-Z4XaCL6dUDHfP/jT25jJKMmtxvuwbkrD1vNSMFlo9lNLY2c5FHYSQgHPRZUjAB26TpDEoW9HCOgplrdbaPV/ew==}
+    engines: {node: '>=14.14'}
 
   fs-extra@11.3.2:
     resolution: {integrity: sha512-Xr9F6z6up6Ws+NjzMCZc6WXg2YFRlrLP9NQDO3VQrWrfiojdhS56TzueT88ze0uBdCTwEIhQ3ptnmKeWGFAe0A==}
@@ -4982,6 +5027,10 @@ packages:
   pretty-ms@9.3.0:
     resolution: {integrity: sha512-gjVS5hOP+M3wMm5nmNOucbIrqudzs9v/57bWRHQWLYklXqoXKrVfYW2W9+glfGsqtPgpiz5WwyEEB+ksXIx3gQ==}
     engines: {node: '>=18'}
+
+  prisma-class-validator-generator@6.1.2:
+    resolution: {integrity: sha512-W8jmyQcBiTD9Nl3gWh7HlHdry1Y2k/jjb2rA01up8PC834OxjHuUxh2LH9Mc2wlttiYQi8ZmZqs3/7ujW6cyvQ==}
+    hasBin: true
 
   prisma-generator-typescript-interfaces@3.1.0:
     resolution: {integrity: sha512-MuQ0MzG13ADWkMVEmLLBbjhjIY3Iq2klAc/X/HNIEvC7/kM/5Tw8dUqo/fUzBhvHXiPeFYTtqDlm9NCGZzqxXA==}
@@ -7175,6 +7224,10 @@ snapshots:
 
   '@prisma/dmmf@6.18.0': {}
 
+  '@prisma/driver-adapter-utils@6.18.0':
+    dependencies:
+      '@prisma/debug': 6.18.0
+
   '@prisma/engines-version@6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f': {}
 
   '@prisma/engines@6.18.0':
@@ -7201,6 +7254,36 @@ snapshots:
   '@prisma/get-platform@6.18.0':
     dependencies:
       '@prisma/debug': 6.18.0
+
+  '@prisma/internals@6.18.0(typescript@5.9.3)':
+    dependencies:
+      '@prisma/config': 6.18.0
+      '@prisma/debug': 6.18.0
+      '@prisma/dmmf': 6.18.0
+      '@prisma/driver-adapter-utils': 6.18.0
+      '@prisma/engines': 6.18.0
+      '@prisma/fetch-engine': 6.18.0
+      '@prisma/generator': 6.18.0
+      '@prisma/generator-helper': 6.18.0
+      '@prisma/get-platform': 6.18.0
+      '@prisma/prisma-schema-wasm': 6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f
+      '@prisma/schema-engine-wasm': 6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f
+      '@prisma/schema-files-loader': 6.18.0
+      arg: 5.0.2
+      prompts: 2.4.2
+    optionalDependencies:
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - magicast
+
+  '@prisma/prisma-schema-wasm@6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f': {}
+
+  '@prisma/schema-engine-wasm@6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f': {}
+
+  '@prisma/schema-files-loader@6.18.0':
+    dependencies:
+      '@prisma/prisma-schema-wasm': 6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f
+      fs-extra: 11.3.0
 
   '@radix-ui/number@1.1.1': {}
 
@@ -8536,6 +8619,8 @@ snapshots:
 
   arg@4.1.3: {}
 
+  arg@5.0.2: {}
+
   argparse@1.0.10:
     dependencies:
       sprintf-js: 1.0.3
@@ -9658,6 +9743,12 @@ snapshots:
   fresh@2.0.0: {}
 
   fs-extra@10.1.0:
+    dependencies:
+      graceful-fs: 4.2.11
+      jsonfile: 6.2.0
+      universalify: 2.0.1
+
+  fs-extra@11.3.0:
     dependencies:
       graceful-fs: 4.2.11
       jsonfile: 6.2.0
@@ -11067,6 +11158,21 @@ snapshots:
   pretty-ms@9.3.0:
     dependencies:
       parse-ms: 4.0.0
+
+  prisma-class-validator-generator@6.1.2(prisma@6.18.0(typescript@5.9.3))(typescript@5.9.3):
+    dependencies:
+      '@prisma/client': 6.18.0(prisma@6.18.0(typescript@5.9.3))(typescript@5.9.3)
+      '@prisma/generator-helper': 6.18.0
+      '@prisma/internals': 6.18.0(typescript@5.9.3)
+      class-validator: 0.14.2
+      pluralize: 8.0.0
+      prettier: 3.6.2
+      ts-morph: 26.0.0
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - magicast
+      - prisma
+      - typescript
 
   prisma-generator-typescript-interfaces@3.1.0:
     dependencies:

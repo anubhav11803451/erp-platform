@@ -1,9 +1,9 @@
 import { apiSlice } from '@/api/api-slice';
-import type { Guardian, Student } from '@erp/db/browser';
+import type { Guardian, Student } from '@erp/common/types';
 // THIS IS THE MAGIC! We import our Prisma types directly into the frontend.
 // --- NEW: Define the type for the data we get back from the 'findAll' endpoint ---
 // Prisma's `include` returns a combined type.
-type StudentWithGuardian = Student & {
+export type EnrichedStudent = Student & {
     guardian: Guardian;
 };
 
@@ -29,7 +29,7 @@ type UpdateStudentInput = Partial<CreateStudentPayload>;
 export const studentsApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         // Query: GET /domains/students
-        getStudents: builder.query<StudentWithGuardian[], void>({
+        getStudents: builder.query<EnrichedStudent[], void>({
             query: () => '/domains/students',
             providesTags: (result) =>
                 result

@@ -5,13 +5,28 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+generator class_validator {
+  provider               = "prisma-class-validator-generator"
+  output                 = "../../common/src" // Output directory
+  swagger                = "true" // Add Swagger decorators
+  separateRelationFields = "false" // Split base/relation classes
+}
+
+generator typescriptInterfaces {
+  provider    = "prisma-generator-typescript-interfaces"
+  output      = "../../common/src/types/index.ts"
+  modelType   = "type"
+  enumType    = "enum"
+  exportEnums = false
 }
 
 // ----------------------------------------

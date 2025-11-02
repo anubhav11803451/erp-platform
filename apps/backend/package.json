@@ -21,6 +21,7 @@
     "clean": "rm -rf dist && rm -rf node_modules"
   },
   "dependencies": {
+    "@erp/common": "workspace:*",
     "@erp/db": "workspace:*",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",

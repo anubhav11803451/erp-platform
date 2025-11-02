@@ -1,6 +1,6 @@
 import { createAppSlice } from '@/app/create-app-slice';
 import type { RootState } from '@/app/root-reducer';
-import type { User } from '@erp/db/browser';
+import type { User } from '@erp/common/types';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 export type AuthUser = {} & Omit<User, 'password_hash' | 'created_at' | 'updated_at'>;

@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router';
 import { FieldGroup } from '@/components/ui/field';
 import { TextField } from '@/components/smart-form/form-fields';
-import { UserRole } from '@erp/db/browser';
+import { UserRole } from '@erp/common/enums';
 
 export function SignUpForm() {
     const navigate = useNavigate();
