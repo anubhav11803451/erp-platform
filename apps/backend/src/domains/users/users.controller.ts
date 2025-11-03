@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserRole } from '@erp/db/client';
@@ -17,5 +17,11 @@ export class UsersController {
     create(@Body() createUserInput: CreateUserDto): Promise<UserWithoutPassword> {
         // Note: In a real app, only an ADMIN should be able to create new users.
         return this.usersService.create(createUserInput);
+    }
+
+    @Get()
+    @Roles(UserRole.ADMIN) // <-- THIS WAS MISSING
+    findAll(): Promise<UserWithoutPassword[]> {
+        return this.usersService.findAll();
     }
 }

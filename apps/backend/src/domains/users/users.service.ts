@@ -40,5 +40,7 @@ export class UsersService {
         return this.prisma.user.findUnique({ where: { id } });
     }
 
-    // ... you can add findAll, update, delete as needed
+    async findAll(): Promise<UserWithoutPassword[]> {
+        return this.prisma.user.findMany();
+    }
 }
