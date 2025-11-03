@@ -11,7 +11,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ArrowUpDown, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { DataTableColumnHeader } from '@/components/shared/data-table/data-table-header';
 
 // Define the action handler props
 type GetColumnsProps = {
@@ -21,16 +22,13 @@ type GetColumnsProps = {
 
 export const getColumns = ({ onEdit, onDelete }: GetColumnsProps): ColumnDef<EnrichedStudent>[] => [
     {
+        accessorKey: 'id',
+        header: 'ID',
+        cell: ({ row }) => <div className="px-3">{row.original.id}</div>,
+    },
+    {
         accessorKey: 'first_name',
-        header: ({ column }) => (
-            <Button
-                variant="ghost"
-                onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-                Name
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
         cell: ({ row }) => (
             <div className="px-3 font-medium capitalize">{`${row.original.first_name} ${row.original.last_name}`}</div>
         ),
@@ -51,6 +49,11 @@ export const getColumns = ({ onEdit, onDelete }: GetColumnsProps): ColumnDef<Enr
     {
         accessorKey: 'guardian.email',
         header: 'Guardian Email',
+    },
+    {
+        accessorKey: 'created_at',
+        header: 'Joined on',
+        cell: ({ row }) => new Date(row.original.created_at).toLocaleDateString(),
     },
     {
         id: 'actions',

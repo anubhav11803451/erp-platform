@@ -11,8 +11,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ArrowUpDown, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { DataTableColumnHeader } from '@/components/shared/data-table/data-table-header';
 
 // Define the action handler props
 type GetColumnsProps = {
@@ -22,16 +23,13 @@ type GetColumnsProps = {
 
 export const getColumns = ({ onEdit, onDelete }: GetColumnsProps): ColumnDef<EnrichedBatch>[] => [
     {
+        accessorKey: 'id',
+        header: 'ID',
+        cell: ({ row }) => <div className="px-3">{row.original.id}</div>,
+    },
+    {
         accessorKey: 'name',
-        header: ({ column }) => (
-            <Button
-                variant="ghost"
-                onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-                Batch Name
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
         cell: ({ row }) => <div className="px-3 font-medium">{row.original.name}</div>,
     },
     {

@@ -4,6 +4,8 @@ import type { Table } from '@tanstack/react-table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
+import { Flex } from '@/components/ui/flex';
+import { DataTableViewOptions } from '@/components/shared/data-table/data-table-view-options';
 
 type DataTableToolbarProps<TData> = {
     table: Table<TData>;
@@ -12,8 +14,8 @@ type DataTableToolbarProps<TData> = {
 
 export function DataTableToolbar<TData>({ table, onAddBatchClick }: DataTableToolbarProps<TData>) {
     return (
-        <div className="flex w-full items-center justify-between">
-            <div className="flex flex-1 items-center space-x-2">
+        <Flex alignItems="center" justifyContent="between" fullWidth>
+            <Flex alignItems="center" className="flex-1 space-x-2">
                 <Input
                     placeholder="Filter by name..."
                     value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
@@ -22,11 +24,12 @@ export function DataTableToolbar<TData>({ table, onAddBatchClick }: DataTableToo
                     }
                     className="h-8 w-[150px] lg:w-[250px]"
                 />
-            </div>
-            <Button size="sm" className="h-8" onClick={onAddBatchClick}>
+            </Flex>
+            <DataTableViewOptions table={table} />
+            <Button size="sm" className="ml-4 h-8" onClick={onAddBatchClick}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Batch
             </Button>
-        </div>
+        </Flex>
     );
 }

@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router';
 import { FieldGroup } from '@/components/ui/field';
 import { TextField } from '@/components/smart-form/form-fields';
 import { UserRole } from '@erp/common/enums';
+import { Grid } from '@/components/ui/grid';
 
 export function SignUpForm() {
     const navigate = useNavigate();
@@ -33,10 +34,10 @@ export function SignUpForm() {
             showSubmitButton={false}
         >
             <FieldGroup>
-                <div className="grid grid-cols-2 gap-4">
+                <Grid columns={2} className="gap-4">
                     <TextField name="first_name" label="First Name" placeholder="Jane" required />
                     <TextField name="last_name" label="Last Name" placeholder="Doe" required />
-                </div>
+                </Grid>
                 <TextField name="email" label="Email" placeholder="jane.doe@example.com" required />
                 <TextField name="password" label="Password" placeholder="••••••••" required />
                 <TextField

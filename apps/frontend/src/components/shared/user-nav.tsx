@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { GuestNav } from './guest-nav';
 import { useAuth } from '@/hooks/use-auth';
+import { Flex } from '../ui/flex';
+import { Typography } from '../ui/typography';
 
 /**
  * A shared component that displays the user's avatar and a dropdown menu
@@ -34,7 +36,7 @@ export function UserNav() {
     }
 
     return (
-        <div className="ml-auto flex items-center space-x-4">
+        <Flex alignItems="center" className="ml-auto space-x-4">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-9 w-9 rounded-full">
@@ -52,14 +54,12 @@ export function UserNav() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
-                        <div className="flex flex-col space-y-1">
-                            <p className="text-sm leading-none font-medium">
+                        <Flex alignItems="center" direction="column" className="space-y-1">
+                            <Typography variant="small">
                                 {user?.first_name} {user?.last_name}
-                            </p>
-                            <p className="text-muted-foreground text-xs leading-none">
-                                {user?.email}
-                            </p>
-                        </div>
+                            </Typography>
+                            <Typography variant="tiny">{user?.email}</Typography>
+                        </Flex>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
@@ -75,6 +75,6 @@ export function UserNav() {
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-        </div>
+        </Flex>
     );
 }

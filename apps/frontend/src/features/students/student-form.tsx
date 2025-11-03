@@ -15,6 +15,7 @@ import {
     FieldSeparator,
     FieldSet,
 } from '@/components/ui/field';
+import { Grid } from '@/components/ui/grid';
 
 type StudentFormDialogProps = {
     isOpen: boolean;
@@ -23,8 +24,6 @@ type StudentFormDialogProps = {
 };
 
 export function StudentFormDialog({ isOpen, setIsOpen, studentToEdit }: StudentFormDialogProps) {
-    console.log('student to edit:', studentToEdit);
-
     const { initialValues, onSubmit, isLoading, isEditMode } = useStudentForm({
         studentToEdit,
         setIsOpen,
@@ -55,7 +54,7 @@ export function StudentFormDialog({ isOpen, setIsOpen, studentToEdit }: StudentF
                         <FieldLegend className="text-lg font-medium">Student Details</FieldLegend>
 
                         <FieldGroup>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <Grid columns={1} className="gap-4 md:grid-cols-2">
                                 <TextField
                                     name="first_name"
                                     label="First Name"
@@ -72,7 +71,7 @@ export function StudentFormDialog({ isOpen, setIsOpen, studentToEdit }: StudentF
                                     label="Student Phone (Optional)"
                                     placeholder="+1 234 567 890"
                                 />
-                            </div>
+                            </Grid>
                             <TextField
                                 name="school_name"
                                 label="School Name (Optional)"
@@ -88,7 +87,7 @@ export function StudentFormDialog({ isOpen, setIsOpen, studentToEdit }: StudentF
                             create a new one.
                         </FieldDescription>
                         <FieldGroup>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <Grid columns={1} className="gap-4 md:grid-cols-2">
                                 <TextField
                                     name="guardian.first_name"
                                     label="Guardian First Name"
@@ -109,7 +108,7 @@ export function StudentFormDialog({ isOpen, setIsOpen, studentToEdit }: StudentF
                                     label="Guardian Phone (Optional)"
                                     placeholder="+1 987 654 321"
                                 />
-                            </div>
+                            </Grid>
                         </FieldGroup>
                     </FieldSet>
                 </FieldGroup>

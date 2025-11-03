@@ -93,6 +93,7 @@ export default function BatchesPage() {
 
             {/* The Data Table */}
             <DataTable
+                hideColumns={['id']}
                 columns={columns}
                 data={batches || []}
                 toolbar={(table) => (

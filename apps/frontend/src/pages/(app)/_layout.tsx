@@ -6,6 +6,7 @@ import { Loader } from 'lucide-react';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { AppHeader } from '@/components/layout/app-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { Flex } from '@/components/ui/flex';
 
 /**
  * This is the main layout for the protected (app) group.
@@ -43,9 +44,9 @@ const AppLayout = () => {
                 <AppHeader />
 
                 {/* --- Page Content --- */}
-                <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+                <Flex direction="column" className="flex-1 gap-4 p-4 pt-0">
                     <Outlet />
-                </div>
+                </Flex>
             </SidebarInset>
         </SidebarProvider>
     );

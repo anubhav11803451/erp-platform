@@ -45,7 +45,7 @@ async function bootstrap() {
     SwaggerModule.setup('api', app, document);
 
     app.enableCors({
-        origin: 'http://localhost:5173', // frontend URL
+        origin: ['http://localhost:5173', 'http://localhost:4173'], // frontend URL
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         allowedHeaders: 'Content-Type, Accept, Authorization, X-CSRF-Token', // Added X-CSRF-Token
         credentials: true, // This is CRITICAL for cookies

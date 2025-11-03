@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router';
-import { Home, Users, BookMarked, Banknote, LayoutDashboard } from 'lucide-react';
+import { Users, BookMarked, LayoutDashboard } from 'lucide-react';
 
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar'; // Assuming you have run `npx shadcn-ui add sidebar`
 

@@ -20,13 +20,17 @@ import {
     Table,
     TableBody,
     TableCell,
+    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import { DataTablePagination } from '../shared/data-table/data-table-pagination';
 
 type DataTableProps<TData, TValue> = {
+    // NEW: Add hideColumns prop to hide specific columns by default
+
+    hideColumns?: (keyof TData)[];
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
     /**
@@ -37,13 +41,24 @@ type DataTableProps<TData, TValue> = {
 };
 
 export function DataTable<TData, TValue>({
+    hideColumns,
     columns,
     data,
     toolbar,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+        ...(hideColumns
+            ? hideColumns.reduce(
+                  (acc, column) => {
+                      acc[column as string] = false;
+                      return acc;
+                  },
+                  {} as { [key: string]: boolean }
+              )
+            : {}),
+    });
     const [rowSelection, setRowSelection] = React.useState({});
 
     const table = useReactTable({
@@ -71,17 +86,19 @@ export function DataTable<TData, TValue>({
         We now call the toolbar function and pass the table instance.
         This ensures the toolbar never gets a 'null' table.
       */}
-            {toolbar(table)}
-
-            {/* --- Table --- */}
             <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
+                <div className="mx-4 my-6">{toolbar(table)}</div>
+                <Table id="data-table" className="border-collapse border-spacing-y-2">
+                    {/* --- Table --- */}
+                    <TableHeader id="data-table-header" className="bg-muted/50">
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
+                            <TableRow key={headerGroup.id} className="bg-muted/50 rounded-t-md">
                                 {headerGroup.headers.map((header) => {
                                     return (
-                                        <TableHead key={header.id}>
+                                        <TableHead
+                                            key={header.id}
+                                            className="first:rounded-tl-[inherit] last:rounded-tr-[inherit]"
+                                        >
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
@@ -120,33 +137,18 @@ export function DataTable<TData, TValue>({
                             </TableRow>
                         )}
                     </TableBody>
+                    {/* --- Pagination --- */}
+                    <TableFooter className="rounded-b-md bg-transparent">
+                        <TableRow className="rounded-[inherit] hover:bg-none">
+                            <TableCell
+                                colSpan={columns.length}
+                                className="rounded-[inherit] bg-transparent"
+                            >
+                                <DataTablePagination table={table} />
+                            </TableCell>
+                        </TableRow>
+                    </TableFooter>
                 </Table>
-            </div>
-
-            {/* --- Pagination --- */}
-            <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="text-muted-foreground flex-1 text-sm">
-                    {table.getFilteredSelectedRowModel().rows.length} of{' '}
-                    {table.getFilteredRowModel().rows.length} row(s) selected.
-                </div>
-                <div className="flex items-center space-x-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
-                    >
-                        Previous
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
-                    >
-                        Next
-                    </Button>
-                </div>
             </div>
         </div>
     );

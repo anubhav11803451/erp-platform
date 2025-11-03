@@ -34,6 +34,7 @@ const typographyVariants = cva('tracking-normal', {
             large: 'text-lg font-semibold',
             small: 'text-sm leading-none font-medium',
             muted: 'text-muted-foreground text-sm',
+            tiny: 'text-muted-foreground text-xs leading-none font-medium',
         },
         weight: {
             regular: 'font-normal',
