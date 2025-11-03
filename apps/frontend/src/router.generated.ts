@@ -84,6 +84,18 @@ export const routes = [{
         ],
       },
 {
+        path: 'dashboard',
+        children: [
+{
+          path: '',
+          lazy: async () => {
+            const m = await import('./pages/(app)/dashboard/page.tsx');
+            return { Component: m.default, ...m };
+          },
+        }
+        ],
+      },
+{
         path: 'batches',
         children: [
 {

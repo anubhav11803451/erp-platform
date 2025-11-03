@@ -1,3 +1,6 @@
+import { Link } from 'react-router';
+
+import { LayoutDashboard, LogOut } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -6,16 +9,29 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, LayoutDashboard } from 'lucide-react';
-import { Link } from 'react-router';
-import type { AuthUser } from '@/features/auth/auth-slice';
+import { GuestNav } from './guest-nav';
+import { useAuth } from '@/hooks/use-auth';
 
-export const UserNav = ({ user, handleLogout }: { user: AuthUser; handleLogout: () => void }) => {
+/**
+ * A shared component that displays the user's avatar and a dropdown menu
+ * for account actions like viewing the dashboard or logging out.
+ */
+export function UserNav() {
+    const { isAuthenticated, authUser, handleLogout } = useAuth();
+
+    const user = authUser;
+
+    // Helper to get initials from name
     const getInitials = (firstName: string, lastName: string) => {
-        return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
+        return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
     };
+
+    if (!isAuthenticated || !user) {
+        return <GuestNav />; // Should not happen on protected routes, but good practice
+    }
 
     return (
         <div className="ml-auto flex items-center space-x-4">
@@ -47,7 +63,7 @@ export const UserNav = ({ user, handleLogout }: { user: AuthUser; handleLogout: 
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                        <Link to="/">
+                        <Link to="/dashboard">
                             <LayoutDashboard className="mr-2 h-4 w-4" />
                             <span>Dashboard</span>
                         </Link>
@@ -61,4 +77,4 @@ export const UserNav = ({ user, handleLogout }: { user: AuthUser; handleLogout: 
             </DropdownMenu>
         </div>
     );
-};
+}

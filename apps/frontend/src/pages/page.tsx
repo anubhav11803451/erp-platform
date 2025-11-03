@@ -22,9 +22,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router';
 import { UserNav } from '@/components/shared/user-nav';
-import { GuestNav } from '@/components/shared/guest-nav';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/use-auth';
 
 /**
  * ERP360 Landing Page
@@ -49,8 +47,6 @@ const LandingPage = () => {
     const [aiPrompt, setAiPrompt] = useState(
         'Draft a job description for a senior product manager'
     );
-
-    const { isAuthenticated, authUser, handleLogout } = useAuth();
 
     const handleGenerateAiResponse = () => {
         setAiResponse(
@@ -95,11 +91,8 @@ const LandingPage = () => {
                         </a>
                     </nav>
                     {/* --- DYNAMIC AUTH SECTION --- */}
-                    {isAuthenticated ? (
-                        <UserNav user={authUser!} handleLogout={handleLogout} />
-                    ) : (
-                        <GuestNav />
-                    )}
+
+                    <UserNav />
                     {/* --- END DYNAMIC AUTH SECTION --- */}
                 </div>
             </header>
