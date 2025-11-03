@@ -72,31 +72,12 @@ export const routes = [{
       },
       children: [
 {
-        path: 'posts',
+        path: 'students',
         children: [
 {
           path: '',
           lazy: async () => {
-            const m = await import('./pages/(app)/posts/page.tsx');
-            return { Component: m.default, ...m };
-          },
-        },
-{
-          path: ':slug',
-          lazy: async () => {
-            const m = await import('./pages/(app)/posts/[slug].tsx');
-            return { Component: m.default, ...m };
-          },
-        }
-        ],
-      },
-{
-        path: 'blog',
-        children: [
-{
-          path: '',
-          lazy: async () => {
-            const m = await import('./pages/(app)/blog/page.tsx');
+            const m = await import('./pages/(app)/students/page.tsx');
             return { Component: m.default, ...m };
           },
         }

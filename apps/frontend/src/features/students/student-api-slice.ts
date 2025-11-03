@@ -9,7 +9,7 @@ export type EnrichedStudent = Student & {
 
 // --- NEW: Define the type for creating a student ---
 // This must match the backend's CreateStudentDto
-type CreateStudentPayload = {
+export type CreateStudentInput = {
     first_name: string;
     last_name: string;
     email?: string;
@@ -23,7 +23,7 @@ type CreateStudentPayload = {
     };
 };
 // Define the shape for updating. It's a partial of the create input.
-type UpdateStudentInput = Partial<CreateStudentPayload>;
+export type UpdateStudentInput = Partial<CreateStudentInput>;
 
 // Injects endpoints into the root apiSlice
 export const studentsApiSlice = apiSlice.injectEndpoints({
@@ -40,7 +40,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
                     : [{ type: 'Student', id: 'LIST' }],
         }),
         // Mutation: POST /domains/students
-        addStudent: builder.mutation<Student, CreateStudentPayload>({
+        addStudent: builder.mutation<Student, CreateStudentInput>({
             query: (newStudent) => ({
                 url: '/domains/students',
                 method: 'POST',

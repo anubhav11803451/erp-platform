@@ -26,7 +26,7 @@ const AppLayout = () => {
 
     // 2. If we are done loading AND not auth'd, redirect
     if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/" replace />;
     }
 
     // 3. If we are done loading AND auth'd, show the app

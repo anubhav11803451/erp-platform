@@ -38,7 +38,6 @@ if (container) {
                         }
                     >
                         <RouterProvider router={router} key={window.location.pathname} />
-                        <Toaster />
                     </Suspense>
                 </ThemeProvider>
             </Provider>

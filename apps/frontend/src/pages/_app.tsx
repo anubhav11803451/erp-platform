@@ -35,7 +35,7 @@ function App() {
     return (
         <Fragment>
             <Outlet />
-            <Toaster />
+            <Toaster position="top-right" hotkey={['meta', 'k']} />
         </Fragment>
     );
 }
