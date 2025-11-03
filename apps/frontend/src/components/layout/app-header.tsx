@@ -2,6 +2,8 @@ import { UserNav } from '@/components/shared/user-nav';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Typography } from '../ui/typography';
+import { ThemeSelector } from '../themes/theme-selector';
+import { ModeToggle } from '../themes/theme-toggle';
 
 export function AppHeader() {
     return (
@@ -13,7 +15,8 @@ export function AppHeader() {
             <div className="flex-1 flex-row">
                 <Typography variant="h4">ERP360</Typography>
             </div>
-
+            <ThemeSelector className="mr-4 hidden md:flex" />
+            <ModeToggle className="hidden md:flex" />
             {/* --- User Avatar --- */}
             <UserNav />
         </header>

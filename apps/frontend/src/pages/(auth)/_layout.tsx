@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Flex } from '@/components/ui/flex';
 import { Container } from '@/components/ui/container';
 import { FlexItem } from '@/components/ui/flex-item';
-import { ModeToggle } from '@/components/theme-toggle';
+import { ModeToggle } from '@/components/themes/theme-toggle';
 
 /**
  * This is the shared layout for the (auth) group (e.g., /signin, /signup).
