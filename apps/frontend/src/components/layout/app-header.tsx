@@ -1,9 +1,10 @@
 import { UserNav } from '@/components/shared/user-nav';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Typography } from '../ui/typography';
+
 import { ThemeSelector } from '../themes/theme-selector';
 import { ModeToggle } from '../themes/theme-toggle';
+import { Breadcrumbs } from '../shared/breadcrumbs/bread-crumbs';
 
 export function AppHeader() {
     return (
@@ -12,8 +13,9 @@ export function AppHeader() {
 
             {/* --- Header Content (e.g., Breadcrumbs/Search can go here) --- */}
             <SidebarTrigger />
-            <div className="flex-1 flex-row">
-                <Typography variant="h4">ERP360</Typography>
+            {/* --- Header Content (BREADCRUMBS) --- */}
+            <div className="flex-1">
+                <Breadcrumbs />
             </div>
             <ThemeSelector className="mr-4 hidden md:flex" />
             <ModeToggle className="hidden md:flex" />

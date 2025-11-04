@@ -49,7 +49,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
             invalidatesTags: [{ type: 'Student', id: 'LIST' }],
         }),
         // Query: GET /domains/students/:id
-        getStudentById: builder.query<Student, string>({
+        getStudent: builder.query<Student, string>({
             query: (id) => `/domains/students/${id}`,
             // Provides a specific tag for this student: { type: 'Student', id: '123' }
             providesTags: (_result, _error, id) => [{ type: 'Student', id }],
@@ -87,7 +87,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
 // Export auto-generated hooks for use in components
 export const {
     useGetStudentsQuery,
-    useGetStudentByIdQuery,
+    useGetStudentQuery,
     useAddStudentMutation,
     useUpdateStudentMutation,
     useDeleteStudentMutation,

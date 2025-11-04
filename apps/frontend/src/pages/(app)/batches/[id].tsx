@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import * as React from 'react';
-import { useParams, Link } from 'react-router';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { useParams } from 'react-router';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+
 import { DataTable } from '@/components/ui/data-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGetBatchQuery } from '@/features/batches/batches-api-slice';
@@ -110,13 +111,6 @@ export default function BatchDetailsPage() {
 
     return (
         <div className="container mx-auto py-10">
-            <Button variant="outline" size="sm" asChild className="mb-4">
-                <Link to="/batches">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to all batches
-                </Link>
-            </Button>
-
             <Card className="mb-8">
                 <CardHeader>
                     <CardTitle className="text-3xl">{batch.name}</CardTitle>
@@ -125,7 +119,7 @@ export default function BatchDetailsPage() {
                 <CardContent>
                     <Grid columns={2} className="gap-4">
                         <Flex>
-                            <strong>Tutor:</strong>
+                            <strong className="mr-2">Tutor:</strong>
                             {batch.tutor
                                 ? `${batch.tutor.first_name} ${batch.tutor.last_name}`
                                 : 'Unassigned'}
