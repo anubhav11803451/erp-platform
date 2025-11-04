@@ -25,7 +25,7 @@ export function DataTableToolbar<TData>({ table, onAddUserClick }: DataTableTool
             </div>
             <DataTableViewOptions table={table} />
             <Button size="sm" className="ml-4 h-8" onClick={onAddUserClick}>
-                <PlusCircle className="mr-2 h-4 w-4" />
+                <PlusCircle className="h-4 w-4" />
                 Add Staff
             </Button>
         </div>

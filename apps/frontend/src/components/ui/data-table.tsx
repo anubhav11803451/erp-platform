@@ -26,10 +26,11 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { DataTablePagination } from '../shared/data-table/data-table-pagination';
+import { cn } from '@/lib/utils';
 
 type DataTableProps<TData, TValue> = {
     // NEW: Add hideColumns prop to hide specific columns by default
-
+    className?: string;
     hideColumns?: (keyof TData)[];
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
@@ -41,6 +42,7 @@ type DataTableProps<TData, TValue> = {
 };
 
 export function DataTable<TData, TValue>({
+    className,
     hideColumns,
     columns,
     data,
@@ -82,12 +84,12 @@ export function DataTable<TData, TValue>({
 
     return (
         <div className="w-full space-y-4">
-            {/* THIS IS THE FIX: 
-        We now call the toolbar function and pass the table instance.
-        This ensures the toolbar never gets a 'null' table.
-      */}
-            <div className="rounded-md border">
-                <div className="mx-4 my-6">{toolbar(table)}</div>
+            <div id="data-table-wrapper" className={cn('rounded-md border', className)}>
+                {toolbar && (
+                    <div id="data-table-toolbar-wrapper" className="mx-4 my-6">
+                        {toolbar(table)}
+                    </div>
+                )}
                 <Table id="data-table" className="border-collapse border-spacing-y-2">
                     {/* --- Table --- */}
                     <TableHeader id="data-table-header" className="bg-muted/50">
@@ -138,11 +140,11 @@ export function DataTable<TData, TValue>({
                         )}
                     </TableBody>
                     {/* --- Pagination --- */}
-                    <TableFooter className="rounded-b-md bg-transparent">
-                        <TableRow className="rounded-[inherit] hover:bg-none">
+                    <TableFooter className="bg-muted/50 rounded-b-md">
+                        <TableRow className="hover:bg-muted/50 rounded-[inherit]">
                             <TableCell
                                 colSpan={columns.length}
-                                className="rounded-[inherit] bg-transparent"
+                                className="bg-muted/50 rounded-[inherit]"
                             >
                                 <DataTablePagination table={table} />
                             </TableCell>

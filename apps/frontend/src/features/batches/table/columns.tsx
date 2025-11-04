@@ -11,9 +11,11 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2, LinkIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/shared/data-table/data-table-header';
+import { Link } from 'react-router';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Define the action handler props
 type GetColumnsProps = {
@@ -26,10 +28,43 @@ export const getColumns = ({ onEdit, onDelete }: GetColumnsProps): ColumnDef<Enr
         accessorKey: 'id',
         header: 'ID',
     },
+
+    {
+        id: 'select',
+        header: ({ table }) => (
+            <Checkbox
+                checked={
+                    table.getIsAllPageRowsSelected() ||
+                    (table.getIsSomePageRowsSelected() && 'indeterminate')
+                }
+                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                aria-label="Select all"
+            />
+        ),
+        cell: ({ row }) => (
+            <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => row.toggleSelected(!!value)}
+                aria-label="Select row"
+            />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+    },
     {
         accessorKey: 'name',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
-        cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
+        cell: ({ row }) => {
+            const batch = row.original;
+            return (
+                <Button variant="link" asChild className="group p-0 font-medium">
+                    <Link to={`/batches/${batch.id}`}>
+                        {batch.name}
+                        <LinkIcon className="group-hover:text-primary/50 ml-2" />
+                    </Link>
+                </Button>
+            );
+        },
     },
     {
         accessorKey: 'subject',
@@ -41,17 +76,15 @@ export const getColumns = ({ onEdit, onDelete }: GetColumnsProps): ColumnDef<Enr
         header: 'Tutor',
         cell: ({ row }) => {
             const tutor = row.original.tutor;
-            return tutor ? (
-                `${tutor.first_name} ${tutor.last_name}`
-            ) : (
-                <span className="text-muted-foreground">Unassigned</span>
-            );
+            return tutor ? `${tutor.first_name} ${tutor.last_name}` : 'Unassigned';
         },
     },
     {
         accessorKey: 'start_date',
         header: 'Start Date',
-        cell: ({ row }) => new Date(row.original.start_date).toLocaleDateString(),
+        cell: ({ row }) => {
+            return new Date(row.getValue('start_date')).toLocaleDateString();
+        },
     },
     {
         id: 'actions',

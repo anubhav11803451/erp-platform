@@ -116,6 +116,13 @@ export const routes = [{
             const m = await import('./pages/(app)/batches/page.tsx');
             return { Component: m.default, ...m };
           },
+        },
+{
+          path: ':id',
+          lazy: async () => {
+            const m = await import('./pages/(app)/batches/[id].tsx');
+            return { Component: m.default, ...m };
+          },
         }
         ],
       }

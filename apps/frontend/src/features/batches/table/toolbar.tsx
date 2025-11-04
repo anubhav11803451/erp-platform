@@ -27,7 +27,7 @@ export function DataTableToolbar<TData>({ table, onAddBatchClick }: DataTableToo
             </Flex>
             <DataTableViewOptions table={table} />
             <Button size="sm" className="ml-4 h-8" onClick={onAddBatchClick}>
-                <PlusCircle className="mr-2 h-4 w-4" />
+                <PlusCircle className="h-4 w-4" />
                 Add Batch
             </Button>
         </Flex>

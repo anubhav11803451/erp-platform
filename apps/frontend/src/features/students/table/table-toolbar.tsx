@@ -33,7 +33,7 @@ export function DataTableToolbar<TData>({
             <FlexItem inline>
                 <DataTableViewOptions table={table} />
                 <Button size="sm" className="ml-4 h-8" onClick={onAddStudentClick}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
+                    <PlusCircle className="h-4 w-4" />
                     Add Student
                 </Button>
             </FlexItem>
