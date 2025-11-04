@@ -92,7 +92,6 @@ export default function StudentsPage() {
 
             {/* The Data Table */}
             <DataTable
-                hideColumns={['id']}
                 columns={columns || []}
                 data={students || []}
                 toolbar={(table) => (

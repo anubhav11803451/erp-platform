@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/core/prisma.service';
 // import { CreateUserDto } from './dto/create-user.dto';
 import { Prisma, User, UserRole } from '@erp/db/client';
@@ -25,6 +25,17 @@ export class UsersService {
         return omit(user, ['password']) as UserWithoutPassword;
     }
 
+    async update(
+        id: string,
+        updateUserInput: Prisma.UserUpdateInput,
+    ): Promise<UserWithoutPassword> {
+        const user = this.prisma.user.update({
+            where: { id },
+            data: updateUserInput,
+        });
+        return omit(user, ['password']) as UserWithoutPassword;
+    }
+
     /**
      * Finds a user by their unique email.
      * Used by the AuthModule to validate login.
@@ -36,11 +47,28 @@ export class UsersService {
     }
 
     // Find by ID (useful for JWT)
-    async findById(id: string): Promise<User | null> {
-        return this.prisma.user.findUnique({ where: { id } });
+    async findById(id: string): Promise<UserWithoutPassword | null> {
+        try {
+            return this.prisma.user.findUnique({
+                where: { id },
+            });
+        } catch (error) {
+            throw new NotFoundException(`User with ID "${id}" not found`, { cause: error });
+        }
     }
 
     async findAll(): Promise<UserWithoutPassword[]> {
         return this.prisma.user.findMany();
+    }
+
+    async remove(id: string): Promise<UserWithoutPassword> {
+        try {
+            return await this.prisma.user.delete({
+                where: { id },
+            });
+        } catch (error) {
+            // Handle case where the student to delete doesn't exist
+            throw new NotFoundException(`User with ID "${id}" not found`, { cause: error });
+        }
     }
 }

@@ -1,5 +1,5 @@
 import { SmartForm } from '@/components/smart-form';
-import { TextField } from '@/components/smart-form/form-fields';
+import { PasswordField, TextField } from '@/components/smart-form/form-fields';
 import { FieldGroup } from '@/components/ui/field';
 
 import { signInSchema } from './schemas';
@@ -24,7 +24,7 @@ export function SignInForm() {
         >
             <FieldGroup>
                 <TextField name="email" label="Email" placeholder="Email" required />
-                <TextField name="password" label="Password" placeholder="Password" required />
+                <PasswordField name="password" label="Password" placeholder="Password" required />
             </FieldGroup>
             <Button
                 id="sign-in-form-submit-button"

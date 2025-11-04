@@ -27,7 +27,7 @@ export function DataTableColumnHeader<TData, TValue>({
     }
 
     return (
-        <Flex alignItems="center" className={cn('gap-2 px-4', className)}>
+        <Flex alignItems="center" className={cn('gap-2 px-0.5', className)}>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button

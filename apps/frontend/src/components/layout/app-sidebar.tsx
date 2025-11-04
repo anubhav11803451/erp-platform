@@ -1,10 +1,11 @@
 import { Link } from 'react-router';
-import { Globe } from 'lucide-react';
-import { SidebarNav } from './app-sidebar-nav';
+import { Globe, LogOut } from 'lucide-react';
+import { DashboardSidebarMenu, SidebarNav } from './app-sidebar-nav';
 
 import {
     Sidebar,
     SidebarContent,
+    SidebarFooter,
     SidebarGroup,
     SidebarGroupContent,
     SidebarGroupLabel,
@@ -12,13 +13,16 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { Flex } from '../ui/flex';
+import { useAuth } from '@/hooks/use-auth';
 
 /**
  * This component renders the DESKTOP sidebar.
  */
 export function AppSidebar() {
+    const { handleLogout } = useAuth();
     return (
         // Use the shadcn Sidebar component
         <Sidebar variant="inset" collapsible="icon" className="hidden h-full md:visible">
@@ -41,8 +45,14 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
             {/* --- Content --- */}
-            <SidebarContent className="flex flex-col">
+            <SidebarContent>
                 {/* --- Main Navigation (from shared component) --- */}
+                <SidebarGroup className="mt-6">
+                    <SidebarGroupContent>
+                        <DashboardSidebarMenu />
+                    </SidebarGroupContent>
+                </SidebarGroup>
+
                 <SidebarGroup>
                     <SidebarGroupLabel>Menu</SidebarGroupLabel>
                     <SidebarGroupContent>
@@ -50,8 +60,24 @@ export function AppSidebar() {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
+            <SidebarSeparator />
             {/* --- Footer (Optional) --- */}
-            {/* <SidebarFooter></SidebarFooter> */}
+            <SidebarFooter>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            onClick={handleLogout}
+                            variant="default"
+                            className="text-destructive hover:bg-destructive/10 hover:text-destructive-foreground justify-center-safe"
+                        >
+                            {/* <Button variant="destructive"> */}
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Log out
+                            {/* </Button> */}
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
         </Sidebar>
     );
 }

@@ -55,9 +55,9 @@ export function DataTable<TData, TValue>({
                       acc[column as string] = false;
                       return acc;
                   },
-                  {} as { [key: string]: boolean }
+                  { id: false } as { [key: string]: boolean }
               )
-            : {}),
+            : { id: false }),
     });
     const [rowSelection, setRowSelection] = React.useState({});
 
@@ -97,7 +97,7 @@ export function DataTable<TData, TValue>({
                                     return (
                                         <TableHead
                                             key={header.id}
-                                            className="first:rounded-tl-[inherit] last:rounded-tr-[inherit]"
+                                            className="pl-4 first:rounded-tl-[inherit] last:rounded-tr-[inherit]"
                                         >
                                             {header.isPlaceholder
                                                 ? null
@@ -119,7 +119,7 @@ export function DataTable<TData, TValue>({
                                     data-state={row.getIsSelected() && 'selected'}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
+                                        <TableCell key={cell.id} className="pl-4">
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()

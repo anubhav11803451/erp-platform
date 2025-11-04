@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import { LayoutDashboard, LogOut } from 'lucide-react';
+import { LayoutDashboard, LogOut, User2Icon } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -54,7 +54,7 @@ export function UserNav() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
-                        <Flex alignItems="center" direction="column" className="space-y-1">
+                        <Flex direction="column" className="space-y-1">
                             <Typography variant="small">
                                 {user?.first_name} {user?.last_name}
                             </Typography>
@@ -68,8 +68,14 @@ export function UserNav() {
                             <span>Dashboard</span>
                         </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link to="/account">
+                            <User2Icon className="mr-2 h-4 w-4" />
+                            <span>Account</span>
+                        </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}>
+                    <DropdownMenuItem onClick={handleLogout} variant="destructive">
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Log out</span>
                     </DropdownMenuItem>

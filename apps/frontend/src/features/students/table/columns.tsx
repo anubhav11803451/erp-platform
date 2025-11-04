@@ -24,13 +24,12 @@ export const getColumns = ({ onEdit, onDelete }: GetColumnsProps): ColumnDef<Enr
     {
         accessorKey: 'id',
         header: 'ID',
-        cell: ({ row }) => <div className="px-3">{row.original.id}</div>,
     },
     {
         accessorKey: 'first_name',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
         cell: ({ row }) => (
-            <div className="px-3 font-medium capitalize">{`${row.original.first_name} ${row.original.last_name}`}</div>
+            <div className="font-medium capitalize">{`${row.original.first_name} ${row.original.last_name}`}</div>
         ),
     },
     {
@@ -69,15 +68,17 @@ export const getColumns = ({ onEdit, onDelete }: GetColumnsProps): ColumnDef<Enr
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuLabel className="text-muted-foreground text-xs">
+                                Actions
+                            </DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => onEdit(student)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit Student
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                                className="text-destructive"
                                 onClick={() => onDelete(student.id)}
+                                variant="destructive"
                             >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Delete Student

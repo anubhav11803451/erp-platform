@@ -30,7 +30,7 @@ const navItems = [
     },
     {
         href: '/users',
-        label: 'Staff (Tutors)',
+        label: 'Staffs (Tutors)',
         icon: Users,
         role: [UserRole.ADMIN],
     },
@@ -57,7 +57,9 @@ export function SidebarNav() {
     const userRole = user?.role || UserRole.STAFF;
     const { pathname } = useLocation(); // Get pathname here
 
-    const filteredNavItems = navItems.filter((item) => item.role.includes(userRole));
+    const filteredNavItems = navItems.filter(
+        (item) => item.role.includes(userRole) && item.href !== '/dashboard'
+    );
 
     return (
         <SidebarMenu>
@@ -70,10 +72,7 @@ export function SidebarNav() {
                         <SidebarMenuButton
                             asChild
                             variant={isActive ? 'outline' : 'default'}
-                            className={cn(
-                                'w-full justify-start',
-                                isActive && 'bg-primary text-primary-foreground'
-                            )}
+                            className={cn('w-full justify-start')}
                         >
                             <Link to={item.href}>
                                 <Icon className="mr-2 h-4 w-4" />
@@ -83,6 +82,38 @@ export function SidebarNav() {
                     </SidebarMenuItem>
                 );
             })}
+        </SidebarMenu>
+    );
+}
+
+export function DashboardSidebarMenu() {
+    const user = useAppSelector(selectCurrentUser);
+    const userRole = user?.role || UserRole.STAFF;
+    const { pathname } = useLocation(); // Get pathname here
+
+    const filteredNavItems = navItems.filter((item) => item.role.includes(userRole));
+    return (
+        <SidebarMenu>
+            {filteredNavItems
+                .filter((item) => item.href === '/dashboard')
+                .map((item) => {
+                    const isActive = pathname === item.href;
+                    const Icon = item.icon; // Get icon component
+                    return (
+                        <SidebarMenuItem key={item.href}>
+                            <SidebarMenuButton
+                                asChild
+                                variant={isActive ? 'outline' : 'default'}
+                                className={cn('w-full justify-start')}
+                            >
+                                <Link to={item.href}>
+                                    <Icon className="mr-2 h-4 w-4" />
+                                    <span>{item.label}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    );
+                })}
         </SidebarMenu>
     );
 }

@@ -72,6 +72,18 @@ export const routes = [{
       },
       children: [
 {
+        path: 'users',
+        children: [
+{
+          path: '',
+          lazy: async () => {
+            const m = await import('./pages/(app)/users/page.tsx');
+            return { Component: m.default, ...m };
+          },
+        }
+        ],
+      },
+{
         path: 'students',
         children: [
 {

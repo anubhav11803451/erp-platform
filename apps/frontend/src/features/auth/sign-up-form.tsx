@@ -4,7 +4,7 @@ import { signupSchema, type SignupFormValues } from './schemas';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router';
 import { FieldGroup } from '@/components/ui/field';
-import { TextField } from '@/components/smart-form/form-fields';
+import { PasswordField, TextField } from '@/components/smart-form/form-fields';
 import { UserRole } from '@erp/common/enums';
 import { Grid } from '@/components/ui/grid';
 
@@ -39,8 +39,8 @@ export function SignUpForm() {
                     <TextField name="last_name" label="Last Name" placeholder="Doe" required />
                 </Grid>
                 <TextField name="email" label="Email" placeholder="jane.doe@example.com" required />
-                <TextField name="password" label="Password" placeholder="••••••••" required />
-                <TextField
+                <PasswordField name="password" label="Password" placeholder="••••••••" required />
+                <PasswordField
                     name="confirm_password"
                     label="Confirm Password"
                     placeholder="••••••••"

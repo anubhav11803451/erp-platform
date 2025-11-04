@@ -20,9 +20,11 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { ItemGroup } from '@/components/ui/item';
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '../ui/input-group';
+import { Eye, EyeClosed } from 'lucide-react';
 
 type FormFieldProps = {
     name: string;
@@ -63,6 +65,54 @@ export function TextField({
                         placeholder={placeholder}
                         aria-invalid={fieldState.invalid}
                     />
+                    {description && <FieldDescription>{description}</FieldDescription>}
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+            )}
+        />
+    );
+}
+
+export function PasswordField({
+    name,
+    label,
+    placeholder,
+    required = false,
+    description,
+}: Omit<TextFieldProps, 'type'>) {
+    const { control } = useFormContext();
+    const [isVisible, setIsVisible] = useState(false);
+
+    return (
+        <Controller
+            name={name}
+            control={control}
+            render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>
+                        {label} {required && <span className="text-red-500">*</span>}
+                    </FieldLabel>
+                    <InputGroup>
+                        <InputGroupInput
+                            {...field}
+                            id={field.name}
+                            placeholder={placeholder}
+                            aria-invalid={fieldState.invalid}
+                            type={isVisible ? 'text' : 'password'}
+                        />
+                        <InputGroupAddon align="inline-end">
+                            <InputGroupButton
+                                aria-label="Show password"
+                                title="Show password"
+                                size="icon-xs"
+                                onClick={() => {
+                                    setIsVisible(!isVisible);
+                                }}
+                            >
+                                {isVisible ? <Eye /> : <EyeClosed />}
+                            </InputGroupButton>
+                        </InputGroupAddon>
+                    </InputGroup>
                     {description && <FieldDescription>{description}</FieldDescription>}
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
