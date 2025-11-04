@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { Globe, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { DashboardSidebarMenu, SidebarNav } from './app-sidebar-nav';
 
 import {
@@ -15,8 +15,9 @@ import {
     SidebarMenuItem,
     SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { Flex } from '../ui/flex';
 import { useAuth } from '@/hooks/use-auth';
+import Brand from '../shared/brand';
+import { Typography } from '../ui/typography';
 
 /**
  * This component renders the DESKTOP sidebar.
@@ -31,14 +32,10 @@ export function AppSidebar() {
                     <Link to="/">
                         <SidebarMenuItem>
                             <SidebarMenuButton size="lg">
-                                <Flex
-                                    className="aspect-square size-8 rounded-lg"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                >
-                                    <Globe className="h-5 w-5" />
-                                </Flex>
-                                <span>ERP360</span>
+                                <Brand className="mr-0 aspect-square size-8 rounded-lg [&>span]:hidden [&>svg]:mr-0" />
+                                <Typography as="span" variant="large" weight="bold">
+                                    ERP360
+                                </Typography>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     </Link>

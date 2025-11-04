@@ -23,6 +23,7 @@ import {
 import { Link } from 'react-router';
 import { UserNav } from '@/components/shared/user-nav';
 import { Input } from '@/components/ui/input';
+import Brand from '@/components/shared/brand';
 
 /**
  * ERP360 Landing Page
@@ -60,10 +61,8 @@ const LandingPage = () => {
             <header className="border-border/40 bg-background/95 supports-backdrop-filter:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
                 {/* ... existing header code ... */}
                 <div className="container mx-auto flex h-16 max-w-screen-2xl items-center px-4 md:px-8">
-                    <div className="mr-4 flex items-center">
-                        <Globe className="text-primary mr-2 h-6 w-6" />
-                        <span className="text-lg font-bold">ERP360</span>
-                    </div>
+                    {/* Logo */}
+                    <Brand />
                     <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
                         <a
                             href="#features"
