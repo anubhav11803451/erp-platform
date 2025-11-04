@@ -34,6 +34,12 @@ export class EnrollmentController {
         return this.enrollmentService.getEnrollmentsByBatch(batchId);
     }
 
+    @Get('student/:studentId')
+    @Roles(UserRole.ADMIN, UserRole.STAFF) // Admins or Staff can see
+    getEnrollmentsByStudent(@Param('studentId', ParseUUIDPipe) studentId: string) {
+        return this.enrollmentService.getEnrollmentsByStudent(studentId);
+    }
+
     @Delete('disenroll')
     @Roles(UserRole.ADMIN) // Only Admins can disenroll
     @HttpCode(HttpStatus.OK)

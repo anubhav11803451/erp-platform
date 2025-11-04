@@ -10,7 +10,7 @@ export class CreateEnrollmentDto {
     batchId: string;
 
     @IsNumber()
-    @Min(0)
+    @Min(0, { message: 'Amount must be greater than 0' })
     total_fee_agreed: number;
 }
 

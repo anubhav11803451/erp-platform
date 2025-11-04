@@ -8,7 +8,7 @@ import { StudentsModule } from '@/domains/students/students.module';
 import { GuardiansModule } from '@/domains/guardians/guardians.module';
 import { BatchesModule } from '@/domains/batches/batches.module';
 import { EnrollmentModule } from '@/features/enrollment/enrollment.module';
-// import { PaymentsModule } from './features/payments/payments.module';
+import { PaymentsModule } from '@/features/payments/payments.module';
 // import { AttendanceModule } from './features/attendance/attendance.module';
 
 @Module({
@@ -33,7 +33,7 @@ import { EnrollmentModule } from '@/features/enrollment/enrollment.module';
 
         // 4. Feature Modules (uncomment as we build them)
         EnrollmentModule,
-        // PaymentsModule,
+        PaymentsModule,
         // AttendanceModule,
     ],
     controllers: [],

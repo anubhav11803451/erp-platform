@@ -44,6 +44,20 @@ export class EnrollmentService {
         });
     }
 
+    async getEnrollmentsByStudent(studentId: string) {
+        return this.prisma.studentBatch.findMany({
+            where: { studentId },
+            include: {
+                batch: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+        });
+    }
+
     async disenroll(dto: DisenrollDto): Promise<{ count: number }> {
         const { batchId, studentIds } = dto;
 
