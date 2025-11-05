@@ -9,6 +9,7 @@ import {
     selectIsAuthenticated,
     selectIsAuthLoading,
 } from '@/features/auth/auth-slice';
+import { getApiErrorMessage } from '@/lib/utils';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 
@@ -31,6 +32,7 @@ export function useAuth() {
             navigate('/');
         } catch (_err) {
             console.error('Sign in failed', _err);
+            toast.error(getApiErrorMessage(_err));
         }
     }
     function handleLogout() {
@@ -40,6 +42,7 @@ export function useAuth() {
             navigate('/');
         } catch (_err) {
             console.error('Sign out failed', _err);
+            toast.error(getApiErrorMessage(_err));
         }
     }
 

@@ -8,7 +8,7 @@ import { Breadcrumbs } from '../shared/breadcrumbs/bread-crumbs';
 
 export function AppHeader() {
     return (
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b-2 px-4 md:px-6">
+        <header className="border-sidebar sticky top-0 z-30 flex h-16 items-center gap-4 border-b-4 px-4 md:px-6">
             {/* --- Mobile Navigation --- */}
 
             {/* --- Header Content (e.g., Breadcrumbs/Search can go here) --- */}

@@ -11,6 +11,7 @@ import {
     useUpdateStudentMutation,
 } from '@/features/students/student-api-slice';
 import type { StudentFormValues } from '@/features/students/form-schema';
+import { getApiErrorMessage } from '@/lib/utils';
 
 type UseStudentFormProps = {
     studentToEdit?: EnrichedStudent | null;
@@ -84,8 +85,8 @@ export function useStudentForm({ studentToEdit, setIsOpen }: UseStudentFormProps
                 toast.success('Student created successfully!');
             }
             setIsOpen(false);
-        } catch (err: any) {
-            toast.error(err.data?.message || 'An error occurred.');
+        } catch (err) {
+            toast.error(getApiErrorMessage(err));
         }
     };
 

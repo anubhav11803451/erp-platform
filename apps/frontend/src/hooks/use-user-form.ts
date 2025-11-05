@@ -9,6 +9,7 @@ import {
     type EnrichedUser,
 } from '@/features/users/users-api-slice';
 import type { UserFormValues } from '@/features/users/form-schema';
+import { getApiErrorMessage } from '@/lib/utils';
 
 type UseUserFormProps = {
     setIsOpen: (open: boolean) => void;
@@ -63,8 +64,8 @@ export function useUserForm({ setIsOpen, userToEdit }: UseUserFormProps) {
                 toast.success('User created successfully!');
             }
             setIsOpen(false);
-        } catch (err: any) {
-            toast.error(err.data?.message?.join(', ') || err.data?.message || 'An error occurred.');
+        } catch (err) {
+            toast.error(getApiErrorMessage(err));
         }
     };
 

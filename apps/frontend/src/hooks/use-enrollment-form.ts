@@ -7,6 +7,7 @@ import {
 } from '@/features/enrollment/enrollment-api-slice';
 import { useGetStudentsQuery } from '@/features/students/student-api-slice';
 import type { EnrollStudentFormValues } from '@/features/enrollment/form-schema';
+import { getApiErrorMessage } from '@/lib/utils';
 
 type UseEnrollmentFormProps = {
     batchId: string;
@@ -48,8 +49,8 @@ export function useEnrollmentForm({ batchId, alreadyEnrolled, setIsOpen }: UseEn
             }).unwrap();
             toast.success('Student enrolled successfully!');
             setIsOpen(false);
-        } catch (err: any) {
-            toast.error(err.data?.message?.join(', ') || err.data?.message || 'An error occurred.');
+        } catch (err) {
+            toast.error(getApiErrorMessage(err));
         }
     };
 

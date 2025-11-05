@@ -7,6 +7,7 @@ import type { EnrichedBatch } from '@/features/batches/batches-api-slice';
 import { useAddBatchMutation, useUpdateBatchMutation } from '@/features/batches/batches-api-slice';
 import { useGetUsersQuery } from '@/features/users/users-api-slice';
 import type { BatchFormValues } from '@/features/batches/form-schema';
+import { getApiErrorMessage } from '@/lib/utils';
 
 type UseBatchFormProps = {
     batchToEdit?: EnrichedBatch | null;
@@ -58,8 +59,8 @@ export function useBatchForm({ batchToEdit, setIsOpen }: UseBatchFormProps) {
                 toast.success('Batch created successfully!');
             }
             setIsOpen(false);
-        } catch (err: any) {
-            toast.error(err.data?.message || 'An error occurred.');
+        } catch (err) {
+            toast.error(getApiErrorMessage(err));
         }
     };
 
