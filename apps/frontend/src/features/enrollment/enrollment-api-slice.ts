@@ -1,5 +1,5 @@
 import { apiSlice } from '@/api/api-slice';
-import type { StudentBatch, Student, Guardian } from '@erp/common/types';
+import type { StudentBatch, Student, Guardian, Batch } from '@erp/common/types';
 
 // Define the shape of the enrollment DTO
 export type CreateEnrollmentInput = {
@@ -20,6 +20,10 @@ export type EnrolledStudent = StudentBatch & {
     };
 };
 
+export type StudentEnrollment = StudentBatch & {
+    batch: Pick<Batch, 'id' | 'name' | 'subject'>;
+};
+
 export const enrollmentApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         getEnrollmentsByBatch: builder.query<EnrolledStudent[], string>({
@@ -32,6 +36,14 @@ export const enrollmentApiSlice = apiSlice.injectEndpoints({
                       ]
                     : [{ type: 'Enrollment', id: `LIST-${batchId}` }],
         }),
+
+        getEnrollmentsByStudent: builder.query<StudentEnrollment[], string>({
+            query: (studentId) => `/features/enrollment/student/${studentId}`,
+            providesTags: (_result, _error, studentId) => [
+                { type: 'Enrollment', id: `LIST-STUDENT-${studentId}` },
+            ],
+        }),
+
         addEnrollment: builder.mutation<StudentBatch, CreateEnrollmentInput>({
             query: (body) => ({
                 url: '/features/enrollment',
@@ -57,4 +69,5 @@ export const {
     useGetEnrollmentsByBatchQuery,
     useAddEnrollmentMutation,
     useDeleteEnrollmentMutation,
+    useGetEnrollmentsByStudentQuery,
 } = enrollmentApiSlice;

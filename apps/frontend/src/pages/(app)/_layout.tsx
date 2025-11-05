@@ -7,6 +7,8 @@ import { AppSidebar } from '@/components/layout/app-sidebar';
 import { AppHeader } from '@/components/layout/app-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Flex } from '@/components/ui/flex';
+import { Fragment } from 'react/jsx-runtime';
+import { PaymentFormDialog } from '@/features/payments/payment-form';
 
 /**
  * This is the main layout for the protected (app) group.
@@ -35,20 +37,23 @@ const AppLayout = () => {
 
     // 3. If we are done loading AND auth'd, show the app layout
     return (
-        <SidebarProvider>
-            {/* --- Desktop Sidebar --- */}
-            <AppSidebar />
-            {/* --- Main Content Area --- */}
-            <SidebarInset>
-                {/* --- Header (with Mobile Nav) --- */}
-                <AppHeader />
+        <Fragment>
+            <SidebarProvider>
+                {/* --- Desktop Sidebar --- */}
+                <AppSidebar />
+                {/* --- Main Content Area --- */}
+                <SidebarInset>
+                    {/* --- Header (with Mobile Nav) --- */}
+                    <AppHeader />
 
-                {/* --- Page Content --- */}
-                <Flex direction="column" className="flex-1 gap-4 p-4 pt-0">
-                    <Outlet />
-                </Flex>
-            </SidebarInset>
-        </SidebarProvider>
+                    {/* --- Page Content --- */}
+                    <Flex direction="column" className="flex-1 gap-4 p-4 pt-0">
+                        <Outlet />
+                    </Flex>
+                </SidebarInset>
+            </SidebarProvider>
+            <PaymentFormDialog />
+        </Fragment>
     );
 };
 

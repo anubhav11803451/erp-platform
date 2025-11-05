@@ -1,7 +1,7 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal } from 'lucide-react';
+import { ExternalLink, MoreHorizontal, PlusCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -15,10 +15,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 // Define the shape of the actions props
 type EnrolledStudentActionsProps = {
+    onViewStudent: (studentId: string) => void;
+    onAddPayment: (studentId: string) => void;
     onDisEnroll: (studentId: string) => void;
 };
 
 export const getColumns = ({
+    onViewStudent,
+    onAddPayment,
     onDisEnroll,
 }: EnrolledStudentActionsProps): ColumnDef<EnrolledStudent>[] => [
     {
@@ -90,12 +94,19 @@ export const getColumns = ({
                         <DropdownMenuLabel className="text-muted-foreground text-xs">
                             Actions
                         </DropdownMenuLabel>
-                        <DropdownMenuItem>View Student</DropdownMenuItem>
-                        <DropdownMenuItem>Add Payment</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onViewStudent(enrollment.studentId)}>
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            View Student
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onAddPayment(enrollment.studentId)}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add Payment
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                             variant="destructive"
                             onClick={() => onDisEnroll(enrollment.studentId)}
                         >
+                            <Trash2 className="mr-2 h-4 w-4" />
                             Disenroll Student
                         </DropdownMenuItem>
                     </DropdownMenuContent>

@@ -23,3 +23,11 @@ export const DEFAULT_THEME: ThemeName = 'default';
 
 export const ACTIVE_THEME_STORE_KEY = 'erp360_active_theme';
 export const THEME_MODE_STORE_KEY = 'erp360_theme_mode';
+
+export const paymentMethodOptions = [
+    { value: 'Cash', label: 'Cash' },
+    { value: 'UPI', label: 'UPI' },
+    { value: 'Bank Transfer', label: 'Bank Transfer' },
+    { value: 'Stripe', label: 'Stripe (Online)' },
+    { value: 'Other', label: 'Other' },
+];

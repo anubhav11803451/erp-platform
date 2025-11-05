@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -20,9 +20,14 @@ import { Badge } from '@/components/ui/badge';
 import { Flex } from '@/components/ui/flex';
 import { Grid } from '@/components/ui/grid';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
+import { useAppDispatch } from '@/app/hooks';
+import { openPaymentFormModal } from '@/app/ui-slice';
 
 export default function BatchDetailsPage() {
+    const dispatch = useAppDispatch();
     const { id: batchId } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+
     const [isFormOpen, setIsFormOpen] = React.useState(false);
 
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = React.useState(false);
@@ -88,6 +93,17 @@ export default function BatchDetailsPage() {
     const columns = React.useMemo(
         () =>
             getColumns({
+                onViewStudent: (studentId) => {
+                    navigate(`/students/${studentId}`);
+                },
+                onAddPayment: (studentId) => {
+                    dispatch(
+                        openPaymentFormModal({
+                            studentId,
+                            batch: { name: batch?.name, value: batchId || '' },
+                        })
+                    );
+                },
                 onDisEnroll: handleDisenroll,
             }),
         []
@@ -113,8 +129,8 @@ export default function BatchDetailsPage() {
         <div className="container mx-auto py-10">
             <Card className="mb-8">
                 <CardHeader>
-                    <CardTitle className="text-3xl">{batch.name}</CardTitle>
-                    <CardDescription>{batch.subject || 'No subject specified'}</CardDescription>
+                    <CardTitle className="text-3xl">{batch.subject}</CardTitle>
+                    <CardDescription>{batch.name || 'No name'}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Grid columns={2} className="gap-4">

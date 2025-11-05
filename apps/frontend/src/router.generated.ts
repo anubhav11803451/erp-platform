@@ -92,6 +92,13 @@ export const routes = [{
             const m = await import('./pages/(app)/students/page.tsx');
             return { Component: m.default, ...m };
           },
+        },
+{
+          path: ':id',
+          lazy: async () => {
+            const m = await import('./pages/(app)/students/[id].tsx');
+            return { Component: m.default, ...m };
+          },
         }
         ],
       },

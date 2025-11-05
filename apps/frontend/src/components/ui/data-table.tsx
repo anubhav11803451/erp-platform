@@ -38,7 +38,7 @@ type DataTableProps<TData, TValue> = {
      * NEW: The toolbar is now a function that receives the table instance.
      * This gives the toolbar access to table state (e.g., table.getColumn()).
      */
-    toolbar: (table: ReturnType<typeof useReactTable<TData>>) => React.ReactNode;
+    toolbar?: (table: ReturnType<typeof useReactTable<TData>>) => React.ReactNode | null;
 };
 
 export function DataTable<TData, TValue>({
