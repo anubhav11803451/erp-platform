@@ -7,6 +7,11 @@ import { StudentBatch } from '@erp/db/client';
 export class EnrollmentService {
     constructor(private readonly prisma: PrismaService) {}
 
+    //Helper function
+    private addDisplayNameToBatch(batch: { name: string; subject: string | null }) {
+        return batch.subject ? `${batch.name} (${batch.subject})` : batch.name;
+    }
+
     async create(dto: CreateEnrollmentDto): Promise<StudentBatch> {
         // Check if the enrollment already exists
         const existing = await this.prisma.studentBatch.findFirst({
@@ -40,22 +45,34 @@ export class EnrollmentService {
                         guardian: true, // Include guardian details with the student
                     },
                 },
+                batch: {
+                    select: { name: true, subject: true },
+                },
             },
         });
     }
 
     async getEnrollmentsByStudent(studentId: string) {
-        return this.prisma.studentBatch.findMany({
+        const enrollments = await this.prisma.studentBatch.findMany({
             where: { studentId },
             include: {
                 batch: {
                     select: {
                         id: true,
                         name: true,
+                        subject: true, //Get subject
                     },
                 },
             },
         });
+
+        return enrollments.map((enrollment) => ({
+            ...enrollment,
+            batch: {
+                ...enrollment.batch,
+                displayName: this.addDisplayNameToBatch(enrollment.batch),
+            },
+        }));
     }
 
     async disenroll(dto: DisenrollDto): Promise<{ count: number }> {
