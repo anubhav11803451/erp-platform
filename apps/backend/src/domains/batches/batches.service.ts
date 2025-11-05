@@ -21,14 +21,34 @@ export class BatchesService {
     async findAll(): Promise<Batch[]> {
         return this.prisma.batch.findMany({
             // Include the assigned tutor for context
-            include: { tutor: true },
+            include: {
+                tutor: {
+                    select: {
+                        id: true,
+                        first_name: true,
+                        last_name: true,
+                        email: true,
+                        role: true,
+                    },
+                },
+            },
         });
     }
 
     async findOne(id: string): Promise<Batch> {
         const batch = await this.prisma.batch.findUnique({
             where: { id },
-            include: { tutor: true },
+            include: {
+                tutor: {
+                    select: {
+                        id: true,
+                        first_name: true,
+                        last_name: true,
+                        email: true,
+                        role: true,
+                    },
+                },
+            },
         });
 
         if (!batch) {
