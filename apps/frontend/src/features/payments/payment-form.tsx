@@ -11,6 +11,7 @@ import { paymentFormSchema } from './from-schema';
 // import type { EnrichedPayment } from './payments-api-slice';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { closePaymentFormModal, selectPaymentFormModal } from '@/app/ui-slice';
+import { Fragment } from 'react/jsx-runtime';
 
 // type PaymentFormDialogProps = {
 //     isOpen: boolean;
@@ -21,28 +22,34 @@ import { closePaymentFormModal, selectPaymentFormModal } from '@/app/ui-slice';
 
 export function PaymentFormDialog() {
     const dispatch = useAppDispatch();
-    const { isOpen, studentId, paymentToEdit, batch } = useAppSelector(selectPaymentFormModal);
+    const { isOpen, studentId, paymentToEdit, batchId } = useAppSelector(selectPaymentFormModal);
+
     const setIsOpen = () => dispatch(closePaymentFormModal());
-    const { initialValues, onSubmit, isLoading, batchOptions, isLoadingEnrollments } =
+    const { isEditMode, initialValues, onSubmit, isLoading, batchOptions, isLoadingEnrollments } =
         usePaymentForm({
             setIsOpen,
             studentId,
             paymentToEdit,
-            batch,
+            batchId,
         });
 
     return (
         <FormDialogShell
             isOpen={isOpen}
             setIsOpen={setIsOpen}
-            title="Add New Payment"
-            description="Log a new payment received from this student."
+            title={isEditMode ? 'Edit Payment' : 'Add New Payment'}
+            description={
+                isEditMode
+                    ? "Update the payment's details."
+                    : 'Log a new payment received from this student.'
+            }
             className="sm:max-w-lg"
         >
             <SmartForm
                 id="add-payment-form"
                 schema={paymentFormSchema}
                 defaultValues={initialValues}
+                enableReinitialize
                 showSubmitButton={false}
                 onSubmit={onSubmit}
             >
@@ -83,7 +90,11 @@ export function PaymentFormDialog() {
                             Cancel
                         </Button>
                         <Button type="submit" disabled={isLoading}>
-                            {isLoading ? 'Saving...' : 'Log Payment'}
+                            {isLoading
+                                ? 'Saving...'
+                                : isEditMode
+                                  ? 'Update Payment'
+                                  : 'Log Payment'}
                         </Button>
                     </Field>
                 </DialogFooter>

@@ -100,7 +100,7 @@ export default function BatchDetailsPage() {
                     dispatch(
                         openPaymentFormModal({
                             studentId,
-                            batch: { name: batch?.name, value: batchId || '' },
+                            batchId,
                         })
                     );
                 },

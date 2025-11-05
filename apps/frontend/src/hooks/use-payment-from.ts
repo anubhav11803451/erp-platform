@@ -13,7 +13,7 @@ import { getApiErrorMessage } from '@/lib/utils';
 type UsePaymentFormProps = {
     setIsOpen: (open: boolean) => void;
     studentId: string | null;
-    batch?: { name?: string; value: string } | null;
+    batchId?: string | null;
     paymentToEdit?: EnrichedPayment | null;
 };
 
@@ -21,7 +21,7 @@ export function usePaymentForm({
     setIsOpen,
     studentId,
     paymentToEdit,
-    batch,
+    batchId,
 }: UsePaymentFormProps) {
     const isEditMode = !!paymentToEdit;
     // --- Data Fetching ---
@@ -39,37 +39,30 @@ export function usePaymentForm({
 
     // Memoize the dropdown options
     const batchOptions = useMemo(() => {
+        const options =
+            enrollments?.map((enrollment) => ({
+                value: enrollment.batch.id,
+                label: enrollment.batch.name.concat(` (${enrollment.batch.subject})`),
+            })) || [];
         if (!isEditMode) {
-            return (
-                enrollments?.map((enrollment) => ({
-                    value: enrollment.batch.id,
-                    label: enrollment.batch.name.concat(` (${enrollment.batch.subject})`),
-                })) || []
-            );
+            return batchId ? options?.filter((option) => option.value === batchId) : options;
         }
-        if (batch) {
-            return [
-                {
-                    value: batch.value,
-                    label: batch.name || '',
-                },
-            ];
-        }
-        return [
-            {
-                value: paymentToEdit?.batchId || '',
-                label: paymentToEdit?.batch.name || '',
-            },
-        ];
-    }, [enrollments, isEditMode, paymentToEdit, batch]);
+
+        return options?.filter((option) => option.value === paymentToEdit?.batchId);
+    }, [enrollments, isEditMode, paymentToEdit, batchId]);
 
     const initialValues: PaymentFormValues = useMemo(() => {
         if (!isEditMode) {
             return {
                 amount: 0,
-                batchId: '',
+                batchId: batchId || '',
                 method: '',
-                notes: '',
+                notes: batchId
+                    ? 'Adding payment for batch id: ' +
+                      batchId +
+                      ' namely: ' +
+                      batchOptions?.[0]?.label
+                    : 'Adding payment for student: ' + studentId,
             };
         }
         return {
@@ -78,7 +71,7 @@ export function usePaymentForm({
             method: paymentToEdit?.method || '',
             notes: paymentToEdit?.notes || '',
         };
-    }, [isEditMode, paymentToEdit]);
+    }, [isEditMode, paymentToEdit, batchId]);
 
     const onSubmit = async (data: PaymentFormValues) => {
         try {
@@ -102,6 +95,7 @@ export function usePaymentForm({
     };
 
     return {
+        isEditMode,
         initialValues,
         onSubmit,
         isLoading,

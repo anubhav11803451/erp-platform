@@ -7,7 +7,7 @@ import type { EnrichedPayment } from '@/features/payments/payments-api-slice';
 type PaymentFormModalState = {
     isOpen: boolean;
     studentId: string | null;
-    batch?: { name?: string; value: string } | null;
+    batchId?: string | null;
     paymentToEdit?: EnrichedPayment | null;
 };
 
@@ -21,7 +21,7 @@ const initialState: UIState = {
     paymentFormModal: {
         isOpen: false,
         studentId: null,
-        batch: null,
+        batchId: null,
         paymentToEdit: null,
     },
 };
@@ -35,20 +35,21 @@ const uiSlice = createAppSlice({
             state,
             action: PayloadAction<{
                 studentId: string;
-                batch?: { name?: string; value: string };
+                batchId?: string;
                 paymentToEdit?: EnrichedPayment;
             }>
         ) => {
-            state.paymentFormModal.isOpen = true;
             state.paymentFormModal.studentId = action.payload.studentId;
-            state.paymentFormModal.batch = action.payload.batch;
+            state.paymentFormModal.batchId = action.payload.batchId;
             state.paymentFormModal.paymentToEdit = action.payload.paymentToEdit;
+            state.paymentFormModal.isOpen = true;
         },
         // Action to close the "Add Payment" modal
         closePaymentFormModal: (state) => {
-            state.paymentFormModal.isOpen = false;
             state.paymentFormModal.studentId = null;
             state.paymentFormModal.paymentToEdit = null;
+            state.paymentFormModal.batchId = null;
+            state.paymentFormModal.isOpen = false;
         },
     },
 });

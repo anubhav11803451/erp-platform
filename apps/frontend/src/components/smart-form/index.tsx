@@ -2,10 +2,8 @@
 
 import * as React from 'react';
 import { useEffect } from 'react';
-// Import z to access its types
-import type { z } from 'zod';
+import type { z } from 'zod/v4';
 import {
-    // Assuming useZodForm returns this
     type SubmitHandler,
     type UseFormProps,
     type UseFormReturn, // We'll use this for the children prop
@@ -35,49 +33,28 @@ const useZodForm = <TSchema extends z.ZodObject<z.ZodRawShape>>({
 }) => {
     const form = useForm({
         resolver: schema ? zodResolver(schema) : undefined,
-
-        // REMOVE the cast to `z.infer<TSchema>`.
-        // `defaultValues` is already correctly typed as z.input<TSchema>.
-        // `useForm` will now correctly infer:
-        //   - TFieldValues = z.input<TSchema>
-        //   - TTransformedValues = z.output<TSchema> (from the resolver)
         defaultValues: defaultValues,
-
         mode,
     });
-
-    // BONUS: Because the types are now inferred correctly,
-    // you no longer need the `as` cast on the return statement.
-    // TypeScript knows `form` is the correct type.
     return form;
 };
 
-// --- 1. Define SmartFormProps with CORRECTED types ---
-
 type SmartFormProps<
-    //Constrain TSchema to be a ZodObject
     TSchema extends z.ZodObject<z.ZodRawShape>,
-    // Infer input and output types
-    SchemaInput = z.input<TSchema>,
+    SchemaInput extends FieldValues = z.input<TSchema>,
     SchemaOutput = z.output<TSchema>,
 > = {
     id?: string;
     schema: TSchema;
-
     /** Default values must match the schema's INPUT type */
     defaultValues: DefaultValues<SchemaInput>;
-
     /** onSubmit receives the schema's OUTPUT type */
     onSubmit: SubmitHandler<SchemaOutput>;
-
     /** Children can be a render prop to access form state */
     children:
         | React.ReactNode
-        | ((
-              form: UseFormReturn<SchemaInput & FieldValues, SchemaOutput, SchemaOutput>
-          ) => React.ReactNode);
-
-    mode?: UseFormProps<SchemaInput & FieldValues>['mode'];
+        | ((form: UseFormReturn<SchemaInput, unknown, SchemaOutput>) => React.ReactNode);
+    mode?: UseFormProps<SchemaInput>['mode'];
     className?: string;
     submitButtonText?: string;
     showSubmitButton?: boolean;
@@ -87,12 +64,7 @@ type SmartFormProps<
     enableReinitialize?: boolean;
 };
 
-// --- 2. Implement SmartForm with CORRECTED generics ---
-
-export function SmartForm<
-    // THE FIX (Part 2): Apply the same constraint to the function
-    TSchema extends z.ZodObject<z.ZodRawShape>,
->({
+export function SmartForm<TSchema extends z.ZodObject<z.ZodRawShape>>({
     id = 'rhf-smart-form',
     schema,
     defaultValues,
@@ -117,17 +89,11 @@ export function SmartForm<
 
     useEffect(() => {
         if (enableReinitialize) form.reset(defaultValues);
-    }, [defaultValues, enableReinitialize, form]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [defaultValues, enableReinitialize]);
 
-    // We explicitly type handleSubmit's `data` argument.
-    // `z.infer<TSchema>` is now correctly resolved to `z.output<TSchema>`
-    // because TSchema is constrained to a ZodObject.
-    // This type now matches what `form.handleSubmit` will provide.
     const handleSubmit: SubmitHandler<z.infer<TSchema>> = async (data) => {
         try {
-            // `data` is z.output<TSchema>
-            // `onSubmit` prop expects z.output<TSchema>
-            // This now matches perfectly.
             await onSubmit?.(data);
         } catch (error: unknown) {
             form.setError('root', {
@@ -161,14 +127,13 @@ export function SmartForm<
                         type="submit"
                         className="mt-4! w-full"
                         disabled={
-                            // Your logic is preserved
                             (disableDirtyCheck ? !form.formState.isDirty : false) ||
                             form.formState.isSubmitting ||
                             disableSubmitButton
                         }
                     >
                         {form.formState.isSubmitting ? (
-                            <Loader2 className="animate-spin text-white" />
+                            <Loader2 className="animate-spin" />
                         ) : (
                             submitButtonText
                         )}
