@@ -1,48 +1,38 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Plugin } from 'vite';
 import path from 'path';
 import fs from 'fs';
 import { glob } from 'glob';
+import colors from 'picocolors';
 
-/**
- * Options for the Vite plugin.
- */
-type FileRouteOptions = {
-    /**
-     * The directory to scan for page components.
-     * @default 'src/pages'
-     */
-    pagesDir?: string;
-    /**
-     * The path to the generated routes file.
-     * @default 'src/router.generated.ts'
-     */
-    outputFile?: string;
-    /**
-     * File extensions to consider as routes.
-     * @default ['.tsx', '.jsx', '.js', '.ts']
-     */
-    extensions?: string[];
+/** Plugin options */
+export type FileRouteOptions = {
+    pagesDir?: string; // default: 'src/pages'
+    outputFile?: string; // default: 'src/router.generated.ts'
+    extensions?: string[]; // default: ['.tsx', '.jsx', '.js', '.ts', '.mdx']
+    log?: boolean; // default: true
 };
 
-// Helper: Define the structure of our intermediate route tree
+/** Route tree node */
 type RouteNode = {
-    path: string; // The full file-system path to this node
-    segment: string; // The URL segment (e.g., '[slug]', '(auth)')
+    path: string;
+    segment: string;
     isLayout: boolean;
     isApp: boolean;
     is404: boolean;
-    isPage: boolean; // Is this a file that exports a page?
-    filePath: string | null; // Full path to the component file (e.g., _layout.tsx)
+    isPage: boolean;
+    filePath: string | null;
     children: Map<string, RouteNode>;
 };
 
-const DEFAULT_EXTENSIONS = ['.tsx', '.jsx', '.js', '.ts'];
+const DEFAULT_EXTENSIONS = ['.tsx', '.jsx', '.js', '.ts', '.mdx'];
 
 export function fileRoutes(options: FileRouteOptions = {}): Plugin {
     const {
         pagesDir = 'src/pages',
         outputFile = 'src/router.generated.ts',
         extensions = DEFAULT_EXTENSIONS,
+        log = true,
     } = options;
 
     const CWD = process.cwd();
@@ -52,13 +42,15 @@ export function fileRoutes(options: FileRouteOptions = {}): Plugin {
 
     let rootNode: RouteNode;
 
-    /**
-     * Transforms a file-system segment into a React Router path segment.
-     */
+    // ---------- Helpers ----------
+    const logInfo = (...msg: any[]) => log && console.log(colors.cyan('[file-routes]'), ...msg);
+    // const logWarn = (...msg: any[]) => log && console.warn(colors.yellow('[file-routes]'), ...msg);
+    const logError = (...msg: any[]) => log && console.error(colors.red('[file-routes]'), ...msg);
+
+    /** Converts file segment into React Router path */
     function transformSegment(segment: string): string {
-        // Check for '404' segment specifically for the not-found route
         if (segment === '404') return '*';
-        if (segment === 'page') return ''; // page.{ts,tsx} instead of index.{ts,tsx}
+        if (segment === 'page') return '';
         if (segment.startsWith('[...') && segment.endsWith(']')) return '*';
         if (segment.startsWith('[') && segment.endsWith(']')) return `:${segment.slice(1, -1)}`;
         if (segment.startsWith('-')) return `:${segment.slice(1)}?`;
@@ -66,16 +58,13 @@ export function fileRoutes(options: FileRouteOptions = {}): Plugin {
         return segment;
     }
 
-    /**
-     * Creates or gets a node in the tree.
-     */
+    /** Creates or gets a node in tree */
     function getOrCreateNode(parts: string[], parentNode: RouteNode): RouteNode {
-        let currentNode = parentNode;
-
+        let node = parentNode;
         for (const part of parts) {
-            if (!currentNode.children.has(part)) {
+            if (!node.children.has(part)) {
                 const newNode: RouteNode = {
-                    path: path.join(currentNode.path, part),
+                    path: path.join(node.path, part),
                     segment: part,
                     isLayout: false,
                     isApp: false,
@@ -84,236 +73,194 @@ export function fileRoutes(options: FileRouteOptions = {}): Plugin {
                     filePath: null,
                     children: new Map(),
                 };
-                currentNode.children.set(part, newNode);
+                node.children.set(part, newNode);
             }
-            currentNode = currentNode.children.get(part)!;
+            node = node.children.get(part)!;
         }
-        return currentNode;
+        return node;
     }
 
-    /**
-     * Recursively builds the React Router `RouteObject` string.
-     */
-    function printRoutes(node: RouteNode, indent: number = 2): string {
+    /** Recursively prints route tree as RouteObject array string */
+    function printRoutes(node: RouteNode, indent = 2): string {
         const spaces = ' '.repeat(indent);
-        let routeString = '{\n';
+        let str = '{\n';
 
-        // 1. Get component path (absolute)
-        const componentPath = node.filePath; // This is the full absolute path
-
-        // 2. Determine Path
+        // Determine path
         let rrPath: string | undefined;
-        if (node.isApp) {
-            rrPath = '/';
-        } else {
-            // Pathless routes (e.g., '(auth)')
-            if (node.segment.startsWith('(') && node.segment.endsWith(')')) {
-                rrPath = undefined;
-            } else {
-                rrPath = transformSegment(node.segment);
-            }
+        if (node.isApp) rrPath = '/';
+        else if (node.segment.startsWith('(') && node.segment.endsWith(')')) rrPath = undefined;
+        else rrPath = transformSegment(node.segment);
+
+        if (rrPath !== undefined) str += `${spaces}  path: '${rrPath}',\n`;
+
+        // Lazy import if node has component
+        if (node.filePath) {
+            const rel = path.relative(OUTPUT_FILE_DIR, node.filePath);
+            const importPath = `./${rel.replace(/\\\\/g, '/').replace(/\\/g, '/')}`;
+            str += `${spaces}  lazy: async () => {\n`;
+            str += `${spaces}    const m = await import('${importPath}');\n`;
+            str += `${spaces}    return { Component: m.default, ...m };\n`;
+            str += `${spaces}  },\n`;
         }
 
-        if (rrPath !== undefined) {
-            routeString += `${spaces}  path: '${rrPath}',\n`;
-        }
-
-        // 3. Add lazy import
-        if (componentPath) {
-            const relativePath = path.relative(OUTPUT_FILE_DIR, componentPath);
-            const importPath = `./${relativePath.replace(/\\/g, '/')}`;
-
-            routeString += `${spaces}  lazy: async () => {\n`;
-            routeString += `${spaces}    const m = await import('${importPath}');\n`;
-            // Map 'default' to 'Component' and spread 'loader', 'action', etc.
-            routeString += `${spaces}    return { Component: m.default, ...m };\n`;
-            routeString += `${spaces}  },\n`;
-
-            // --- THIS IS THE FIX ---
-            // The 'else if (node.isApp)' block has been completely removed.
-            // If _app.tsx is missing, no 'element' will be added to the root route.
-            // --- END FIX ---
-        }
-
-        // 4. Recursively add children
-        const children: string[] = [];
-        let notFoundNode: RouteNode | null = null;
-        const otherNodes: RouteNode[] = [];
+        // Collect children, keeping 404 last
+        const childrenArr: string[] = [];
+        const others: RouteNode[] = [];
+        let notFound: RouteNode | null = null;
 
         for (const child of node.children.values()) {
-            if (child.is404) {
-                notFoundNode = child;
-            } else {
-                otherNodes.push(child);
-            }
+            if (child.is404) notFound = child;
+            else others.push(child);
         }
 
-        otherNodes.sort((a, b) => {
-            const aScore = a.segment.startsWith('[...')
-                ? 3
-                : a.segment.startsWith('[')
-                  ? 2
-                  : a.segment.startsWith('-')
-                    ? 1
-                    : 0;
-            const bScore = b.segment.startsWith('[...')
-                ? 3
-                : b.segment.startsWith('[')
-                  ? 2
-                  : b.segment.startsWith('-')
-                    ? 1
-                    : 0;
-            return aScore - bScore;
+        // Sorting — static first, dynamic [:], catch-all [*] last
+        others.sort((a, b) => {
+            const weight = (seg: string) =>
+                seg.startsWith('[...') ? 3 : seg.startsWith('[') ? 2 : seg.startsWith('-') ? 1 : 0;
+            return weight(a.segment) - weight(b.segment);
         });
 
-        for (const child of otherNodes) {
-            children.push(printRoutes(child, indent + 2));
+        for (const c of others) childrenArr.push(printRoutes(c, indent + 2));
+        if (notFound) childrenArr.push(printRoutes(notFound, indent + 2));
+
+        if (childrenArr.length) {
+            str += `${spaces}  children: [\n${childrenArr.join(',\n')}\n${spaces}  ],\n`;
         }
 
-        if (notFoundNode) {
-            children.push(printRoutes(notFoundNode, indent + 2));
-        }
-
-        if (children.length > 0) {
-            routeString += `${spaces}  children: [\n`;
-            routeString += children.join(',\n');
-            routeString += `\n${spaces}  ],\n`;
-        }
-
-        routeString += `${spaces}}`;
-        return routeString;
+        str += `${spaces}}`;
+        return str;
     }
 
-    /**
-     * Scans the pages directory and generates the route tree.
-     */
+    /** Generate file routes */
     function generateRoutes() {
-        // 1. Initialize root node
+        const start = Date.now();
+
+        // Root node
         rootNode = {
             path: PAGES_DIR_ABS,
             segment: '/',
             isLayout: false,
-            isApp: true, // This is the root
+            isApp: true,
             is404: false,
             isPage: false,
             filePath: null,
             children: new Map(),
         };
 
-        // 2. Find all page files
-        const globPattern = `${pagesDir}/**/{${extensions.map((e) => `*${e}`).join(',')}}`;
-        const files = glob.sync(globPattern, { cwd: CWD });
+        const globPattern = `${PAGES_DIR_ABS}/**/{${extensions.map((e) => `*${e}`).join(',')}}`;
+        const files = glob.sync(globPattern, { cwd: CWD, absolute: true });
 
         let appFile: string | null = null;
         let notFoundFile: string | null = null;
         const pageFiles: string[] = [];
 
-        // 3. Filter and categorize files
         for (const file of files) {
-            const relPath = path.relative(pagesDir, file);
+            const rel = path.relative(PAGES_DIR_ABS, file);
 
-            // Check for _app and 404 FIRST, before any ignore logic
-            if (relPath === '_app.tsx') {
+            if (rel === '_app.tsx') {
                 appFile = file;
                 continue;
             }
-            if (relPath === '404.tsx') {
+            if (rel === '404.tsx') {
                 notFoundFile = file;
                 continue;
             }
 
-            // Check for ignored files/folders
-            // We allow _layout.tsx to pass
-            if (
-                relPath
-                    .split(path.sep)
-                    .some((part) => part.startsWith('_') && !['_layout.tsx'].includes(part))
-            ) {
-                continue;
-            }
-            // Check for other ignored root files (but not _layout.tsx)
-            if (relPath.startsWith('_') && relPath !== '_layout.tsx') {
-                continue;
-            }
+            // ignore underscore files except _layout.tsx
+            const ignored = rel
+                .split(path.sep)
+                .some((p) => p.startsWith('_') && p !== '_layout.tsx');
+            if (ignored) continue;
 
             pageFiles.push(file);
         }
 
-        // 4. Set _app.tsx file
-        if (appFile) {
-            rootNode.filePath = path.resolve(CWD, appFile);
-        }
+        if (appFile) rootNode.filePath = appFile;
 
-        // 5. Build the intermediate tree
         for (const file of pageFiles) {
-            const relPath = path.relative(PAGES_DIR_ABS, file);
-            const parts = relPath.split(path.sep);
-            const fileName = parts.pop()!;
-            const fileBase = fileName.replace(new RegExp(`(${extensions.join('|')})$`), '');
+            const rel = path.relative(PAGES_DIR_ABS, file);
+            const parts = rel.split(path.sep);
+            const filename = parts.pop()!;
+            const base = filename.replace(new RegExp(`(${extensions.join('|')})$`), '');
+            const isLayout = filename === '_layout.tsx';
 
-            const isLayout = fileName === '_layout.tsx';
-
-            // Get the node for the directory
             const dirNode = getOrCreateNode(parts, rootNode);
-
             if (isLayout) {
                 dirNode.isLayout = true;
-                dirNode.filePath = path.resolve(CWD, file);
+                dirNode.filePath = file;
             } else {
-                // This is a page file, create a child node for it
-                const pageNode = getOrCreateNode([fileBase], dirNode);
+                const pageNode = getOrCreateNode([base], dirNode);
                 pageNode.isPage = true;
-                pageNode.filePath = path.resolve(CWD, file);
+                pageNode.filePath = file;
             }
         }
 
-        // 6. Add 404 node
         if (notFoundFile) {
-            const notFoundRouteNode = getOrCreateNode(['404'], rootNode);
-            notFoundRouteNode.is404 = true;
-            notFoundRouteNode.filePath = path.resolve(CWD, notFoundFile);
+            const nfNode = getOrCreateNode(['404'], rootNode);
+            nfNode.is404 = true;
+            nfNode.filePath = notFoundFile;
         }
 
-        // 7. Generate the final output string
-        const routeObjectsString = printRoutes(rootNode);
-
-        const output = `/* eslint-disable */
+        const routeObjects = printRoutes(rootNode);
+        const content = `/* eslint-disable */
 // prettier-ignore
-// This file is auto-generated by vite-plugin-file-routes.
-// Do not edit this file directly.
-//
+// Auto-generated by vite-plugin-file-routes.
 // @ts-nocheck
 import React from 'react';
 import * as ReactRouter from 'react-router';
 
-export const routes = [${routeObjectsString}] as ReactRouter.RouteObject[];
+export const routes = [${routeObjects}] as ReactRouter.RouteObject[];
+export default routes;
 `;
 
-        // 8. Write to file
-        fs.writeFileSync(OUTPUT_FILE_ABS, output);
+        fs.mkdirSync(OUTPUT_FILE_DIR, { recursive: true });
+        fs.writeFileSync(OUTPUT_FILE_ABS, content);
+
+        logInfo(
+            `Generated ${colors.green(path.relative(CWD, OUTPUT_FILE_ABS))} in ${Date.now() - start}ms`
+        );
     }
 
+    // ---------- Plugin lifecycle ----------
     return {
-        name: 'vite-plugin-file-routes',
-        // Run on build start
-        buildStart() {
-            generateRoutes();
-        },
-        // Run on dev server start
-        configureServer(server) {
-            // Initial generation
-            generateRoutes();
+        name: 'vite-plugin-file-router',
+        enforce: 'pre',
 
-            // Watch for changes in the pages directory
+        buildStart() {
+            try {
+                generateRoutes();
+            } catch (err) {
+                logError('Failed to generate routes:', err);
+            }
+        },
+
+        configureServer(server) {
+            generateRoutes();
             server.watcher.add(PAGES_DIR_ABS);
-            server.watcher.on('all', (event, filePath) => {
-                if (filePath.startsWith(PAGES_DIR_ABS)) {
-                    console.log(`[file-routes] ${event}: ${path.relative(CWD, filePath)}`);
-                    generateRoutes();
-                    // Trigger a full-page reload
-                    server.ws.send({ type: 'full-reload' });
-                }
-            });
+
+            let regenTimeout: NodeJS.Timeout | null = null;
+
+            const rebuild = (event: string, filePath?: string | string[] | Buffer) => {
+                if (typeof filePath !== 'string') return;
+                const ext = path.extname(filePath);
+                if (!extensions.includes(ext)) return;
+                if (!filePath.startsWith(PAGES_DIR_ABS)) return;
+
+                if (regenTimeout) clearTimeout(regenTimeout);
+                regenTimeout = setTimeout(() => {
+                    logInfo(`${event}: ${path.relative(CWD, filePath)}`);
+                    try {
+                        generateRoutes();
+                        server.ws.send({ type: 'full-reload' });
+                    } catch (err) {
+                        logError('Regeneration failed:', err);
+                    }
+                }, 150);
+            };
+
+            server.watcher.on('add', rebuild);
+            server.watcher.on('unlink', rebuild);
+            server.watcher.on('change', rebuild);
         },
     };
 }
