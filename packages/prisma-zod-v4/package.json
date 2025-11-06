@@ -1,0 +1,29 @@
+{
+  "name": "@erp/prisma-zod-v4",
+  "version": "1.0.0",
+  "description": "A Zod schema generator for Prisma",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -w",
+    "clean": "rm -rf ./dist/*"
+  },
+  "bin": {
+    "prisma-zod-v4": "./dist/index.js",
+    "@erp/prisma-zod-v4": "./dist/index.js"
+  },
+  "dependencies": {
+    "@prisma/generator-helper": "^6.0.0",
+    "@prisma/internals": "^6.0.0",
+    "prettier": "catalog:prettier",
+    "zod": "catalog:zod"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:@types/node",
+    "typescript": "catalog:typescript"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.3"
+}

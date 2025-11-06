@@ -31,10 +31,11 @@
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
-    "dotenv-cli": "^10.0.0"
+    "dotenv-cli": "^10.0.0",
+    "@erp/prisma-zod-v4": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^24.9.2",
+    "@types/node": "catalog:@types/node",
     "bcrypt": "^6.0.0",
     "prisma": "catalog:prisma",
     "prisma-class-validator-generator": "^6.1.2",
