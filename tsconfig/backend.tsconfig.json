@@ -1,0 +1,18 @@
+{
+    "extends": "./base.tsconfig.json",
+    "compilerOptions": {
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "resolvePackageJsonExports": true,
+        "isolatedModules": true,
+        "removeComments": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true,
+        "sourceMap": true,
+        "incremental": true,
+        "noImplicitAny": false,
+        "strictBindCallApply": false,
+        "strictNullChecks": true
+    }
+}

@@ -1,21 +1,3 @@
 {
-    "extends": "../../tsconfig.base.json",
-    "compilerOptions": {
-        "module": "nodenext",
-        "moduleResolution": "nodenext",
-        "resolvePackageJsonExports": true,
-        "isolatedModules": true,
-        "removeComments": true,
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "allowSyntheticDefaultImports": true,
-        "target": "ES2023",
-        "incremental": true,
-        "skipLibCheck": true,
-        "strictNullChecks": true,
-        "noImplicitAny": false,
-        "strictBindCallApply": false,
-        "noFallthroughCasesInSwitch": false,
-        "erasableSyntaxOnly": false
-    }
+    "extends": "../../tsconfig/package.tsconfig.json"
 }
