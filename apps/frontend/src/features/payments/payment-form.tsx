@@ -11,7 +11,6 @@ import { paymentFormSchema } from './from-schema';
 // import type { EnrichedPayment } from './payments-api-slice';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { closePaymentFormModal, selectPaymentFormModal } from '@/app/ui-slice';
-import { Fragment } from 'react/jsx-runtime';
 
 // type PaymentFormDialogProps = {
 //     isOpen: boolean;
