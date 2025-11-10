@@ -9,8 +9,8 @@ export const batchCreateSchema = z.object({
     name: z.string().min(3, 'Batch name is required'),
     subject: z.string().optional().nullable(),
     teacher: z.string().optional().nullable(),
-    start_date: z.date().default(new Date()), // z.coerce.date() converts string to Date
-    end_date: z.date().optional().nullable(),
+    start_date: z.iso.datetime().optional().nullable(), // z.coerce.date() converts string to Date
+    end_date: z.iso.datetime().optional().nullable(),
     tutorId: idSchema.optional().nullable(), // The User ID of the tutor
 });
 

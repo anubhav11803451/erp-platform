@@ -6,14 +6,18 @@ import { idSchema } from './common';
 // ========================================
 
 // Schema for adding a student to a batch
-export const addStudentToBatchSchema = z.object({
+export const enrollStudentSchema = z.object({
     studentId: idSchema,
     batchId: idSchema,
-    total_fee_agreed: z.number().positive('Total fee agreed must be a positive number').default(0),
+    total_fee_agreed: z.coerce.number<number>().min(0, 'Fee must be a positive number.'),
 });
 
 //Schema for removing a student from a batch
-export const removeStudentFromBatchSchema = z.object({
+export const removeEnrollmentSchema = z.object({
     studentIds: z.array(idSchema),
     batchId: idSchema,
 });
+
+// Inferred Types for Enrollment
+export type EnrollmentCreatePayload = z.infer<typeof enrollStudentSchema>;
+export type EnrollmentRemovePayload = z.infer<typeof removeEnrollmentSchema>;

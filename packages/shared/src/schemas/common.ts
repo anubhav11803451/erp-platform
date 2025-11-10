@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UserRole } from '../enums';
+import { UserRole } from '@erp/db/enums';
 
 // --- Enums ---
 // Based on Prisma schema
@@ -10,7 +10,7 @@ export const paymentMethodSchema = z.enum(['Cash', 'UPI', 'Stripe', 'BankTransfe
 // ========================================
 // Reusable Core Schemas
 // ========================================
-export const idSchema = z.uuid({ message: 'Invalid UUID' });
+export const idSchema = z.uuid({ message: 'Invalid ID' });
 export const emailSchema = z.email({ message: 'Invalid email address' });
 export const passwordSchema = z.string().min(8, 'Password must be at least 8 characters');
 export const firstNameSchema = z.string().min(2, 'First name is required');

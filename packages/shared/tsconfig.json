@@ -22,5 +22,5 @@
         "outDir": "dist"
     },
     "include": ["src"], // Tell TS to only look at your src folder
-    "exclude": ["node_modules", "dist", "./src/nestjs-zod.ts"]
+    "exclude": ["node_modules", "dist"]
 }

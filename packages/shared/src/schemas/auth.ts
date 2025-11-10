@@ -17,12 +17,17 @@ export const signInSchema = z.object({
     password: passwordSchema,
 });
 
-export const signUpSchema = signInSchema.extend({
-    first_name: firstNameSchema,
-    last_name: lastNameSchema,
-    confirm_password: z.string().optional(),
-    role: userRoleSchema.default(UserRole.STAFF),
-});
+export const signUpSchema = signInSchema
+    .extend({
+        first_name: firstNameSchema,
+        last_name: lastNameSchema,
+        confirm_password: z.string(),
+        role: userRoleSchema.default(UserRole.STAFF),
+    })
+    .refine((data) => data.password === data.confirm_password, {
+        message: "Passwords don't match",
+        path: ['confirm_password'],
+    });
 
 export const forgotPasswordSchema = z.object({
     email: emailSchema,

@@ -14,13 +14,11 @@ export const studentCreateSchema = z.object({
     school_name: z.string().optional().nullable(),
 
     // Either provide an existing guardianId OR a new guardian object
-    guardianId: idSchema.optional(),
     guardian: guardianCreateSchema.optional(),
 });
 
 export const studentUpdateSchema = studentCreateSchema
-    .partial()
-    .omit({ guardianId: true, guardian: true }) // Guardian logic is not part of a simple student update
+    .partial() // Guardian logic is not part of a simple student update
     .refine(() => true); // Remove the refine check for partial updates
 
 // Inferred Types for Student

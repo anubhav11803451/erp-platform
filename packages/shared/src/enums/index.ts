@@ -1,4 +1,1 @@
-export enum UserRole {
-    ADMIN = 'ADMIN',
-    STAFF = 'STAFF',
-}
+export { UserRole } from '@erp/db/enums';
