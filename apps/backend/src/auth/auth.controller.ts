@@ -16,9 +16,10 @@ import type { Response, Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from '@/common/guards/local-auth.guard';
-import { LoginDto } from './dto/login.dto';
-import { UserWithoutPassword } from './types';
+
 import { ConfigService } from '@nestjs/config';
+import { UserLoginDto } from './dto/login.dto';
+import { AuthResponse, UserResponse } from '@erp/shared';
 
 @Controller('auth')
 export class AuthController {
@@ -40,12 +41,12 @@ export class AuthController {
     @Post('login')
     @HttpCode(HttpStatus.OK)
     async login(
-        @Req() req: { user: UserWithoutPassword },
+        @Req() req: { user: UserResponse },
         @Res({ passthrough: true }) res: Response,
         @Ip() ip: string,
         @Headers('user-agent') userAgent: string,
-        @Body() _loginDto: LoginDto, // Kept for validation pipe
-    ) {
+        @Body() _loginDto: UserLoginDto, // Kept for validation pipe
+    ): Promise<AuthResponse> {
         // LocalAuthGuard has run, validated, and attached the user to req.
         return this.authService.login(req.user, res, ip, userAgent);
     }

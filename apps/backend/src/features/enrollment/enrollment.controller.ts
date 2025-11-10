@@ -11,7 +11,7 @@ import {
     HttpCode,
 } from '@nestjs/common';
 import { EnrollmentService } from './enrollment.service';
-import { CreateEnrollmentDto, DisenrollDto } from './dto/enrollment.dto';
+import { CreateEnrollmentDto, RemoveEnrollmentDto } from './dto/enrollment.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -43,7 +43,7 @@ export class EnrollmentController {
     @Delete('disenroll')
     @Roles(UserRole.ADMIN) // Only Admins can disenroll
     @HttpCode(HttpStatus.OK)
-    disenroll(@Body() disenrollDto: DisenrollDto) {
-        return this.enrollmentService.disenroll(disenrollDto);
+    disenroll(@Body() dto: RemoveEnrollmentDto) {
+        return this.enrollmentService.disenroll(dto);
     }
 }

@@ -1,26 +1,6 @@
-import { IsNotEmpty, IsNumber, IsUUID, Min, IsArray, ArrayNotEmpty } from 'class-validator';
+import { createZodDto } from 'nestjs-zod/dto';
+import { enrollStudentSchema, removeEnrollmentSchema } from '@erp/shared';
 
-export class CreateEnrollmentDto {
-    @IsUUID()
-    @IsNotEmpty()
-    studentId: string;
+export class CreateEnrollmentDto extends createZodDto(enrollStudentSchema) {}
 
-    @IsUUID()
-    @IsNotEmpty()
-    batchId: string;
-
-    @IsNumber()
-    @Min(0, { message: 'Amount must be greater than 0' })
-    total_fee_agreed: number;
-}
-
-export class DisenrollDto {
-    @IsUUID()
-    @IsNotEmpty()
-    batchId: string;
-
-    @IsArray()
-    @ArrayNotEmpty()
-    @IsUUID('all', { each: true })
-    studentIds: string[];
-}
+export class RemoveEnrollmentDto extends createZodDto(removeEnrollmentSchema) {}

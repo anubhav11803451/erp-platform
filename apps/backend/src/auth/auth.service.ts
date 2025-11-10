@@ -2,15 +2,15 @@ import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/c
 import { JwtService } from '@nestjs/jwt';
 
 import * as bcrypt from 'bcrypt';
-import omit from 'lodash/omit';
 import * as crypto from 'crypto';
 import { Response } from 'express';
 
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '@/domains/users/users.service';
 import { PrismaService } from '@/core/prisma.service';
-import { User } from '@erp/db/client';
-import { AuthResponse, TokenPayload, UserWithoutPassword } from './types';
+
+import { UserResponse, AuthResponse, TokenPayload } from '@erp/shared';
+import { UtilsService } from '@/utils/utils.service';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +22,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly prisma: PrismaService,
         private readonly configService: ConfigService,
+        private readonly utilsService: UtilsService,
     ) {
         this.csrfTokenCookieName =
             configService.get<string>('CSRF_TOKEN_COOKIE_NAME') || 'erp360_ctk';
@@ -30,15 +31,11 @@ export class AuthService {
         this.isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     }
 
-    private omitHashPassword(user: User): UserWithoutPassword {
-        return omit(user, 'password');
-    }
-
     /**
      * Validates a user based on email and password.
      * Called by LocalStrategy.
      */
-    async validateUser(email: string, pass: string): Promise<UserWithoutPassword | null> {
+    async validateUser(email: string, pass: string): Promise<UserResponse | null> {
         const user = await this.usersService.findByEmail(email);
         if (user) {
             const encryptedPass: string = user.password;
@@ -46,7 +43,7 @@ export class AuthService {
             // Passwords match. Return user *without* the password hash.
 
             //use loadash omit
-            return this.omitHashPassword(user);
+            return this.utilsService.getUserResponse(user);
         }
         return null; // Invalid credentials
     }
@@ -92,7 +89,7 @@ export class AuthService {
     /**
      * Creates an access token from a user payload
      */
-    private async createAccessToken(user: UserWithoutPassword): Promise<string> {
+    private async createAccessToken(user: UserResponse): Promise<string> {
         const payload: TokenPayload = { email: user.email, sub: user.id, role: user.role };
         return this.jwtService.signAsync(payload, { expiresIn: '15m' }); // Access token expires in 15 minutes (Short-lived)
     }
@@ -130,7 +127,7 @@ export class AuthService {
      * Called by the AuthController.
      */
     async login(
-        user: UserWithoutPassword,
+        user: UserResponse,
         res: Response,
         ip: string,
         userAgent: string,
@@ -145,13 +142,7 @@ export class AuthService {
         return {
             access_token,
             csrf_token,
-            user: {
-                id: user.id,
-                email: user.email,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                role: user.role,
-            },
+            user,
         };
     }
 
@@ -199,7 +190,7 @@ export class AuthService {
         });
 
         // 5. Issue new tokens
-        const user = this.omitHashPassword(dbToken.user as User);
+        const user = this.utilsService.getUserResponse(dbToken.user);
         const access_token = await this.createAccessToken(user);
         const refresh_token = await this.createAndStoreRefreshToken(user.id, ip, user_agent);
         const csrf_token = this.createCsrfToken();
@@ -212,13 +203,7 @@ export class AuthService {
         return {
             access_token,
             csrf_token,
-            user: {
-                id: user.id,
-                email: user.email,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                role: user.role,
-            },
+            user,
         };
     }
 

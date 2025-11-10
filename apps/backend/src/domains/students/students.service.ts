@@ -15,7 +15,7 @@ export class StudentsService {
 
     async create(dto: CreateStudentDto): Promise<Student> {
         // 1. Find or create the guardian
-        const guardianRecord = await this.guardiansService.findOrCreate(dto.guardian);
+        const guardianRecord = await this.guardiansService.findOrCreate(dto.guardian!);
 
         // 2. Create the student, linking them to the guardian
         // --- THIS IS THE FIX ---
@@ -76,7 +76,7 @@ export class StudentsService {
                 data: dataToUpdate,
             });
             // --- END OF FIX ---
-        } catch (error) {
+        } catch (_error) {
             // Handle case where the student to update doesn't exist
             throw new NotFoundException(`Student with ID "${id}" not found`);
         }
@@ -87,7 +87,7 @@ export class StudentsService {
             return await this.prisma.student.delete({
                 where: { id },
             });
-        } catch (error) {
+        } catch (_error) {
             // Handle case where the student to delete doesn't exist
             throw new NotFoundException(`Student with ID "${id}" not found`);
         }

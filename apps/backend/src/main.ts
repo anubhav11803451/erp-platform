@@ -1,7 +1,7 @@
-import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from '@/app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+// import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerDocumentOptions, SwaggerModule } from '@nestjs/swagger';
 
 import helmet from 'helmet';
@@ -21,14 +21,8 @@ async function bootstrap() {
     app.setGlobalPrefix('/v1/api');
 
     // Global ValidationPipe (unchanged)
-    app.useGlobalPipes(
-        new ValidationPipe({
-            whitelist: true,
-            forbidNonWhitelisted: true,
-            transform: true,
-        }),
-    );
-    app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+    // app.useGlobalPipes(new ZodValidationPipe());
+    // app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
     // Swagger API documentation
     const config = new DocumentBuilder()
