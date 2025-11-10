@@ -1,7 +1,7 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import type { EnrichedStudent } from '@/features/students/student-api-slice';
+import type { EnrichedStudent } from '@erp/shared';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,

@@ -1,29 +1,10 @@
 import { apiSlice } from '@/api/api-slice';
-import type { Guardian, Student } from '@erp/common/types';
-// THIS IS THE MAGIC! We import our Prisma types directly into the frontend.
-// --- NEW: Define the type for the data we get back from the 'findAll' endpoint ---
-// Prisma's `include` returns a combined type.
-export type EnrichedStudent = Student & {
-    guardian: Guardian;
-};
-
-// --- NEW: Define the type for creating a student ---
-// This must match the backend's CreateStudentDto
-export type CreateStudentInput = {
-    first_name: string;
-    last_name: string;
-    email?: string;
-    phone?: string;
-    school_name?: string;
-    guardian: {
-        first_name: string;
-        last_name: string;
-        email: string;
-        phone?: string;
-    };
-};
-// Define the shape for updating. It's a partial of the create input.
-export type UpdateStudentInput = Partial<CreateStudentInput>;
+import type {
+    EnrichedStudent,
+    StudentCreatePayload,
+    StudentResponse,
+    StudentUpdatePayload,
+} from '@erp/shared';
 
 // Injects endpoints into the root apiSlice
 export const studentsApiSlice = apiSlice.injectEndpoints({
@@ -40,7 +21,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
                     : [{ type: 'Student', id: 'LIST' }],
         }),
         // Mutation: POST /domains/students
-        addStudent: builder.mutation<Student, CreateStudentInput>({
+        addStudent: builder.mutation<StudentResponse, StudentCreatePayload>({
             query: (newStudent) => ({
                 url: '/domains/students',
                 method: 'POST',
@@ -49,14 +30,17 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
             invalidatesTags: [{ type: 'Student', id: 'LIST' }],
         }),
         // Query: GET /domains/students/:id
-        getStudent: builder.query<Student, string>({
+        getStudent: builder.query<StudentResponse, string>({
             query: (id) => `/domains/students/${id}`,
             // Provides a specific tag for this student: { type: 'Student', id: '123' }
             providesTags: (_result, _error, id) => [{ type: 'Student', id }],
         }),
 
         // Mutation: PATCH /domains/students/:id
-        updateStudent: builder.mutation<Student, { id: string; data: UpdateStudentInput }>({
+        updateStudent: builder.mutation<
+            StudentResponse,
+            { id: string; data: StudentUpdatePayload }
+        >({
             query: ({ id, data }) => ({
                 url: `/domains/students/${id}`,
                 method: 'PATCH',
@@ -70,7 +54,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
         }),
 
         // Mutation: DELETE /domains/students/:id
-        deleteStudent: builder.mutation<Student, string>({
+        deleteStudent: builder.mutation<StudentResponse, string>({
             query: (id) => ({
                 url: `/domains/students/${id}`,
                 method: 'DELETE',

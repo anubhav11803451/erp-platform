@@ -1,5 +1,3 @@
-import { UserRole } from '@erp/common/enums';
-
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { SmartForm } from '@/components/smart-form';
@@ -7,15 +5,14 @@ import { TextField, SelectField, PasswordField } from '@/components/smart-form/f
 
 import { FormDialogShell } from '@/components/shared/form-dialog-shell';
 import { useUserForm } from '@/hooks/use-user-form';
-import type { EnrichedUser } from '@/features/users/users-api-slice';
+import { userCreateSchema, UserRole, userUpdateSchema, type UserResponse } from '@erp/shared';
 import { Field, FieldGroup } from '@/components/ui/field';
 import { Grid } from '@/components/ui/grid';
-import { createUserFormSchema, updateUserFormSchema } from './form-schema';
 
 type UserFormDialogProps = {
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
-    userToEdit?: EnrichedUser | null;
+    userToEdit?: UserResponse | null;
 };
 
 export function UserFormDialog({ isOpen, setIsOpen, userToEdit }: UserFormDialogProps) {
@@ -38,7 +35,7 @@ export function UserFormDialog({ isOpen, setIsOpen, userToEdit }: UserFormDialog
             <SmartForm
                 id="user-form"
                 defaultValues={initialValues}
-                schema={isEditMode ? updateUserFormSchema : createUserFormSchema}
+                schema={isEditMode ? userUpdateSchema : userCreateSchema}
                 enableReinitialize={true}
                 resetAfterSubmit={false}
                 showSubmitButton={false}

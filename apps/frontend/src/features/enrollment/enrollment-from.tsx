@@ -4,11 +4,10 @@ import { SmartForm } from '@/components/smart-form';
 import { TextField, SelectField } from '@/components/smart-form/form-fields';
 import { FormDialogShell } from '@/components/shared/form-dialog-shell';
 
-import { type EnrolledStudent } from '@/features/enrollment/enrollment-api-slice';
+import { type EnrolledStudent, enrollStudentSchema } from '@erp/shared';
 
 import { Field, FieldGroup } from '@/components/ui/field';
 import { useEnrollmentForm } from '@/hooks/use-enrollment-form';
-import { enrollStudentSchema } from './form-schema';
 
 type EnrollStudentFormDialogProps = {
     isOpen: boolean;

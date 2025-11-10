@@ -1,14 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { FormDialogShell } from '@/components/shared/form-dialog-shell';
-import type { EnrichedBatch } from '@/features/batches/batches-api-slice';
 import { useBatchForm } from '@/hooks/use-batch-form';
 
 // --- NEW IMPORTS ---
 import { SmartForm } from '@/components/smart-form';
 import { TextField, SelectField } from '@/components/smart-form/form-fields';
 import { Field, FieldGroup } from '@/components/ui/field';
-import { batchFormSchema } from './form-schema';
+import { batchCreateSchema, type EnrichedBatch } from '@erp/shared';
 // --- END NEW IMPORTS ---
 
 type BatchFormDialogProps = {
@@ -47,7 +46,7 @@ export function BatchFormDialog({ isOpen, setIsOpen, batchToEdit }: BatchFormDia
             {/* --- REFACTORED TO USE SmartForm --- */}
             <SmartForm
                 id="batch-form"
-                schema={batchFormSchema}
+                schema={batchCreateSchema}
                 defaultValues={initialValues}
                 onSubmit={onSubmit}
                 enableReinitialize={true}

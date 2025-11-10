@@ -1,19 +1,19 @@
 import { useMemo } from 'react';
 
 import { toast } from 'sonner';
-import { UserRole } from '@erp/common/enums';
 
+import { useAddUserMutation, useUpdateUserMutation } from '@/features/users/users-api-slice';
 import {
-    useAddUserMutation,
-    useUpdateUserMutation,
-    type EnrichedUser,
-} from '@/features/users/users-api-slice';
-import type { UserFormValues } from '@/features/users/form-schema';
+    UserRole,
+    type UserCreatePayload,
+    type UserResponse,
+    type UserUpdatePayload,
+} from '@erp/shared';
 import { getApiErrorMessage } from '@/lib/utils';
 
 type UseUserFormProps = {
     setIsOpen: (open: boolean) => void;
-    userToEdit?: EnrichedUser | null;
+    userToEdit?: UserResponse | null;
 };
 
 export function useUserForm({ setIsOpen, userToEdit }: UseUserFormProps) {
@@ -25,7 +25,7 @@ export function useUserForm({ setIsOpen, userToEdit }: UseUserFormProps) {
     const isLoading = isAdding || isUpdating;
 
     // If we are in "edit" mode, pre-populate the form
-    const initialValues: UserFormValues = useMemo(() => {
+    const initialValues: UserUpdatePayload = useMemo(() => {
         if (isEditMode) {
             return {
                 first_name: userToEdit.first_name,
@@ -45,7 +45,7 @@ export function useUserForm({ setIsOpen, userToEdit }: UseUserFormProps) {
         }
     }, [userToEdit, isEditMode]); // isOpen ensures reset on re-open
 
-    const onSubmit = async (data: UserFormValues) => {
+    const onSubmit = async (data: UserCreatePayload | UserUpdatePayload) => {
         // Only send password if it's not edit mode OR if it's been filled in
         const payload = {
             ...data,
@@ -56,11 +56,14 @@ export function useUserForm({ setIsOpen, userToEdit }: UseUserFormProps) {
             if (isEditMode) {
                 await updateUser({
                     id: userToEdit.id,
-                    body: payload,
+                    body: payload as UserUpdatePayload,
                 }).unwrap();
                 toast.success('User updated successfully!');
             } else {
-                await addUser({ ...payload, password: data.password! }).unwrap();
+                await addUser({
+                    ...payload,
+                    password: data.password!,
+                } as UserCreatePayload).unwrap();
                 toast.success('User created successfully!');
             }
             setIsOpen(false);

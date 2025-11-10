@@ -5,7 +5,7 @@ import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui
 
 import { useAppSelector } from '@/app/hooks';
 import { selectCurrentUser } from '@/features/auth/auth-slice';
-import { UserRole } from '@erp/common/enums';
+import { UserRole } from '@erp/shared';
 import { cn } from '@/lib/utils';
 
 // Navigation items definition (unchanged)

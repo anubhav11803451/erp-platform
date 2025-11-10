@@ -10,7 +10,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { EnrolledStudent } from '../enrollment-api-slice';
+import type { EnrolledStudent } from '@erp/shared';
 import { Checkbox } from '@/components/ui/checkbox';
 
 // Define the shape of the actions props

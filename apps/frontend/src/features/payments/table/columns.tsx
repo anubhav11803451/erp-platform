@@ -10,7 +10,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { EnrichedPayment } from '@/features/payments/payments-api-slice';
+import type { EnrichedPayment } from '@erp/shared';
 
 // Define the shape of the actions props
 type PaymentActionsProps = {

@@ -1,14 +1,12 @@
 import { createAppSlice } from '@/app/create-app-slice';
 import type { RootState } from '@/app/root-reducer';
-import type { User } from '@erp/common/types';
+import type { UserResponse } from '@erp/shared';
 import type { PayloadAction } from '@reduxjs/toolkit';
-
-export type AuthUser = {} & Omit<User, 'password' | 'created_at' | 'updated_at'>;
 
 type AuthState = {
     access_token: string | null;
     csrf_token: string | null;
-    user: AuthUser | null;
+    user: UserResponse | null;
     isAuthLoading: boolean;
 };
 
@@ -25,7 +23,7 @@ const authSlice = createAppSlice({
     reducers: {
         setCredentials: (
             state,
-            action: PayloadAction<{ user: AuthUser; csrf_token: string; access_token: string }>
+            action: PayloadAction<{ user: UserResponse; csrf_token: string; access_token: string }>
         ) => {
             state.user = action.payload.user;
             state.access_token = action.payload.access_token;

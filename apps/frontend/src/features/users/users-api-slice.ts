@@ -1,19 +1,10 @@
-import type { User } from '@erp/common/types';
+import type { UserCreatePayload, UserResponse, UserUpdatePayload } from '@erp/shared';
 import { apiSlice } from '@/api/api-slice';
-
-// We can't import the backend DTO, so we'll redefine the parts we need.
-// This is good practice as it decouples frontend from backend DTOs.
-export type AddUserPayload = Pick<User, 'email' | 'password' | 'first_name' | 'last_name'>;
-export type UpdateUserPayload = Partial<AddUserPayload>;
-
-// We're extending the 'User' type, but for now it's the same.
-// In the future, you might omit the password hash.
-export type EnrichedUser = Omit<User, 'password'>;
 
 const usersApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         // GET /domains/users
-        getUsers: builder.query<EnrichedUser[], void>({
+        getUsers: builder.query<UserResponse[], void>({
             query: () => '/domains/users',
             providesTags: (result) =>
                 result
@@ -23,7 +14,7 @@ const usersApiSlice = apiSlice.injectEndpoints({
                       ]
                     : [{ type: 'User', id: 'LIST' }],
         }),
-        addUser: builder.mutation<EnrichedUser, AddUserPayload>({
+        addUser: builder.mutation<UserResponse, UserCreatePayload>({
             query: (body) => ({
                 url: '/domains/users',
                 method: 'POST',
@@ -31,7 +22,7 @@ const usersApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: [{ type: 'User', id: 'LIST' }],
         }),
-        updateUser: builder.mutation<EnrichedUser, { id: string; body: UpdateUserPayload }>({
+        updateUser: builder.mutation<UserResponse, { id: string; body: UserUpdatePayload }>({
             query: ({ id, body }) => ({
                 url: `/domains/users/${id}`,
                 method: 'PATCH',

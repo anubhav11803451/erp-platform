@@ -2,7 +2,7 @@ import { SmartForm } from '@/components/smart-form';
 import { PasswordField, TextField } from '@/components/smart-form/form-fields';
 import { FieldGroup } from '@/components/ui/field';
 
-import { signInSchema } from './schemas';
+import { signInSchema } from '@erp/shared';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 

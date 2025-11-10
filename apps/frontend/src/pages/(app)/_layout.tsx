@@ -20,7 +20,7 @@ const AppLayout = () => {
     const isAuthLoading = useAppSelector(selectIsAuthLoading);
 
     // 1. If we are still trying to log in, show a full-screen loader
-    if (isAuthLoading) {
+    if (isAuthLoading || !isAuthenticated) {
         return (
             <div className="flex h-screen w-screen items-center justify-center">
                 <Loader className="text-primary h-10 w-10 animate-spin" />

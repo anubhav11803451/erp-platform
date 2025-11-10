@@ -1,10 +1,9 @@
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 import type { RootState } from '@/app/root-reducer';
-// import { logOut, setCredentials } from '@/features/auth/auth-api-slice';
 import { Mutex } from 'async-mutex';
 import Cookies from 'js-cookie';
-import type { AuthResponse } from '@/features/auth/auth-api-slice';
+import type { AuthResponse } from '@erp/shared';
 import { logOut, setCredentials } from '@/features/auth/auth-slice';
 import { CSRF_TOKEN_COOKIE_NAME } from '@/lib/constants';
 

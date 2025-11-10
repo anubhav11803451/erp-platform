@@ -7,8 +7,7 @@ import { usePaymentForm } from '@/hooks/use-payment-from';
 import { paymentMethodOptions } from '@/lib/constants';
 import { Field, FieldGroup } from '@/components/ui/field';
 import { SmartForm } from '@/components/smart-form';
-import { paymentFormSchema } from './from-schema';
-// import type { EnrichedPayment } from './payments-api-slice';
+import { paymentCreateSchema } from '@erp/shared';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { closePaymentFormModal, selectPaymentFormModal } from '@/app/ui-slice';
 
@@ -46,7 +45,7 @@ export function PaymentFormDialog() {
         >
             <SmartForm
                 id="add-payment-form"
-                schema={paymentFormSchema}
+                schema={paymentCreateSchema}
                 defaultValues={initialValues}
                 enableReinitialize
                 showSubmitButton={false}

@@ -1,36 +1,15 @@
 import { apiSlice } from '@/api/api-slice';
-import type { UserRole } from '@erp/common/enums';
+import type {
+    AuthResponse,
+    ForgotPasswordPayload,
+    SignInPayload,
+    SignUpPayload,
+} from '@erp/shared';
 import { logOut, setCredentials } from './auth-slice';
-
-export type Credentials = {
-    email: string;
-    password: string;
-};
-
-export type RegisterBody = Credentials & {
-    first_name: string;
-    last_name: string;
-};
-
-export type ForgotPasswordBody = {
-    email: string;
-};
-
-export type AuthResponse = {
-    access_token: string;
-    csrf_token: string;
-    user: {
-        id: string;
-        email: string;
-        first_name: string;
-        last_name: string;
-        role: UserRole;
-    };
-};
 
 const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        login: builder.mutation<AuthResponse, Credentials>({
+        login: builder.mutation<AuthResponse, SignInPayload>({
             query: (credentials) => ({
                 url: '/auth/login',
                 method: 'POST',
@@ -80,7 +59,7 @@ const authApiSlice = apiSlice.injectEndpoints({
             },
         }),
 
-        register: builder.mutation<AuthResponse, RegisterBody>({
+        register: builder.mutation<AuthResponse, SignUpPayload>({
             query: (body) => ({
                 url: '/auth/register', // You will need to build this endpoint
                 method: 'POST',
@@ -97,7 +76,7 @@ const authApiSlice = apiSlice.injectEndpoints({
         }),
 
         // --- NEW MUTATION ---
-        forgotPassword: builder.mutation<{ message: string }, ForgotPasswordBody>({
+        forgotPassword: builder.mutation<{ message: string }, ForgotPasswordPayload>({
             query: (body) => ({
                 url: '/auth/forgot-password', // You will need to build this endpoint
                 method: 'POST',

@@ -1,15 +1,12 @@
 import { useAppSelector } from '@/app/hooks';
-import {
-    useLoginMutation,
-    useLogoutMutation,
-    type Credentials,
-} from '@/features/auth/auth-api-slice';
+import { useLoginMutation, useLogoutMutation } from '@/features/auth/auth-api-slice';
 import {
     selectCurrentUser,
     selectIsAuthenticated,
     selectIsAuthLoading,
 } from '@/features/auth/auth-slice';
 import { getApiErrorMessage } from '@/lib/utils';
+import type { SignInPayload } from '@erp/shared';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 
@@ -25,7 +22,7 @@ export function useAuth() {
     const [signIn, { isLoading: isSigningIn }] = useLoginMutation();
     const [logout] = useLogoutMutation();
 
-    async function handleSignIn(values: Credentials) {
+    async function handleSignIn(values: SignInPayload) {
         try {
             await signIn(values).unwrap();
             toast.success('Logged in successfully');

@@ -1,13 +1,10 @@
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 
-import {
-    useAddEnrollmentMutation,
-    type EnrolledStudent,
-} from '@/features/enrollment/enrollment-api-slice';
+import { useAddEnrollmentMutation } from '@/features/enrollment/enrollment-api-slice';
 import { useGetStudentsQuery } from '@/features/students/student-api-slice';
-import type { EnrollStudentFormValues } from '@/features/enrollment/form-schema';
 import { getApiErrorMessage } from '@/lib/utils';
+import type { EnrolledStudent, EnrollmentCreatePayload } from '@erp/shared';
 
 type UseEnrollmentFormProps = {
     batchId: string;
@@ -34,18 +31,18 @@ export function useEnrollmentForm({ batchId, alreadyEnrolled, setIsOpen }: UseEn
         );
     }, [allStudents, alreadyEnrolled]);
 
-    const initialValues: EnrollStudentFormValues = useMemo(() => {
+    const initialValues: EnrollmentCreatePayload = useMemo(() => {
         return {
+            batchId: batchId,
             studentId: '',
             total_fee_agreed: 0,
         };
     }, []);
 
-    const onSubmit = async (data: EnrollStudentFormValues) => {
+    const onSubmit = async (data: EnrollmentCreatePayload) => {
         try {
             await addEnrollment({
                 ...data,
-                batchId: batchId,
             }).unwrap();
             toast.success('Student enrolled successfully!');
             setIsOpen(false);

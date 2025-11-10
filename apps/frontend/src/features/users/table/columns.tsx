@@ -13,16 +13,16 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { EnrichedUser } from '../users-api-slice';
-import { UserRole } from '@erp/common/enums';
+import type { UserResponse } from '@erp/shared';
+import { UserRole } from '@erp/shared';
 
 // Define the shape of the actions props
 type UserActionsProps = {
-    onEdit: (user: EnrichedUser) => void;
+    onEdit: (user: UserResponse) => void;
     onDelete: (userId: string) => void;
 };
 
-export const getColumns = ({ onEdit, onDelete }: UserActionsProps): ColumnDef<EnrichedUser>[] => [
+export const getColumns = ({ onEdit, onDelete }: UserActionsProps): ColumnDef<UserResponse>[] => [
     {
         accessorKey: 'id',
         header: 'ID',

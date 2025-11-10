@@ -1,12 +1,16 @@
 import { useMemo } from 'react';
 
 import { toast } from 'sonner';
-import { UserRole } from '@erp/common/enums';
+import {
+    UserRole,
+    type BatchCreatePayload,
+    type BatchUpdatePayload,
+    type EnrichedBatch,
+} from '@erp/shared';
 
-import type { EnrichedBatch } from '@/features/batches/batches-api-slice';
 import { useAddBatchMutation, useUpdateBatchMutation } from '@/features/batches/batches-api-slice';
 import { useGetUsersQuery } from '@/features/users/users-api-slice';
-import type { BatchFormValues } from '@/features/batches/form-schema';
+
 import { getApiErrorMessage } from '@/lib/utils';
 
 type UseBatchFormProps = {
@@ -25,7 +29,7 @@ export function useBatchForm({ batchToEdit, setIsOpen }: UseBatchFormProps) {
 
     const isLoading = isAdding || isUpdating;
 
-    const initialValues: BatchFormValues = useMemo(() => {
+    const initialValues: BatchCreatePayload = useMemo(() => {
         if (!isEditMode)
             return {
                 name: '',
@@ -40,7 +44,7 @@ export function useBatchForm({ batchToEdit, setIsOpen }: UseBatchFormProps) {
     }, [isEditMode, batchToEdit]);
 
     // 6. Submit handler
-    const onSubmit = async (data: BatchFormValues) => {
+    const onSubmit = async (data: BatchCreatePayload) => {
         const payload = {
             ...data,
             subject: data.subject || undefined,

@@ -1,19 +1,10 @@
-import type { Batch, User } from '@erp/common/types';
+import type {
+    BatchCreatePayload,
+    BatchUpdatePayload,
+    BatchResponse,
+    EnrichedBatch,
+} from '@erp/shared';
 import { apiSlice } from '@/api/api-slice';
-
-// This is the type we expect from the backend (with tutor data included)
-export type EnrichedBatch = Batch & {
-    tutor: User | null;
-};
-
-// Types for our "create" and "update" mutations
-export type CreateBatchInput = {
-    name: string;
-    subject?: string;
-    tutorId?: string;
-};
-
-export type UpdateBatchInput = Partial<CreateBatchInput>;
 
 const batchesApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -35,7 +26,7 @@ const batchesApiSlice = apiSlice.injectEndpoints({
         }),
 
         // POST /domains/batches
-        addBatch: builder.mutation<Batch, CreateBatchInput>({
+        addBatch: builder.mutation<BatchResponse, BatchCreatePayload>({
             query: (body) => ({
                 url: '/domains/batches',
                 method: 'POST',
@@ -45,7 +36,7 @@ const batchesApiSlice = apiSlice.injectEndpoints({
         }),
 
         // PATCH /domains/batches/:id
-        updateBatch: builder.mutation<Batch, { id: string; body: UpdateBatchInput }>({
+        updateBatch: builder.mutation<BatchResponse, { id: string; body: BatchUpdatePayload }>({
             query: ({ id, body }) => ({
                 url: `/domains/batches/${id}`,
                 method: 'PATCH',

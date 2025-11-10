@@ -1,16 +1,16 @@
 import { SmartForm } from '@/components/smart-form';
 import { Button } from '@/components/ui/button';
-import { signupSchema, type SignupFormValues } from './schemas';
+import { signUpSchema, UserRole, type SignUpPayload } from '@erp/shared';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router';
 import { FieldGroup } from '@/components/ui/field';
 import { PasswordField, TextField } from '@/components/smart-form/form-fields';
-import { UserRole } from '@erp/common/enums';
 import { Grid } from '@/components/ui/grid';
+import { getApiErrorMessage } from '@/lib/utils';
 
 export function SignUpForm() {
     const navigate = useNavigate();
-    const onSubmit = async (_data: SignupFormValues) => {
+    const onSubmit = async (_data: SignUpPayload) => {
         try {
             // We only send the fields the backend expects
             // await register({
@@ -21,14 +21,14 @@ export function SignUpForm() {
             // }).unwrap();
             toast.success('Account created successfully!');
             navigate('/'); // Redirect to dashboard on success
-        } catch (err: any) {
-            toast.error(err.data?.message || 'Sign up failed. Please try again.');
+        } catch (err) {
+            toast.error(getApiErrorMessage(err));
         }
     };
     return (
         <SmartForm
             id="sign-up-form"
-            schema={signupSchema}
+            schema={signUpSchema}
             onSubmit={onSubmit}
             defaultValues={{ role: UserRole.STAFF }}
             showSubmitButton={false}

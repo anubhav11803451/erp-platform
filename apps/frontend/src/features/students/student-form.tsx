@@ -1,12 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { FormDialogShell } from '@/components/shared/form-dialog-shell';
-import type { EnrichedStudent } from '@/features/students/student-api-slice';
+import { type EnrichedStudent, studentCreateSchema } from '@erp/shared';
 import { useStudentForm } from '@/hooks/use-student-form';
 
 import { SmartForm } from '@/components/smart-form';
 import { TextField } from '@/components/smart-form/form-fields';
-import { studentFormSchema } from './form-schema';
+
 import {
     Field,
     FieldDescription,
@@ -42,7 +42,7 @@ export function StudentFormDialog({ isOpen, setIsOpen, studentToEdit }: StudentF
         >
             <SmartForm
                 id="student-form"
-                schema={studentFormSchema}
+                schema={studentCreateSchema}
                 defaultValues={initialValues}
                 enableReinitialize={true}
                 resetAfterSubmit={false}

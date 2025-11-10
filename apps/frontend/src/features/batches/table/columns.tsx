@@ -1,7 +1,7 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import type { EnrichedBatch } from '@/features/batches/batches-api-slice';
+import type { EnrichedBatch } from '@erp/shared';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,

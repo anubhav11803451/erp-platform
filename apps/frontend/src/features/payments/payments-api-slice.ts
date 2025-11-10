@@ -1,20 +1,10 @@
 import { apiSlice } from '@/api/api-slice';
-import type { Payment, Batch } from '@erp/common/types';
-
-// The backend returns the batch name, so we'll create a rich type
-export type EnrichedPayment = Payment & {
-    batch: Pick<Batch, 'name'>;
-};
-
-export type AddPaymentPayload = {
-    studentId: string;
-    batchId: string;
-    // payment_date: Date;
-    amount: number;
-    method: string;
-    notes?: string;
-};
-export type UpdatePaymentPayload = Partial<AddPaymentPayload>;
+import type {
+    EnrichedPayment,
+    PaymentCreatePayload,
+    PaymentResponse,
+    PaymentUpdatePayload,
+} from '@erp/shared';
 
 export const paymentsApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -24,7 +14,7 @@ export const paymentsApiSlice = apiSlice.injectEndpoints({
                 { type: 'Payment', id: `LIST-STUDENT-${studentId}` },
             ],
         }),
-        addPayment: builder.mutation<Payment, AddPaymentPayload>({
+        addPayment: builder.mutation<PaymentResponse, PaymentCreatePayload>({
             query: (body) => ({
                 url: '/features/payments',
                 method: 'POST',
@@ -34,7 +24,10 @@ export const paymentsApiSlice = apiSlice.injectEndpoints({
                 { type: 'Payment', id: `LIST-STUDENT-${result?.studentId}` },
             ],
         }),
-        updatePayment: builder.mutation<Payment, { id: string; body: UpdatePaymentPayload }>({
+        updatePayment: builder.mutation<
+            PaymentResponse,
+            { id: string; body: PaymentUpdatePayload }
+        >({
             query: ({ id, body }) => ({
                 url: `/features/payments/${id}`,
                 method: 'PATCH',

@@ -4,10 +4,9 @@ import { toast } from 'sonner';
 import {
     useAddPaymentMutation,
     useUpdatePaymentMutation,
-    type EnrichedPayment,
 } from '@/features/payments/payments-api-slice';
 import { useGetEnrollmentsByStudentQuery } from '@/features/enrollment/enrollment-api-slice';
-import type { PaymentFormValues } from '@/features/payments/from-schema';
+import { type PaymentCreatePayload, type EnrichedPayment } from '@erp/shared';
 import { getApiErrorMessage } from '@/lib/utils';
 
 type UsePaymentFormProps = {
@@ -51,9 +50,10 @@ export function usePaymentForm({
         return options?.filter((option) => option.value === paymentToEdit?.batchId);
     }, [enrollments, isEditMode, paymentToEdit, batchId]);
 
-    const initialValues: PaymentFormValues = useMemo(() => {
+    const initialValues: PaymentCreatePayload = useMemo(() => {
         if (!isEditMode) {
             return {
+                studentId: studentId || '',
                 amount: 0,
                 batchId: batchId || '',
                 method: '',
@@ -66,18 +66,19 @@ export function usePaymentForm({
             };
         }
         return {
+            studentId: paymentToEdit?.studentId || '',
             amount: paymentToEdit?.amount || 0,
             batchId: paymentToEdit?.batchId || '',
             method: paymentToEdit?.method || '',
             notes: paymentToEdit?.notes || '',
         };
-    }, [isEditMode, paymentToEdit, batchId]);
+    }, [isEditMode, paymentToEdit, batchId, studentId, batchOptions]);
 
-    const onSubmit = async (data: PaymentFormValues) => {
+    const onSubmit = async (data: PaymentCreatePayload) => {
         try {
             if (isEditMode) {
                 await updatePayment({
-                    id: '',
+                    id: paymentToEdit!.id,
                     body: data,
                 }).unwrap();
                 toast.success('Payment updated successfully!');

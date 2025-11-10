@@ -1,28 +1,11 @@
 import { apiSlice } from '@/api/api-slice';
-import type { StudentBatch, Student, Guardian, Batch } from '@erp/common/types';
-
-// Define the shape of the enrollment DTO
-export type CreateEnrollmentInput = {
-    studentId: string;
-    batchId: string;
-    total_fee_agreed: number;
-};
-
-export type DisenrollPayload = {
-    batchId: string;
-    studentIds: string[];
-};
-
-// Define the rich type we get back from the 'getEnrollmentsByBatch' endpoint
-export type EnrolledStudent = StudentBatch & {
-    student: Student & {
-        guardian: Guardian;
-    };
-};
-
-export type StudentEnrollment = StudentBatch & {
-    batch: Pick<Batch, 'id' | 'name' | 'subject'>;
-};
+import type {
+    EnrolledStudent,
+    EnrollmentCreatePayload,
+    EnrollmentRemovePayload,
+    StudentBatchResponse,
+    BatchEnrollment,
+} from '@erp/shared';
 
 export const enrollmentApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -37,14 +20,14 @@ export const enrollmentApiSlice = apiSlice.injectEndpoints({
                     : [{ type: 'Enrollment', id: `LIST-${batchId}` }],
         }),
 
-        getEnrollmentsByStudent: builder.query<StudentEnrollment[], string>({
+        getEnrollmentsByStudent: builder.query<BatchEnrollment[], string>({
             query: (studentId) => `/features/enrollment/student/${studentId}`,
             providesTags: (_result, _error, studentId) => [
                 { type: 'Enrollment', id: `LIST-STUDENT-${studentId}` },
             ],
         }),
 
-        addEnrollment: builder.mutation<StudentBatch, CreateEnrollmentInput>({
+        addEnrollment: builder.mutation<StudentBatchResponse, EnrollmentCreatePayload>({
             query: (body) => ({
                 url: '/features/enrollment',
                 method: 'POST',
@@ -52,7 +35,7 @@ export const enrollmentApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: (result) => [{ type: 'Enrollment', id: `LIST-${result?.batchId}` }],
         }),
-        deleteEnrollment: builder.mutation<{ count: number }, DisenrollPayload>({
+        deleteEnrollment: builder.mutation<{ count: number }, EnrollmentRemovePayload>({
             query: (body) => ({
                 url: '/features/enrollment/disenroll',
                 method: 'DELETE',

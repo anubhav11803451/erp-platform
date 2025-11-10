@@ -1,16 +1,14 @@
 import { useMemo } from 'react';
 import { toast } from 'sonner';
-
-import type {
-    CreateStudentInput,
-    EnrichedStudent,
-    UpdateStudentInput,
-} from '@/features/students/student-api-slice';
 import {
     useAddStudentMutation,
     useUpdateStudentMutation,
 } from '@/features/students/student-api-slice';
-import type { StudentFormValues } from '@/features/students/form-schema';
+import {
+    type StudentCreatePayload,
+    type StudentUpdatePayload,
+    type EnrichedStudent,
+} from '@erp/shared';
 import { getApiErrorMessage } from '@/lib/utils';
 
 type UseStudentFormProps = {
@@ -22,7 +20,7 @@ type UseStudentFormProps = {
 export function useStudentForm({ studentToEdit, setIsOpen }: UseStudentFormProps) {
     const isEditMode = !!studentToEdit;
 
-    const initialValues: StudentFormValues = useMemo(() => {
+    const initialValues: StudentCreatePayload = useMemo(() => {
         if (!isEditMode)
             return {
                 first_name: '',
@@ -58,20 +56,15 @@ export function useStudentForm({ studentToEdit, setIsOpen }: UseStudentFormProps
     const isLoading = isAdding || isUpdating;
 
     // 6. Submit handler
-    const onSubmit = async (data: StudentFormValues) => {
-        const payload = {
-            ...data,
-            email: data.email || undefined,
-            phone: data.phone || undefined,
-            school_name: data.school_name || undefined,
-        };
+    const onSubmit = async (data: StudentCreatePayload | StudentUpdatePayload) => {
+        const payload = data;
         //
         try {
             if (isEditMode) {
                 // Update logic
-                const updateDto: UpdateStudentInput = {
+                const updateDto: StudentUpdatePayload = {
                     ...data,
-                    guardian: { ...data.guardian },
+                    guardian: payload.guardian,
                 };
                 await updateStudent({
                     id: studentToEdit.id,
@@ -80,7 +73,7 @@ export function useStudentForm({ studentToEdit, setIsOpen }: UseStudentFormProps
                 toast.success('Student updated successfully!');
             } else {
                 // Create logic
-                const createDto: CreateStudentInput = payload;
+                const createDto = payload as StudentCreatePayload;
                 await addStudent(createDto).unwrap();
                 toast.success('Student created successfully!');
             }
