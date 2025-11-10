@@ -1,23 +1,38 @@
 {
   "name": "@erp/db",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Shared Prisma client, types & enums for frontend and backend",
   "private": true,
+  "main": "./generated/prisma/client.ts",
   "type": "module",
   "exports": {
     "./client": {
-      "import": "./generated/prisma/index.js",
-      "types": "./generated/prisma/index.d.ts",
-      "default": "./generated/prisma/index.js"
+      "import": "./generated/prisma/client.ts",
+      "types": "./generated/prisma/client.ts",
+      "default": "./generated/prisma/client.ts"
     },
-    "./browser": {
-      "import": "./generated/prisma/wasm.js",
-      "types": "./generated/prisma/index.d.ts",
-      "default": "./generated/prisma/index-browser.js"
+    "./frontend": {
+      "import": "./generated/prisma/browser.ts",
+      "types": "./generated/prisma/browser.ts",
+      "default": "./generated/prisma/browser.ts"
+    },
+    "./models": {
+      "import": "./generated/prisma/models.ts",
+      "types": "./generated/prisma/models.ts",
+      "default": "./generated/prisma/models.ts"
+    },
+    "./enums": {
+      "import": "./generated/prisma/enums.ts",
+      "types": "./generated/prisma/enums.ts",
+      "default": "./generated/prisma/enums.ts"
     }
   },
   "keywords": [],
-  "author": "Anubhav Gupta",
+  "author": {
+    "name": "Anubhav Gupta",
+    "email": "anubhav.11803451@gmail.com",
+    "url": "https://github.com/anubhav11803451"
+  },
   "license": "ISC",
   "scripts": {
     "db:studio": "dotenv -e ../../.env -- prisma studio",

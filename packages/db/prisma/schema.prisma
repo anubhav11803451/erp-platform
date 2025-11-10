@@ -5,8 +5,11 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  provider               = "prisma-client"
+  output                 = "../generated/prisma"
+  moduleFormat           = "esm"
+  importFileExtension    = "ts"
+  generatedFileExtension = "ts"
 }
 
 datasource db {
@@ -14,20 +17,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-generator class_validator {
-  provider               = "prisma-class-validator-generator"
-  output                 = "../../common/src" // Output directory
-  swagger                = "true" // Add Swagger decorators
-  separateRelationFields = "false" // Split base/relation classes
-}
+// generator class_validator {
+//   provider               = "prisma-class-validator-generator"
+//   output                 = "../../common/src" // Output directory
+//   swagger                = "true" // Add Swagger decorators
+//   separateRelationFields = "false" // Split base/relation classes
+// }
 
-generator typescriptInterfaces {
-  provider    = "prisma-generator-typescript-interfaces"
-  output      = "../../common/src/types/index.ts"
-  modelType   = "type"
-  enumType    = "enum"
-  exportEnums = false
-}
+// generator typescriptInterfaces {
+//   provider    = "prisma-generator-typescript-interfaces"
+//   output      = "../../shared/src/types/index.ts"
+//   modelType   = "type"
+//   enumType    = "enum"
+//   exportEnums = false
+// }
 
 // ----------------------------------------
 // NEW ENUM: UserRole

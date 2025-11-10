@@ -1,10 +1,14 @@
 {
   "name": "@erp/backend",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Backend for ERP Platform",
+  "author": {
+    "name": "Anubhav Gupta",
+    "email": "anubhav.11803451@gmail.com",
+    "url": "https://github.com/anubhav11803451"
+  },
   "private": true,
-  "license": "UNLICENSED",
+  "license": "ISC",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -22,8 +26,8 @@
     "clean:build": "rm -rf dist"
   },
   "dependencies": {
-    "@erp/common": "workspace:*",
     "@erp/db": "workspace:*",
+    "@erp/shared": "workspace:*",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -38,6 +42,7 @@
     "cookie-parser": "^1.4.7",
     "helmet": "^8.1.0",
     "lodash": "^4.17.21",
+    "nestjs-zod": "^5.0.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",

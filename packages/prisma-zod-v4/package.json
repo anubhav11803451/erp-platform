@@ -1,7 +1,8 @@
 {
   "name": "@erp/prisma-zod-v4",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A Zod schema generator for Prisma",
+  "private": true,
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -23,7 +24,11 @@
     "typescript": "catalog:typescript"
   },
   "keywords": [],
-  "author": "",
+  "author": {
+    "name": "Anubhav Gupta",
+    "email": "anubhav.11803451@gmail.com",
+    "url": "https://github.com/anubhav11803451"
+  },
   "license": "ISC",
   "packageManager": "pnpm@10.18.3"
 }
