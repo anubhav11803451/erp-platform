@@ -1,5 +1,5 @@
 import z from 'zod';
-import { emailSchema, firstNameSchema, idSchema, lastNameSchema } from './common';
+import { emailSchema, firstNameSchema, lastNameSchema } from './common';
 import { guardianCreateSchema } from './guardian';
 
 // ========================================

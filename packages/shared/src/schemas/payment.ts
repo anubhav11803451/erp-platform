@@ -1,5 +1,5 @@
 import z from 'zod';
-import { idSchema, paymentMethodSchema } from './common';
+import { idSchema } from './common';
 
 // ========================================
 // Payment Schemas

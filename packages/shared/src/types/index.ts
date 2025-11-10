@@ -1,4 +1,4 @@
-import {
+import type {
     Batch as IBatch,
     User as IUser,
     Student as IStudent,
