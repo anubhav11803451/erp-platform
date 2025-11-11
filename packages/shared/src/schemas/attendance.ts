@@ -1,29 +1,28 @@
 import z from 'zod';
-import { idSchema, attendanceStatusSchema } from './common';
+import { idSchema, attendanceStatusSchema, dateSchema, dateTimeSchema } from './common';
 // ========================================
 // Attendance Schemas
 // ========================================
 
-export const attendanceCreateSchema = z.object({
-    date: z.date(),
-    status: attendanceStatusSchema,
-    notes: z.string().optional().nullable(),
-    studentId: idSchema,
+// Schema for the GET /attendance/batch/:batchId query
+export const attendanceQuerySchema = z.object({
+    date: dateSchema, // coerce transforms the string query param into a Date
 });
 
+export const recordSchema = z.object({
+    studentId: idSchema,
+    status: attendanceStatusSchema,
+    notes: z.string().optional(),
+});
+// Schema for the POST /attendance/mark body
 // For marking attendance for multiple students at once
-export const bulkAttendanceSchema = z.object({
+export const markAttendanceSchema = z.object({
     batchId: idSchema, // or some other identifier
-    date: z.date(),
-    records: z.array(
-        z.object({
-            studentId: idSchema,
-            status: attendanceStatusSchema,
-            notes: z.string().optional().nullable(),
-        })
-    ),
+    date: dateTimeSchema,
+    records: z.array(recordSchema),
 });
 
 // Inferred Types for Attendance
-export type AttendanceCreatedPayload = z.infer<typeof attendanceCreateSchema>;
-export type BulkAttendancePayload = z.infer<typeof bulkAttendanceSchema>;
+export type AttendanceQueryPayload = z.infer<typeof attendanceQuerySchema>;
+export type AttendanceMarkPayload = z.infer<typeof markAttendanceSchema>;
+export type AttendanceRecordPayload = z.infer<typeof recordSchema>;

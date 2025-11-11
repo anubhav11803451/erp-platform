@@ -5,6 +5,7 @@ import type {
     Guardian as IGuardian,
     StudentBatch as IStudentBatch,
     Payment as IPayment,
+    Attendance as IAttendance,
 } from '@erp/db/frontend';
 
 //Request Types
@@ -47,4 +48,13 @@ export type BatchEnrollment = StudentBatchResponse & {
 
 export type EnrichedPayment = PaymentResponse & {
     batch: Pick<BatchResponse, 'name'>;
+};
+
+export type BatchAttendanceResponse = IAttendance & {
+    student: Pick<IStudent, 'id' | 'first_name' | 'last_name'>;
+};
+
+export type AttendanceMarkResponse = {
+    message: string;
+    count: number;
 };

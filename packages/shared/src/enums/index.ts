@@ -1,1 +1,1 @@
-export { UserRole } from '@erp/db/enums';
+export { UserRole, AttendanceStatus, PaymentMethod } from '@erp/db/enums';

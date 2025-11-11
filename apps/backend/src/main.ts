@@ -7,6 +7,7 @@ import { DocumentBuilder, SwaggerDocumentOptions, SwaggerModule } from '@nestjs/
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { PrismaClientExceptionFilter } from '@/common/filters/prisma-client-exception.filter';
+import { cleanupOpenApiDoc } from 'nestjs-zod';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -36,7 +37,7 @@ async function bootstrap() {
         deepScanRoutes: true,
     };
     const document = SwaggerModule.createDocument(app, config, options);
-    SwaggerModule.setup('api', app, document);
+    SwaggerModule.setup('api', app, cleanupOpenApiDoc(document));
 
     app.enableCors({
         origin: ['http://localhost:5173', 'http://localhost:4173'], // frontend URL

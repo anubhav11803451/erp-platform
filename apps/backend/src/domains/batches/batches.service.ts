@@ -18,6 +18,13 @@ export class BatchesService {
         });
     }
 
+    async findBatchesByTutor(tutorId: string) {
+        return this.prisma.batch.findMany({
+            where: { tutorId },
+            // We don't need the tutor object here since we know who it is
+        });
+    }
+
     async findAll(): Promise<Batch[]> {
         return this.prisma.batch.findMany({
             // Include the assigned tutor for context

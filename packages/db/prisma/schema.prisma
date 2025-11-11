@@ -33,11 +33,27 @@ datasource db {
 // }
 
 // ----------------------------------------
-// NEW ENUM: UserRole
+// ENUMS
 // ----------------------------------------
 enum UserRole {
   ADMIN
   STAFF
+}
+
+enum AttendanceStatus {
+  Present
+  Absent
+  Late
+  None
+}
+
+enum PaymentMethod {
+  Cash
+  UPI
+  Stripe
+  BankTransfer
+  Card
+  Other
 }
 
 // ----------------------------------------
@@ -135,6 +151,9 @@ model Batch {
   students StudentBatch[]
   // Relation: Many Batches have many Payments
   payments Payment[]
+
+  // Relation: Many Batches have many Attendances
+  attendances Attendance[]
 }
 
 // Join table for Students and Batches (Many-to-Many)
@@ -152,13 +171,13 @@ model StudentBatch {
 }
 
 model Payment {
-  id           String   @id @default(uuid())
+  id           String        @id @default(uuid())
   amount       Float
-  payment_date DateTime @default(now())
-  method       String // e.g., "Cash", "UPI", "Stripe"
+  payment_date DateTime      @default(now())
+  method       PaymentMethod // e.g., "Cash", "UPI", "Stripe"
   notes        String?
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
 
   student   Student @relation(fields: [studentId], references: [id])
   studentId String
@@ -169,13 +188,18 @@ model Payment {
 }
 
 model Attendance {
-  id         String   @id @default(uuid())
-  date       DateTime @db.Date
-  status     String // "Present", "Absent", "Late"
+  id         String            @id @default(uuid())
+  date       DateTime          @db.Date
+  status     AttendanceStatus?
   notes      String?
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at DateTime          @default(now())
+  updated_at DateTime          @updatedAt
 
   student   Student @relation(fields: [studentId], references: [id])
   studentId String
+  batch     Batch?  @relation(fields: [batchId], references: [id])
+  batchId   String?
+
+  // A student can only have one attendance record per batch per day
+  @@unique([studentId, batchId, date])
 }

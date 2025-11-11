@@ -1,5 +1,5 @@
 import z from 'zod';
-import { idSchema } from './common';
+import { idSchema, paymentMethodSchema } from './common';
 
 // ========================================
 // Payment Schemas
@@ -9,7 +9,7 @@ export const paymentCreateSchema = z.object({
     studentId: idSchema,
     batchId: idSchema,
     amount: z.coerce.number<number>().positive('Amount must be a positive number'),
-    method: z.string(),
+    method: paymentMethodSchema,
     notes: z.string().optional().nullable(),
 });
 
