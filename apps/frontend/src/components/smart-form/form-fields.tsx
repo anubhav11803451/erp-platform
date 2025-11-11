@@ -28,7 +28,7 @@ import { Eye, EyeClosed } from 'lucide-react';
 
 type FormFieldProps = {
     name: string;
-    label: string;
+    label?: string;
     type?: React.HTMLInputTypeAttribute;
     description?: string;
     placeholder?: string;
@@ -55,9 +55,11 @@ export function TextField({
             control={control}
             render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>
-                        {label} {required && <span className="text-red-500">*</span>}
-                    </FieldLabel>
+                    {label && (
+                        <FieldLabel htmlFor={field.name}>
+                            {label} {required && <span className="text-red-500">*</span>}
+                        </FieldLabel>
+                    )}
                     <Input
                         {...field}
                         id={field.name}
@@ -89,9 +91,11 @@ export function PasswordField({
             control={control}
             render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>
-                        {label} {required && <span className="text-red-500">*</span>}
-                    </FieldLabel>
+                    {label && (
+                        <FieldLabel htmlFor={field.name}>
+                            {label} {required && <span className="text-red-500">*</span>}
+                        </FieldLabel>
+                    )}
                     <InputGroup>
                         <InputGroupInput
                             {...field}
@@ -147,9 +151,11 @@ export function TextareaField({
             control={control}
             render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>
-                        {label} {required && <span className="text-red-500">*</span>}
-                    </FieldLabel>
+                    {label && (
+                        <FieldLabel htmlFor={field.name}>
+                            {label} {required && <span className="text-red-500">*</span>}
+                        </FieldLabel>
+                    )}
                     <ItemGroup>
                         <Textarea
                             {...field}
@@ -194,9 +200,11 @@ export function CheckboxField({ name, label }: CheckboxFieldProps) {
                             onCheckedChange={field.onChange}
                             aria-invalid={fieldState.invalid}
                         />
-                        <FieldLabel htmlFor={field.name} className="mt-0! text-sm font-normal">
-                            {label}
-                        </FieldLabel>
+                        {label && (
+                            <FieldLabel htmlFor={field.name} className="mt-0! text-sm font-normal">
+                                {label}
+                            </FieldLabel>
+                        )}
                     </div>
                     {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} className="mt-2" />
@@ -235,9 +243,11 @@ export function SelectField<T extends SelectOption>({
             control={control}
             render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={`rhf-smart-form-${field.name}`}>
-                        {label} {required && <span className="text-red-500">*</span>}
-                    </FieldLabel>
+                    {label && (
+                        <FieldLabel htmlFor={`rhf-smart-form-${field.name}`}>
+                            {label} {required && <span className="text-red-500">*</span>}
+                        </FieldLabel>
+                    )}
                     <Select name={field.name} value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger
                             id={`rhf-smart-form-${field.name}`}
@@ -291,9 +301,11 @@ export function RadioField<T extends RadioOption>({
             control={control}
             render={({ field, fieldState }) => (
                 <FieldSet data-invalid={fieldState.invalid}>
-                    <FieldLegend variant="label" aria-invalid={fieldState.invalid}>
-                        {label} {required && <span className="text-red-500">*</span>}
-                    </FieldLegend>
+                    {label && (
+                        <FieldLegend variant="label" aria-invalid={fieldState.invalid}>
+                            {label} {required && <span className="text-red-500">*</span>}
+                        </FieldLegend>
+                    )}
                     {description && <FieldDescription>{description}</FieldDescription>}
 
                     <RadioGroup

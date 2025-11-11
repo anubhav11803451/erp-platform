@@ -14,7 +14,7 @@ import {
 import {
     useForm, // We need this
 } from 'react-hook-form';
-import { cn } from '@/lib/utils';
+import { cn, isUndefined } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Button } from '@/components/ui/button';
@@ -46,8 +46,9 @@ type SmartFormProps<
 > = {
     id?: string;
     schema: TSchema;
+    _form?: UseFormReturn<SchemaInput, unknown, SchemaOutput>;
     /** Default values must match the schema's INPUT type */
-    defaultValues: DefaultValues<SchemaInput>;
+    defaultValues?: DefaultValues<SchemaInput>;
     /** onSubmit receives the schema's OUTPUT type */
     onSubmit: SubmitHandler<SchemaOutput>;
     /** Children can be a render prop to access form state */
@@ -67,6 +68,7 @@ type SmartFormProps<
 export function SmartForm<TSchema extends z.ZodObject<z.ZodRawShape>>({
     id = 'rhf-smart-form',
     schema,
+    _form,
     defaultValues,
     onSubmit,
     children,
@@ -81,11 +83,8 @@ export function SmartForm<TSchema extends z.ZodObject<z.ZodRawShape>>({
 }: SmartFormProps<TSchema>) {
     // useZodForm is now called with the correctly typed props.
     // We explicitly type `form` based on our assumptions of useZodForm.
-    const form = useZodForm({
-        schema,
-        defaultValues,
-        mode,
-    });
+    const internalForm = useZodForm({ schema, defaultValues: defaultValues!, mode });
+    const form = _form ?? internalForm;
 
     useEffect(() => {
         if (enableReinitialize) form.reset(defaultValues);
@@ -121,7 +120,7 @@ export function SmartForm<TSchema extends z.ZodObject<z.ZodRawShape>>({
                     </ErrorMessage>
                 )}
 
-                {showSubmitButton && (
+                {showSubmitButton && isUndefined(_form) && (
                     <Button
                         form={id}
                         type="submit"

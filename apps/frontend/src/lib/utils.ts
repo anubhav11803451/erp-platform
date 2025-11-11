@@ -42,3 +42,7 @@ export function getApiErrorMessage(
     // Case 3: Fallback
     return defaultError;
 }
+
+export function isUndefined<T>(value: T | undefined): value is undefined {
+    return typeof value === 'undefined';
+}

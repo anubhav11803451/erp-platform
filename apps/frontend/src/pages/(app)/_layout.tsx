@@ -47,7 +47,7 @@ const AppLayout = () => {
                     <AppHeader />
 
                     {/* --- Page Content --- */}
-                    <Flex direction="column" className="flex-1 gap-4 p-4 pt-0">
+                    <Flex direction="column" className="flex-1 gap-4 px-6">
                         <Outlet />
                     </Flex>
                 </SidebarInset>

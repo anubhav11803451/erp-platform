@@ -19,6 +19,16 @@ const batchesApiSlice = apiSlice.injectEndpoints({
                       ]
                     : [{ type: 'Batch', id: 'LIST' }],
         }),
+        getMyBatches: builder.query<EnrichedBatch[], void>({
+            query: () => '/domains/batches/my-batches',
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.map(({ id }) => ({ type: 'Batch', id }) as const),
+                          { type: 'Batch', id: 'MY-LIST' },
+                      ]
+                    : [{ type: 'Batch', id: 'MY-LIST' }],
+        }),
 
         getBatch: builder.query<EnrichedBatch, string>({
             query: (id) => `/domains/batches/${id}`,
@@ -64,6 +74,7 @@ const batchesApiSlice = apiSlice.injectEndpoints({
 
 export const {
     useGetBatchQuery,
+    useGetMyBatchesQuery,
     useGetBatchesQuery,
     useAddBatchMutation,
     useUpdateBatchMutation,

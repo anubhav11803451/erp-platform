@@ -130,6 +130,18 @@ export const routes = [{
           },
         }
         ],
+      },
+{
+        path: 'attendance',
+        children: [
+{
+          path: '',
+          lazy: async () => {
+            const m = await import('./pages/(app)/attendance/page.tsx');
+            return { Component: m.default, ...m };
+          },
+        }
+        ],
       }
       ],
     },
