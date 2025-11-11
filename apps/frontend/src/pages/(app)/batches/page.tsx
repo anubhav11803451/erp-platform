@@ -9,11 +9,8 @@ import { DataTableToolbar } from '@/features/batches/table/toolbar';
 import { BatchFormDialog } from '@/features/batches/batch-form';
 
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
-import {
-    useGetBatchesQuery,
-    useDeleteBatchMutation,
-    type EnrichedBatch,
-} from '@/features/batches/batches-api-slice';
+import { useGetBatchesQuery, useDeleteBatchMutation } from '@/features/batches/batches-api-slice';
+import type { EnrichedBatch } from '@erp/shared';
 
 export default function BatchesPage() {
     // --- Data Fetching ---

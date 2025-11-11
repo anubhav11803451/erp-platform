@@ -1,7 +1,7 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from '@/app/root-reducer';
 import { createAppSlice } from './create-app-slice';
-import type { EnrichedPayment } from '@/features/payments/payments-api-slice';
+import type { EnrichedPayment } from '@erp/shared';
 
 // Define the state for the "Add Payment" modal
 type PaymentFormModalState = {

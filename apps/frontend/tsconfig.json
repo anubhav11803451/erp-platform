@@ -6,5 +6,6 @@
         "paths": {
             "@/*": ["./src/*"]
         }
-    }
+    },
+    "exclude": ["../../packages/shared/dist", "../../packages/shared/src/*", "node_modules"]
 }

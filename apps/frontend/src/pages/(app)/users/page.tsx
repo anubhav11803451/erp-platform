@@ -8,13 +8,10 @@ import { getColumns } from '@/features/users/table/columns';
 import { DataTableToolbar } from '@/features/users/table/toolbar';
 import { UserFormDialog } from '@/features/users/user-from';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
-import {
-    useGetUsersQuery,
-    useDeleteUserMutation,
-    type EnrichedUser,
-} from '@/features/users/users-api-slice';
+import { useGetUsersQuery, useDeleteUserMutation } from '@/features/users/users-api-slice';
 import { useAppSelector } from '@/app/hooks';
 import { selectCurrentUser } from '@/features/auth/auth-slice';
+import type { UserResponse } from '@erp/shared';
 
 export default function UsersPage() {
     // --- Data Fetching ---
@@ -24,7 +21,7 @@ export default function UsersPage() {
 
     // --- State for Modals ---
     const [isFormOpen, setIsFormOpen] = React.useState(false);
-    const [userToEdit, setUserToEdit] = React.useState<EnrichedUser | null>(null);
+    const [userToEdit, setUserToEdit] = React.useState<UserResponse | null>(null);
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = React.useState(false);
     const [userToDelete, setUserToDelete] = React.useState<string | null>(null);
 
@@ -34,7 +31,7 @@ export default function UsersPage() {
         setIsFormOpen(true);
     };
 
-    const handleEditUser = (user: EnrichedUser) => {
+    const handleEditUser = (user: UserResponse) => {
         setUserToEdit(user);
         setIsFormOpen(true);
     };

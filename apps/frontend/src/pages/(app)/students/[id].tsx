@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGetStudentQuery } from '@/features/students/student-api-slice';
-import type { EnrichedPayment } from '@/features/payments/payments-api-slice';
 import {
     useGetPaymentsByStudentQuery,
     useDeletePaymentMutation,
@@ -18,6 +17,7 @@ import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { FlexItem } from '@/components/ui/flex-item';
 import { useAppDispatch } from '@/app/hooks';
 import { openPaymentFormModal } from '@/app/ui-slice';
+import type { EnrichedPayment } from '@erp/shared';
 
 export default function StudentDetailsPage() {
     const dispatch = useAppDispatch();

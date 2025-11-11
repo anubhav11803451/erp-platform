@@ -15,14 +15,14 @@ import {
 
 // import { useForgotPasswordMutation } from '@/features/auth/authApiSlice'; // We will add this
 
-import { type ForgotPasswordFormValues } from '@/features/auth/schemas';
 import { ForgotPassForm } from '@/features/auth/forgot-pass-form';
+import type { ForgotPasswordPayload } from '@erp/shared';
 
 export default function ForgotPasswordPage() {
     const [isSubmitted, setIsSubmitted] = useState(false);
     // const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
 
-    const onSubmit = async (_data: ForgotPasswordFormValues) => {
+    const onSubmit = async (_data: ForgotPasswordPayload) => {
         try {
             // await forgotPassword(data).unwrap();
             setIsSubmitted(true);

@@ -11,8 +11,8 @@ import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import {
     useGetStudentsQuery,
     useDeleteStudentMutation,
-    type EnrichedStudent,
 } from '@/features/students/student-api-slice';
+import type { EnrichedStudent } from '@erp/shared';
 
 export default function StudentsPage() {
     // --- Data Fetching ---

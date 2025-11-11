@@ -30,7 +30,7 @@ export const studentsApiSlice = apiSlice.injectEndpoints({
             invalidatesTags: [{ type: 'Student', id: 'LIST' }],
         }),
         // Query: GET /domains/students/:id
-        getStudent: builder.query<StudentResponse, string>({
+        getStudent: builder.query<EnrichedStudent, string>({
             query: (id) => `/domains/students/${id}`,
             // Provides a specific tag for this student: { type: 'Student', id: '123' }
             providesTags: (_result, _error, id) => [{ type: 'Student', id }],
