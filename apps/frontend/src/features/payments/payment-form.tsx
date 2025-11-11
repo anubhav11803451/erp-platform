@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { TextField, SelectField, TextareaField } from '@/components/smart-form/form-fields';
 import { FormDialogShell } from '@/components/shared/form-dialog-shell';
-import { usePaymentForm } from '@/hooks/use-payment-from';
+import { usePaymentForm } from '@/hooks/forms/use-payment-from';
 
 import { paymentMethodOptions } from '@/lib/constants';
 import { Field, FieldGroup } from '@/components/ui/field';

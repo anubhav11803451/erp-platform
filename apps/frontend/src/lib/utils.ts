@@ -1,3 +1,5 @@
+import { ROLE_PERMISSIONS, type FeatureKey } from '@/config/permissions';
+import type { UserRole } from '@erp/shared';
 import { nanoid } from '@reduxjs/toolkit';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -45,4 +47,21 @@ export function getApiErrorMessage(
 
 export function isUndefined<T>(value: T | undefined): value is undefined {
     return typeof value === 'undefined';
+}
+
+export const getFeatureCategory = (feature: FeatureKey) => feature.split('.')[0];
+export const getFeatureAction = (feature: FeatureKey) => feature.split('.')[1];
+
+/**
+ * Check if a given role has access to a specific feature.
+ */
+export function canRoleAccessFeature(role: UserRole, feature: FeatureKey): boolean {
+    return ROLE_PERMISSIONS[role]?.includes(feature) ?? false;
+}
+
+/**
+ * Get all features a role can access.
+ */
+export function getRoleAvailableFeatures(role: UserRole): FeatureKey[] {
+    return ROLE_PERMISSIONS[role] ?? [];
 }

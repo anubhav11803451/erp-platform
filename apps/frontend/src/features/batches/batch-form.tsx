@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { FormDialogShell } from '@/components/shared/form-dialog-shell';
-import { useBatchForm } from '@/hooks/use-batch-form';
+import { useBatchForm } from '@/hooks/forms/use-batch-form';
 
 // --- NEW IMPORTS ---
 import { SmartForm } from '@/components/smart-form';

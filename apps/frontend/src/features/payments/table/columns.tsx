@@ -11,6 +11,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { EnrichedPayment } from '@erp/shared';
+import { useFeatureAccess } from '@/hooks/use-feature-access';
 
 // Define the shape of the actions props
 type PaymentActionsProps = {
@@ -58,6 +59,12 @@ export const getPaymentColumns = ({
         id: 'actions',
         cell: ({ row }) => {
             const payment = row.original;
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const { canAccess } = useFeatureAccess();
+
+            if (!canAccess('PAYMENT.EDIT') && !canAccess('PAYMENT.DELETE')) {
+                return null;
+            }
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>

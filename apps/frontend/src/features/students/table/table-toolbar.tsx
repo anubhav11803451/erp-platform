@@ -8,6 +8,8 @@ import { Flex } from '@/components/ui/flex';
 import { DataTableViewOptions } from '@/components/shared/data-table/data-table-view-options';
 import { FlexItem } from '@/components/ui/flex-item';
 
+import { useFeatureAccess } from '@/hooks/use-feature-access';
+
 type DataTableToolbarProps<TData> = {
     table: Table<TData>;
     onAddStudentClick: () => void;
@@ -17,6 +19,7 @@ export function DataTableToolbar<TData>({
     table,
     onAddStudentClick,
 }: DataTableToolbarProps<TData>) {
+    const { canAccess } = useFeatureAccess();
     return (
         <Flex alignItems="center" justifyContent="between" className="w-full">
             <Flex alignItems="center" className="flex-1 space-x-2">
@@ -32,7 +35,12 @@ export function DataTableToolbar<TData>({
             </Flex>
             <FlexItem inline>
                 <DataTableViewOptions table={table} />
-                <Button size="sm" className="ml-4 h-8" onClick={onAddStudentClick}>
+                <Button
+                    size="sm"
+                    className="ml-4 h-8"
+                    onClick={onAddStudentClick}
+                    disabled={!canAccess('STUDENT.ADD')}
+                >
                     <PlusCircle className="h-4 w-4" />
                     Add Student
                 </Button>

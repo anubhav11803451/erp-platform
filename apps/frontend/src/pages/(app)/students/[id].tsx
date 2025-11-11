@@ -18,6 +18,7 @@ import { FlexItem } from '@/components/ui/flex-item';
 import { useAppDispatch } from '@/app/hooks';
 import { openPaymentFormModal } from '@/app/ui-slice';
 import type { EnrichedPayment } from '@erp/shared';
+import { useFeatureAccess } from '@/hooks/use-feature-access';
 
 export default function StudentDetailsPage() {
     const dispatch = useAppDispatch();
@@ -44,6 +45,8 @@ export default function StudentDetailsPage() {
     const [deletePayment, { isLoading: isDeleting }] = useDeletePaymentMutation();
 
     const isLoading = isLoadingStudent || isLoadingPayments;
+
+    const { canAccess } = useFeatureAccess();
 
     // --- Action Handlers ---
     const handleAddPayment = () => {
@@ -162,7 +165,11 @@ export default function StudentDetailsPage() {
                         <CardTitle>Payment History</CardTitle>
                         <CardDescription>All payments logged for this student.</CardDescription>
                     </FlexItem>
-                    <Button size="sm" onClick={handleAddPayment}>
+                    <Button
+                        size="sm"
+                        onClick={handleAddPayment}
+                        disabled={!canAccess('PAYMENT.ADD')}
+                    >
                         <PlusCircle className="h-4 w-4" />
                         Add Payment
                     </Button>

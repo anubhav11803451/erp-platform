@@ -7,7 +7,7 @@ import { FormDialogShell } from '@/components/shared/form-dialog-shell';
 import { type EnrolledStudent, enrollStudentSchema } from '@erp/shared';
 
 import { Field, FieldGroup } from '@/components/ui/field';
-import { useEnrollmentForm } from '@/hooks/use-enrollment-form';
+import { useEnrollmentForm } from '@/hooks/forms/use-enrollment-form';
 
 type EnrollStudentFormDialogProps = {
     isOpen: boolean;

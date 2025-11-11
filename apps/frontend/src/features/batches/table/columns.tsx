@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/shared/data-table/data-table-header';
 import { Link } from 'react-router';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useFeatureAccess } from '@/hooks/use-feature-access';
 
 // Define the action handler props
 type GetColumnsProps = {
@@ -90,6 +91,12 @@ export const getColumns = ({ onEdit, onDelete }: GetColumnsProps): ColumnDef<Enr
         id: 'actions',
         cell: ({ row }) => {
             const batch = row.original;
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const { canAccess } = useFeatureAccess();
+
+            if (!canAccess('BATCH.EDIT') && !canAccess('BATCH.DELETE')) {
+                return null;
+            }
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>

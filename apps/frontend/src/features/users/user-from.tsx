@@ -4,7 +4,7 @@ import { SmartForm } from '@/components/smart-form';
 import { TextField, SelectField, PasswordField } from '@/components/smart-form/form-fields';
 
 import { FormDialogShell } from '@/components/shared/form-dialog-shell';
-import { useUserForm } from '@/hooks/use-user-form';
+import { useUserForm } from '@/hooks/forms/use-user-form';
 import { userCreateSchema, UserRole, userUpdateSchema, type UserResponse } from '@erp/shared';
 import { Field, FieldGroup } from '@/components/ui/field';
 import { Grid } from '@/components/ui/grid';

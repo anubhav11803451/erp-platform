@@ -7,6 +7,7 @@ import { useAddBatchMutation, useUpdateBatchMutation } from '@/features/batches/
 import { useGetUsersQuery } from '@/features/users/users-api-slice';
 
 import { getApiErrorMessage } from '@/lib/utils';
+import { useAuth } from '../use-auth';
 
 type UseBatchFormProps = {
     batchToEdit?: EnrichedBatch | null;
@@ -16,11 +17,14 @@ type UseBatchFormProps = {
 // 2. Custom hook
 export function useBatchForm({ batchToEdit, setIsOpen }: UseBatchFormProps) {
     const isEditMode = !!batchToEdit;
+    const { authUser } = useAuth();
 
     // 3. API mutations and queries
     const [addBatch, { isLoading: isAdding }] = useAddBatchMutation();
     const [updateBatch, { isLoading: isUpdating }] = useUpdateBatchMutation();
-    const { data: users, isLoading: isLoadingTutors } = useGetUsersQuery();
+    const { data: users, isLoading: isLoadingTutors } = useGetUsersQuery(undefined, {
+        skip: !authUser || authUser.role !== UserRole.ADMIN,
+    });
 
     const isLoading = isAdding || isUpdating;
 
