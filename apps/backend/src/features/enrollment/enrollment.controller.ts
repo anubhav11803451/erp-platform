@@ -23,7 +23,7 @@ export class EnrollmentController {
     constructor(private readonly enrollmentService: EnrollmentService) {}
 
     @Post()
-    @Roles(UserRole.ADMIN) // Only Admins can enroll students
+    @Roles(UserRole.ADMIN, UserRole.STAFF) // Only Admins or Staff can enroll students
     create(@Body() createEnrollmentDto: CreateEnrollmentDto): Promise<StudentBatch> {
         return this.enrollmentService.create(createEnrollmentDto);
     }
