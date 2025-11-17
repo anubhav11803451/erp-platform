@@ -18,7 +18,8 @@ import { FlexItem } from '@/components/ui/flex-item';
 import { useAppDispatch } from '@/app/hooks';
 import { openPaymentFormModal } from '@/app/ui-slice';
 import type { EnrichedPayment } from '@erp/shared';
-import { useFeatureAccess } from '@/hooks/use-feature-access';
+import { HideIfNoAccess } from '@/components/role-bac/hide-if-no-access';
+import { getApiErrorMessage } from '@/lib/utils';
 
 export default function StudentDetailsPage() {
     const dispatch = useAppDispatch();
@@ -46,8 +47,6 @@ export default function StudentDetailsPage() {
 
     const isLoading = isLoadingStudent || isLoadingPayments;
 
-    const { canAccess } = useFeatureAccess();
-
     // --- Action Handlers ---
     const handleAddPayment = () => {
         if (studentId) {
@@ -56,8 +55,6 @@ export default function StudentDetailsPage() {
     };
 
     const handleEditPayment = (payment: EnrichedPayment) => {
-        // We'll wire this up later
-        // toast.info('Edit payment feature not yet implemented. Payment ID: ' + payment.id);
         dispatch(openPaymentFormModal({ studentId: payment.studentId, paymentToEdit: payment }));
     };
 
@@ -71,8 +68,8 @@ export default function StudentDetailsPage() {
         try {
             await deletePayment(paymentToDelete).unwrap();
             toast.success('Payment deleted successfully.');
-        } catch (err: any) {
-            toast.error(err.data?.message || 'Failed to delete payment.');
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Failed to delete payment.'));
         } finally {
             setIsDeleteAlertOpen(false);
             setPaymentToDelete(null);
@@ -86,6 +83,7 @@ export default function StudentDetailsPage() {
                 onEdit: handleEditPayment,
                 onDelete: handleDeletePayment,
             }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         []
     );
 
@@ -165,14 +163,12 @@ export default function StudentDetailsPage() {
                         <CardTitle>Payment History</CardTitle>
                         <CardDescription>All payments logged for this student.</CardDescription>
                     </FlexItem>
-                    <Button
-                        size="sm"
-                        onClick={handleAddPayment}
-                        disabled={!canAccess('PAYMENT.ADD')}
-                    >
-                        <PlusCircle className="h-4 w-4" />
-                        Add Payment
-                    </Button>
+                    <HideIfNoAccess feature="PAYMENT.ADD">
+                        <Button size="sm" onClick={handleAddPayment}>
+                            <PlusCircle className="h-4 w-4" />
+                            Add Payment
+                        </Button>
+                    </HideIfNoAccess>
                 </CardHeader>
                 <CardContent>
                     <DataTable columns={columns} data={payments || []} />

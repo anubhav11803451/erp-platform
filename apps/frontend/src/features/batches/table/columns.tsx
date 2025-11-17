@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/shared/data-table/data-table-header';
 import { Link } from 'react-router';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useFeatureAccess } from '@/hooks/use-feature-access';
+import { HideIfNoAccess } from '@/components/role-bac/hide-if-no-access';
 
 // Define the action handler props
 type GetColumnsProps = {
@@ -91,12 +91,7 @@ export const getColumns = ({ onEdit, onDelete }: GetColumnsProps): ColumnDef<Enr
         id: 'actions',
         cell: ({ row }) => {
             const batch = row.original;
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const { canAccess } = useFeatureAccess();
 
-            if (!canAccess('BATCH.EDIT') && !canAccess('BATCH.DELETE')) {
-                return null;
-            }
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -109,15 +104,22 @@ export const getColumns = ({ onEdit, onDelete }: GetColumnsProps): ColumnDef<Enr
                         <DropdownMenuLabel className="text-muted-foreground text-xs">
                             Actions
                         </DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => onEdit(batch)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Batch
-                        </DropdownMenuItem>
+                        <HideIfNoAccess feature="BATCH.EDIT">
+                            <DropdownMenuItem onClick={() => onEdit(batch)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Batch
+                            </DropdownMenuItem>
+                        </HideIfNoAccess>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive" onClick={() => onDelete(batch.id)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Batch
-                        </DropdownMenuItem>
+                        <HideIfNoAccess feature="BATCH.DELETE">
+                            <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => onDelete(batch.id)}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Batch
+                            </DropdownMenuItem>
+                        </HideIfNoAccess>
                     </DropdownMenuContent>
                 </DropdownMenu>
             );

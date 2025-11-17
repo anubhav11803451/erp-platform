@@ -11,7 +11,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { EnrichedPayment } from '@erp/shared';
-import { useFeatureAccess } from '@/hooks/use-feature-access';
+import { HideIfNoAccess } from '@/components/role-bac/hide-if-no-access';
 
 // Define the shape of the actions props
 type PaymentActionsProps = {
@@ -59,12 +59,6 @@ export const getPaymentColumns = ({
         id: 'actions',
         cell: ({ row }) => {
             const payment = row.original;
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const { canAccess } = useFeatureAccess();
-
-            if (!canAccess('PAYMENT.EDIT') && !canAccess('PAYMENT.DELETE')) {
-                return null;
-            }
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -75,17 +69,21 @@ export const getPaymentColumns = ({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => onEdit(payment)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Payment
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={() => onDelete(payment.id)}
-                            variant="destructive"
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Payment
-                        </DropdownMenuItem>
+                        <HideIfNoAccess feature="PAYMENT.EDIT">
+                            <DropdownMenuItem onClick={() => onEdit(payment)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Payment
+                            </DropdownMenuItem>
+                        </HideIfNoAccess>
+                        <HideIfNoAccess feature="PAYMENT.DELETE">
+                            <DropdownMenuItem
+                                onClick={() => onDelete(payment.id)}
+                                variant="destructive"
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Payment
+                            </DropdownMenuItem>
+                        </HideIfNoAccess>
                     </DropdownMenuContent>
                 </DropdownMenu>
             );

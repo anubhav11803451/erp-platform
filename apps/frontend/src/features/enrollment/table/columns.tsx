@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { EnrolledStudent } from '@erp/shared';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useFeatureAccess } from '@/hooks/use-feature-access';
+import { HideIfNoAccess } from '@/components/role-bac/hide-if-no-access';
 
 // Define the shape of the actions props
 type EnrolledStudentActionsProps = {
@@ -83,8 +83,6 @@ export const getColumns = ({
         id: 'actions',
         cell: ({ row }) => {
             const enrollment = row.original;
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const { canAccess } = useFeatureAccess();
 
             return (
                 <DropdownMenu>
@@ -102,21 +100,21 @@ export const getColumns = ({
                             <ExternalLink className="mr-2 h-4 w-4" />
                             View Student
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={() => onAddPayment(enrollment.studentId)}
-                            disabled={!canAccess('PAYMENT.ADD')}
-                        >
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Add Payment
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            variant="destructive"
-                            onClick={() => onDisEnroll(enrollment.studentId)}
-                            disabled={!canAccess('STUDENT.DISENROLL')}
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Disenroll Student
-                        </DropdownMenuItem>
+                        <HideIfNoAccess feature="PAYMENT.ADD">
+                            <DropdownMenuItem onClick={() => onAddPayment(enrollment.studentId)}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Add Payment
+                            </DropdownMenuItem>
+                        </HideIfNoAccess>
+                        <HideIfNoAccess feature="STUDENT.DISENROLL">
+                            <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => onDisEnroll(enrollment.studentId)}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Disenroll Student
+                            </DropdownMenuItem>
+                        </HideIfNoAccess>
                     </DropdownMenuContent>
                 </DropdownMenu>
             );

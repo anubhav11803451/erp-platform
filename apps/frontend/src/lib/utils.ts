@@ -1,5 +1,6 @@
-import { ROLE_PERMISSIONS, type FeatureKey } from '@/config/permissions';
-import type { UserRole } from '@erp/shared';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export * from './utils/feature-access';
+export * from './utils/current-user-access';
 import { nanoid } from '@reduxjs/toolkit';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -49,19 +50,18 @@ export function isUndefined<T>(value: T | undefined): value is undefined {
     return typeof value === 'undefined';
 }
 
-export const getFeatureCategory = (feature: FeatureKey) => feature.split('.')[0];
-export const getFeatureAction = (feature: FeatureKey) => feature.split('.')[1];
-
-/**
- * Check if a given role has access to a specific feature.
- */
-export function canRoleAccessFeature(role: UserRole, feature: FeatureKey): boolean {
-    return ROLE_PERMISSIONS[role]?.includes(feature) ?? false;
+export function isDefined<T>(value: T | undefined): value is T {
+    return typeof value !== 'undefined';
 }
 
-/**
- * Get all features a role can access.
- */
-export function getRoleAvailableFeatures(role: UserRole): FeatureKey[] {
-    return ROLE_PERMISSIONS[role] ?? [];
+export function isNull<T>(value: T | null): value is null {
+    return value === null;
+}
+
+export function isNotNull<T>(value: T | null): value is T {
+    return value !== null;
+}
+
+export function isNotNullOrUndefined<T>(value: T | null | undefined): value is T {
+    return isNotNull(value) && isDefined(value);
 }
