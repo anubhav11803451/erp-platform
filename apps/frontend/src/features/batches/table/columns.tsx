@@ -17,6 +17,7 @@ import { DataTableColumnHeader } from '@/components/shared/data-table/data-table
 import { Link } from 'react-router';
 import { Checkbox } from '@/components/ui/checkbox';
 import { HideIfNoAccess } from '@/components/role-bac/hide-if-no-access';
+import { formatDate } from '@/lib/utils';
 
 // Define the action handler props
 type GetColumnsProps = {
@@ -84,7 +85,7 @@ export const getColumns = ({ onEdit, onDelete }: GetColumnsProps): ColumnDef<Enr
         accessorKey: 'start_date',
         header: 'Start Date',
         cell: ({ row }) => {
-            return new Date(row.getValue('start_date')).toLocaleDateString();
+            return formatDate(row.original.start_date);
         },
     },
     {

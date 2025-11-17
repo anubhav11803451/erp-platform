@@ -13,6 +13,7 @@ import {
 import type { EnrolledStudent } from '@erp/shared';
 import { Checkbox } from '@/components/ui/checkbox';
 import { HideIfNoAccess } from '@/components/role-bac/hide-if-no-access';
+import { formatDate } from '@/lib/utils';
 
 // Define the shape of the actions props
 type EnrolledStudentActionsProps = {
@@ -76,7 +77,7 @@ export const getColumns = ({
         accessorKey: 'join_date',
         header: 'Enrolled On',
         cell: ({ row }) => {
-            return new Date(row.getValue('join_date')).toLocaleDateString();
+            return formatDate(row.getValue('join_date'));
         },
     },
     {

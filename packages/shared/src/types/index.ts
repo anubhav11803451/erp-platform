@@ -47,7 +47,7 @@ export type BatchEnrollment = StudentBatchResponse & {
 };
 
 export type EnrichedPayment = PaymentResponse & {
-    batch: Pick<BatchResponse, 'name'>;
+    batch: Pick<BatchResponse, 'name' | 'subject'>;
 };
 
 export type BatchAttendanceResponse = IAttendance & {
@@ -57,4 +57,22 @@ export type BatchAttendanceResponse = IAttendance & {
 export type AttendanceMarkResponse = {
     message: string;
     count: number;
+};
+
+// Type for the /stats endpoint
+export type DashboardStatsResponse = {
+    totalStudents: number;
+    activeBatches: number;
+    totalRevenue?: number; // Optional, only for Admins
+};
+
+// Type for the /activity endpoint
+export type RecentActivityResponse = {
+    recentPayments: (EnrichedPayment & {
+        student: { first_name: string; last_name: string };
+    })[];
+    recentEnrollments: (EnrolledStudent & {
+        student: { first_name: string; last_name: string };
+        batch: { name: string; subject: string | null };
+    })[];
 };

@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { UserResponse } from '@erp/shared';
 import { UserRole } from '@erp/shared';
+import { formatDate } from '@/lib/utils';
 
 // Define the shape of the actions props
 type UserActionsProps = {
@@ -53,7 +54,7 @@ export const getColumns = ({ onEdit, onDelete }: UserActionsProps): ColumnDef<Us
         accessorKey: 'created_at',
         header: 'Joined',
         cell: ({ row }) => {
-            return new Date(row.getValue('created_at')).toLocaleDateString();
+            return formatDate(row.getValue('created_at'));
         },
     },
     {

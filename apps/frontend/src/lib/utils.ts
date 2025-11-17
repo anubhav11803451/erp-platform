@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export * from './utils/feature-access';
 export * from './utils/current-user-access';
+export * from './utils/formatters';
 import { nanoid } from '@reduxjs/toolkit';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';

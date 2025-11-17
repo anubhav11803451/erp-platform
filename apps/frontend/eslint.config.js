@@ -68,6 +68,12 @@ export default defineConfig([
                             message:
                                 'Please use pre-typed versions from `src/app/hooks.ts` instead.',
                         },
+                        {
+                            name: 'date-fns',
+                            importNames: ['formatDate', 'format'],
+                            message:
+                                'Please use pre-typed versions from `src/lib/utils/formatters.ts` instead.',
+                        },
                     ],
                 },
             ],

@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { EnrichedPayment } from '@erp/shared';
 import { HideIfNoAccess } from '@/components/role-bac/hide-if-no-access';
+import { formatCurrency, formatDate } from '@/lib/utils';
 
 // Define the shape of the actions props
 type PaymentActionsProps = {
@@ -27,7 +28,7 @@ export const getPaymentColumns = ({
         accessorKey: 'payment_date',
         header: 'Date',
         cell: ({ row }) => {
-            return new Date(row.getValue('payment_date')).toLocaleDateString();
+            return formatDate(row.getValue('payment_date'));
         },
     },
     {
@@ -35,10 +36,7 @@ export const getPaymentColumns = ({
         header: 'Amount (₹)',
         cell: ({ row }) => {
             const amount = parseFloat(row.getValue('amount'));
-            const formatted = new Intl.NumberFormat('en-IN', {
-                style: 'currency',
-                currency: 'INR',
-            }).format(amount);
+            const formatted = formatCurrency(amount);
             return <div className="font-medium">{formatted}</div>;
         },
     },

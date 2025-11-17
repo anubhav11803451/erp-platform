@@ -14,6 +14,7 @@ import {
 import { MoreHorizontal, Edit, Trash2, LinkIcon } from 'lucide-react';
 import { DataTableColumnHeader } from '@/components/shared/data-table/data-table-header';
 import { Link } from 'react-router';
+import { formatDate } from '@/lib/utils';
 
 // Define the action handler props
 type GetColumnsProps = {
@@ -61,7 +62,7 @@ export const getColumns = ({ onEdit, onDelete }: GetColumnsProps): ColumnDef<Enr
     {
         accessorKey: 'created_at',
         header: 'Joined on',
-        cell: ({ row }) => new Date(row.original.created_at).toLocaleDateString(),
+        cell: ({ row }) => formatDate(row.getValue('created_at')),
     },
     {
         id: 'actions',
