@@ -12,6 +12,7 @@ import { BatchesModule } from '@/domains/batches/batches.module';
 import { EnrollmentModule } from '@/features/enrollment/enrollment.module';
 import { PaymentsModule } from '@/features/payments/payments.module';
 import { AttendanceModule } from '@/features/attendance/attendance.module';
+import { DashboardModule } from '@/features/dashboard/dashboard.module';
 
 @Module({
     imports: [
@@ -37,6 +38,7 @@ import { AttendanceModule } from '@/features/attendance/attendance.module';
         EnrollmentModule,
         PaymentsModule,
         AttendanceModule,
+        DashboardModule,
     ],
     controllers: [],
     providers: [
