@@ -12,7 +12,7 @@ export class GuardiansService {
      * If not found, creates a new guardian.
      */
     async findOrCreate(dto: CreateGuardianDto): Promise<Guardian> {
-        const existingGuardian = await this.prisma.guardian.findUnique({
+        const existingGuardian = await this.prisma.extendedPrismaClient().guardian.findUnique({
             where: { email: dto.email },
         });
 
@@ -21,29 +21,29 @@ export class GuardiansService {
         }
 
         // Not found, so create a new one
-        return this.prisma.guardian.create({
+        return this.prisma.extendedPrismaClient().guardian.create({
             data: { ...dto },
         });
     }
 
     create(dto: CreateGuardianDto): Promise<Guardian> {
-        return this.prisma.guardian.create({
+        return this.prisma.extendedPrismaClient().guardian.create({
             data: { ...dto },
         });
     }
 
     findAll(): Promise<Guardian[]> {
-        return this.prisma.guardian.findMany();
+        return this.prisma.extendedPrismaClient().guardian.findMany();
     }
 
     findOne(id: string): Promise<Guardian | null> {
-        return this.prisma.guardian.findUnique({
+        return this.prisma.extendedPrismaClient().guardian.findUnique({
             where: { id },
         });
     }
 
     update(id: string, dto: UpdateGuardianDto): Promise<Guardian> {
-        return this.prisma.guardian.update({
+        return this.prisma.extendedPrismaClient().guardian.update({
             where: { id },
             data: { ...dto },
         });
@@ -52,7 +52,7 @@ export class GuardiansService {
     remove(id: string): Promise<Guardian> {
         // Note: This will fail if the guardian is still linked to students.
         // This is good! It's a data integrity safety check.
-        return this.prisma.guardian.delete({
+        return this.prisma.extendedPrismaClient().guardian.delete({
             where: { id },
         });
     }

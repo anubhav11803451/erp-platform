@@ -22,8 +22,8 @@ export class DashboardService {
         const user = this.req.user as JwtPayload;
 
         // --- Stats for ALL roles ---
-        const studentCount = await this.prisma.student.count();
-        const batchCount = await this.prisma.batch.count();
+        const studentCount = await this.prisma.extendedPrismaClient().student.count();
+        const batchCount = await this.prisma.extendedPrismaClient().batch.count();
 
         const stats: any = {
             totalStudents: studentCount,
@@ -32,7 +32,7 @@ export class DashboardService {
 
         // --- ADMIN-Only Stats ---
         if (user.role === UserRole.ADMIN) {
-            const revenue = await this.prisma.payment.aggregate({
+            const revenue = await this.prisma.extendedPrismaClient().payment.aggregate({
                 _sum: {
                     amount: true,
                 },
@@ -45,7 +45,7 @@ export class DashboardService {
 
     async getRecentActivity() {
         // Get the 5 most recent payments
-        const recentPayments = await this.prisma.payment.findMany({
+        const recentPayments = await this.prisma.extendedPrismaClient().payment.findMany({
             take: 5,
             orderBy: {
                 payment_date: 'desc',
@@ -61,7 +61,7 @@ export class DashboardService {
         });
 
         // Get the 5 most recent enrollments
-        const recentEnrollments = await this.prisma.studentBatch.findMany({
+        const recentEnrollments = await this.prisma.extendedPrismaClient().studentBatch.findMany({
             take: 5,
             orderBy: {
                 join_date: 'desc',

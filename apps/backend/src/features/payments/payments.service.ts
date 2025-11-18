@@ -9,7 +9,7 @@ export class PaymentsService {
 
     async create(dto: CreatePaymentDto): Promise<Payment> {
         // First, verify the student is actually in that batch
-        const enrollment = await this.prisma.studentBatch.findFirst({
+        const enrollment = await this.prisma.extendedPrismaClient().studentBatch.findFirst({
             where: {
                 studentId: dto.studentId,
                 batchId: dto.batchId,
@@ -23,7 +23,7 @@ export class PaymentsService {
         }
 
         // Create the new payment
-        return this.prisma.payment.create({
+        return this.prisma.extendedPrismaClient().payment.create({
             data: {
                 studentId: dto.studentId,
                 batchId: dto.batchId,
@@ -35,7 +35,7 @@ export class PaymentsService {
     }
 
     async getPaymentsByStudent(studentId: string): Promise<Payment[]> {
-        return this.prisma.payment.findMany({
+        return this.prisma.extendedPrismaClient().payment.findMany({
             where: { studentId },
             include: {
                 batch: {
@@ -52,7 +52,7 @@ export class PaymentsService {
     }
 
     async findOne(id: string): Promise<Payment | null> {
-        const payment = await this.prisma.payment.findUnique({
+        const payment = await this.prisma.extendedPrismaClient().payment.findUnique({
             where: { id },
             include: {
                 student: {
@@ -72,7 +72,7 @@ export class PaymentsService {
     async update(id: string, dto: UpdatePaymentDto): Promise<Payment> {
         // Verify payment exists
         await this.findOne(id);
-        return this.prisma.payment.update({
+        return this.prisma.extendedPrismaClient().payment.update({
             where: { id },
             data: { ...dto },
         });
@@ -81,7 +81,7 @@ export class PaymentsService {
     async remove(id: string): Promise<Payment> {
         // Verify payment exists
         await this.findOne(id);
-        return this.prisma.payment.delete({
+        return this.prisma.extendedPrismaClient().payment.delete({
             where: { id },
         });
     }

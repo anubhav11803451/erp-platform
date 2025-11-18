@@ -21,7 +21,7 @@ export class StudentsService {
         // --- THIS IS THE FIX ---
         // We explicitly build the data object instead of using the spread operator (...dto).
         // This avoids type conflicts between the DTO class and the Prisma type.
-        return this.prisma.student.create({
+        return this.prisma.extendedPrismaClient().student.create({
             data: {
                 first_name: dto.first_name,
                 last_name: dto.last_name,
@@ -35,7 +35,7 @@ export class StudentsService {
     }
 
     async findAll(): Promise<Student[]> {
-        return this.prisma.student.findMany({
+        return this.prisma.extendedPrismaClient().student.findMany({
             orderBy: {
                 created_at: 'desc',
             },
@@ -46,7 +46,7 @@ export class StudentsService {
     }
 
     async findOne(id: string): Promise<Student | null> {
-        const student = await this.prisma.student.findUnique({
+        const student = await this.prisma.extendedPrismaClient().student.findUnique({
             where: { id },
             include: {
                 guardian: true,
@@ -71,7 +71,7 @@ export class StudentsService {
             if (updateStudentDto.school_name)
                 dataToUpdate.school_name = updateStudentDto.school_name;
 
-            return this.prisma.student.update({
+            return this.prisma.extendedPrismaClient().student.update({
                 where: { id },
                 data: dataToUpdate,
             });
@@ -84,7 +84,7 @@ export class StudentsService {
 
     async remove(id: string): Promise<Student> {
         try {
-            return await this.prisma.student.delete({
+            return await this.prisma.extendedPrismaClient().student.delete({
                 where: { id },
             });
         } catch (_error) {

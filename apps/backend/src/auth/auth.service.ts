@@ -74,7 +74,7 @@ export class AuthService {
         const hashed_token = this.hashToken(raw_token);
         const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-        await this.prisma.refreshToken.create({
+        await this.prisma.extendedPrismaClient().refreshToken.create({
             data: {
                 userId: user_id,
                 hashed_token,
@@ -158,7 +158,7 @@ export class AuthService {
         const old_hashed_token = this.hashToken(old_raw_token);
 
         // 1. Find the token in the DB
-        const dbToken = await this.prisma.refreshToken.findUnique({
+        const dbToken = await this.prisma.extendedPrismaClient().refreshToken.findUnique({
             where: { hashed_token: old_hashed_token },
             include: { user: true },
         });
@@ -175,7 +175,7 @@ export class AuthService {
         // 3. Check for Token Reuse: If token is valid but revoked, it's been reused!
         // This is a sign of token theft. Revoke all user's tokens and log them out.
         if (dbToken.revoked_at) {
-            await this.prisma.refreshToken.updateMany({
+            await this.prisma.extendedPrismaClient().refreshToken.updateMany({
                 where: { userId: dbToken.userId },
                 data: { revoked_at: new Date() },
             });
@@ -184,7 +184,7 @@ export class AuthService {
         }
 
         // 4. Revoke the old token (mark as used)
-        await this.prisma.refreshToken.update({
+        await this.prisma.extendedPrismaClient().refreshToken.update({
             where: { id: dbToken.id },
             data: { revoked_at: new Date() },
         });
@@ -234,7 +234,7 @@ export class AuthService {
         if (refreshToken) {
             const hashedToken = this.hashToken(refreshToken);
             // Revoke the token in the DB
-            await this.prisma.refreshToken.updateMany({
+            await this.prisma.extendedPrismaClient().refreshToken.updateMany({
                 where: { hashed_token: hashedToken },
                 data: { revoked_at: new Date() },
             });

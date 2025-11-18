@@ -37,6 +37,7 @@
   "scripts": {
     "db:studio": "dotenv -e ../../.env -- prisma studio",
     "db:generate": "dotenv -e ../../.env -- prisma generate",
+    "db:generate-no-engine": "dotenv -e ../../.env -- prisma generate --no-engine",
     "db:migrate": "dotenv -e ../../.env -- prisma migrate dev",
     "db:format": "dotenv -e ../../.env -- prisma format",
     "db:seed": "dotenv -e ../../.env -- prisma db seed",
@@ -45,9 +46,10 @@
     "clean:build": "rm -rf ./generated"
   },
   "dependencies": {
+    "@erp/prisma-zod-v4": "workspace:*",
     "@prisma/client": "^6.18.0",
-    "dotenv-cli": "^10.0.0",
-    "@erp/prisma-zod-v4": "workspace:*"
+    "@prisma/extension-accelerate": "catalog:@prisma/extension-accelerate",
+    "dotenv-cli": "^10.0.0"
   },
   "devDependencies": {
     "@types/node": "catalog:@types/node",

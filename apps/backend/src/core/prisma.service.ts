@@ -1,32 +1,25 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '@erp/db/client'; // <-- 1. IMPORT FROM OUR SHARED PACKAGE!
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { PrismaClient } from '@erp/db/client';
+import { withAccelerate } from '@prisma/extension-accelerate';
 
-/**
- * Our injectable Prisma service.
- * It extends the auto-generated PrismaClient.
- *
- * We inject ConfigService to ensure the database URL is loaded
- * from our .env file before the client connects.
- */
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
     // 2. Inject ConfigService to access environment variables
     constructor(private configService: ConfigService) {
         super({
-            datasources: {
-                db: {
-                    // 3. Get the DATABASE_URL from .env
-                    url: configService.get<string>('DATABASE_URL'),
-                },
-            },
+            datasourceUrl: configService.get<string>('DATABASE_URL'),
         });
     }
-
-    // 4. Automatically connect to the DB when the app starts
     async onModuleInit() {
+        // Note: this is optional
         await this.$connect();
     }
+
+    extendedPrismaClient() {
+        return this.$extends(withAccelerate());
+    }
+
     async onModuleDestroy() {
         await this.$disconnect();
     }

@@ -5,6 +5,8 @@ packages:
 catalogs:
   prisma:
     prisma: latest
+  "@prisma/extension-accelerate":
+    "@prisma/extension-accelerate": latest
   zod:
     zod: latest
   typescript:

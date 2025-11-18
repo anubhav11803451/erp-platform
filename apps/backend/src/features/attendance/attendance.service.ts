@@ -14,7 +14,7 @@ export class AttendanceService {
      */
     async getAttendanceForBatch(batchId: string, date: string): Promise<BatchAttendanceResponse[]> {
         // 1. Get all students enrolled in the batch
-        const enrollments = await this.prisma.studentBatch.findMany({
+        const enrollments = await this.prisma.extendedPrismaClient().studentBatch.findMany({
             where: { batchId },
             select: {
                 student: {
@@ -35,7 +35,7 @@ export class AttendanceService {
 
         // 2. Get existing attendance records for these students on this date
         const studentIds = enrollments.map((e) => e.student.id);
-        const existingAttendance = await this.prisma.attendance.findMany({
+        const existingAttendance = await this.prisma.extendedPrismaClient().attendance.findMany({
             where: {
                 batchId,
                 date,
@@ -73,7 +73,7 @@ export class AttendanceService {
 
         // Use a transaction to upsert all records at once
         const operations = records.map(({ studentId, status, notes }) =>
-            this.prisma.attendance.upsert({
+            this.prisma.extendedPrismaClient().attendance.upsert({
                 where: {
                     studentId_batchId_date: {
                         studentId,
@@ -98,7 +98,7 @@ export class AttendanceService {
         );
 
         try {
-            const result = await this.prisma.$transaction(operations);
+            const result = await this.prisma.extendedPrismaClient().$transaction(operations);
             return {
                 message: `Successfully marked attendance for ${result.length} students.`,
                 count: result.length,

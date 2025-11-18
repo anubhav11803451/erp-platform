@@ -14,6 +14,7 @@
     "dev:backend": "pnpm --filter @erp/backend start:dev",
     "dev:frontend": "pnpm --filter @erp/frontend start:dev",
     "db:generate": "pnpm --filter @erp/db db:generate",
+    "db:generate-no-engine": "pnpm --filter @erp/db db:generate-no-engine",
     "db:migrate": "pnpm --filter @erp/db db:migrate",
     "db:format": "pnpm --filter @erp/db db:format",
     "db:studio": "pnpm --filter @erp/db db:studio",
@@ -22,7 +23,7 @@
     "prod": "pnpm run --parallel --filter '!@erp/db' start:prod",
     "clean": "pnpm run --parallel clean && rm -rf node_modules && pnpm install",
     "clean:build": "pnpm run --parallel clean:build",
-    "postinstall": "pnpm db:generate && pnpm --filter @erp/shared build"
+    "postinstall": "pnpm db:generate-no-engine && pnpm --filter @erp/shared build"
   },
   "dependencies": {},
   "devDependencies": {

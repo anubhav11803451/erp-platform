@@ -1,8 +1,9 @@
-import { PrismaClient, UserRole } from '../generated/prisma/index.js';
+import { PrismaClient, UserRole } from '../generated/prisma/client.js';
 import * as bcrypt from 'bcrypt';
+import { withAccelerate } from '@prisma/extension-accelerate';
 
 // initialize Prisma Client
-const prisma = new PrismaClient();
+const prisma = new PrismaClient().$extends(withAccelerate());
 
 async function main() {
     const hashedPassword = async (password: string) => await bcrypt.hash(password, 10);

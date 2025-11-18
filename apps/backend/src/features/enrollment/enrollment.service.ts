@@ -14,7 +14,7 @@ export class EnrollmentService {
 
     async create(dto: CreateEnrollmentDto): Promise<StudentBatch> {
         // Check if the enrollment already exists
-        const existing = await this.prisma.studentBatch.findFirst({
+        const existing = await this.prisma.extendedPrismaClient().studentBatch.findFirst({
             where: {
                 studentId: dto.studentId,
                 batchId: dto.batchId,
@@ -26,7 +26,7 @@ export class EnrollmentService {
         }
 
         // Create the new enrollment
-        return this.prisma.studentBatch.create({
+        return this.prisma.extendedPrismaClient().studentBatch.create({
             data: {
                 studentId: dto.studentId,
                 batchId: dto.batchId,
@@ -37,7 +37,7 @@ export class EnrollmentService {
 
     // We can add a "getEnrollmentsForBatch" method here
     async getEnrollmentsByBatch(batchId: string) {
-        return this.prisma.studentBatch.findMany({
+        return this.prisma.extendedPrismaClient().studentBatch.findMany({
             where: { batchId },
             include: {
                 student: {
@@ -53,7 +53,7 @@ export class EnrollmentService {
     }
 
     async getEnrollmentsByStudent(studentId: string) {
-        const enrollments = await this.prisma.studentBatch.findMany({
+        const enrollments = await this.prisma.extendedPrismaClient().studentBatch.findMany({
             where: { studentId },
             include: {
                 batch: {
@@ -78,7 +78,7 @@ export class EnrollmentService {
     async disenroll(dto: RemoveEnrollmentDto): Promise<{ count: number }> {
         const { batchId, studentIds } = dto;
 
-        const result = await this.prisma.studentBatch.deleteMany({
+        const result = await this.prisma.extendedPrismaClient().studentBatch.deleteMany({
             where: {
                 batchId: batchId,
                 studentId: {

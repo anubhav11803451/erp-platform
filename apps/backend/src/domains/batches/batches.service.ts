@@ -9,7 +9,7 @@ export class BatchesService {
 
     async create(dto: CreateBatchDto): Promise<Batch> {
         // If tutorId is provided, Prisma will automatically check the foreign key constraint.
-        return this.prisma.batch.create({
+        return this.prisma.extendedPrismaClient().batch.create({
             data: {
                 ...dto,
                 // Ensure start_date defaults to current time if not provided in DTO
@@ -19,14 +19,14 @@ export class BatchesService {
     }
 
     async findBatchesByTutor(tutorId: string) {
-        return this.prisma.batch.findMany({
+        return this.prisma.extendedPrismaClient().batch.findMany({
             where: { tutorId },
             // We don't need the tutor object here since we know who it is
         });
     }
 
     async findAll(): Promise<Batch[]> {
-        return this.prisma.batch.findMany({
+        return this.prisma.extendedPrismaClient().batch.findMany({
             // Include the assigned tutor for context
             include: {
                 tutor: {
@@ -43,7 +43,7 @@ export class BatchesService {
     }
 
     async findOne(id: string): Promise<Batch> {
-        const batch = await this.prisma.batch.findUnique({
+        const batch = await this.prisma.extendedPrismaClient().batch.findUnique({
             where: { id },
             include: {
                 tutor: {
@@ -66,7 +66,7 @@ export class BatchesService {
     }
 
     async update(id: string, dto: UpdateBatchDto): Promise<Batch> {
-        const updatedBatch = await this.prisma.batch.update({
+        const updatedBatch = await this.prisma.extendedPrismaClient().batch.update({
             where: { id },
             data: {
                 ...dto,
@@ -81,6 +81,6 @@ export class BatchesService {
     async remove(id: string): Promise<Batch> {
         // Note: Deleting a batch will require handling cascade deletes for student_batches,
         // payments, and attendance depending on your Prisma configuration.
-        return this.prisma.batch.delete({ where: { id } });
+        return this.prisma.extendedPrismaClient().batch.delete({ where: { id } });
     }
 }
