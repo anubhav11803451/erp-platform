@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    /* Base Options */
+    "composite": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* This is the magic fix for TypeScript */
+    "baseUrl": ".",
+    "paths": {
+      "@erp/db": ["packages/db"],
+      "@erp/db/*": ["packages/db/*"],
+      "@erp/shared": ["packages/shared"],
+      "@erp/shared/*": ["packages/shared/*"],
+      "@erp/frontend": ["apps/frontend"],
+      "@erp/frontend/*": ["apps/frontend/*"],
+      "@erp/backend": ["apps/backend"],
+      "@erp/backend/*": ["apps/backend/*"]
+    }
+  }
+}

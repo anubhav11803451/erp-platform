@@ -41,5 +41,5 @@
     ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
   ],
   "typescript.tsdk": "node_modules/typescript/lib",
-  "git.enableCommitSigning": false
+  "git.enableCommitSigning": true
 }

@@ -1,0 +1,205 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider               = "prisma-client"
+  output                 = "../generated/prisma"
+  moduleFormat           = "esm"
+  importFileExtension    = "ts"
+  generatedFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// generator class_validator {
+//   provider               = "prisma-class-validator-generator"
+//   output                 = "../../common/src" // Output directory
+//   swagger                = "true" // Add Swagger decorators
+//   separateRelationFields = "false" // Split base/relation classes
+// }
+
+// generator typescriptInterfaces {
+//   provider    = "prisma-generator-typescript-interfaces"
+//   output      = "../../shared/src/types/index.ts"
+//   modelType   = "type"
+//   enumType    = "enum"
+//   exportEnums = false
+// }
+
+// ----------------------------------------
+// ENUMS
+// ----------------------------------------
+enum UserRole {
+  ADMIN
+  STAFF
+}
+
+enum AttendanceStatus {
+  Present
+  Absent
+  Late
+  None
+}
+
+enum PaymentMethod {
+  Cash
+  UPI
+  Stripe
+  BankTransfer
+  Card
+  Other
+}
+
+// ----------------------------------------
+// NEW MODEL: User (Admin, Staff)
+// ----------------------------------------
+model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  first_name String
+  last_name  String
+  password   String // We will never store the password directly
+  role       UserRole @default(STAFF)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // This defines the "one-to-many" relation
+  // One User (tutor) can have many Batches
+  batches        Batch[]
+  // --- Relation to Refresh Tokens ---
+  refresh_tokens RefreshToken[]
+}
+
+// ----------------------------------------
+// NEW MODEL: RefreshToken
+// ----------------------------------------
+model RefreshToken {
+  id           String    @id @default(uuid())
+  hashed_token String    @unique // Hashed with sha256
+  user_agent   String?
+  ip           String?
+  created_at   DateTime  @default(now())
+  expires_at   DateTime
+  revoked_at   DateTime? // If this is set, the token is invalid
+
+  // Relation to User
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+}
+
+// ----------------------------------------
+// NEW MODEL: Guardian
+// ----------------------------------------
+model Guardian {
+  id         String   @id @default(uuid())
+  first_name String
+  last_name  String
+  email      String   @unique // Guardian's email MUST be unique
+  phone      String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relation: One Guardian has many Students
+  students Student[]
+}
+
+// ----------------------------------------
+// UPDATED MODEL: Student
+// ----------------------------------------
+model Student {
+  id          String   @id @default(uuid())
+  first_name  String
+  last_name   String
+  // Student's own contact info (optional)
+  email       String?  @unique
+  phone       String?
+  school_name String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relation: Many Students belong to one Guardian
+  guardian   Guardian @relation(fields: [guardianId], references: [id])
+  guardianId String // The foreign key
+
+  // Relations (unchanged)
+  batches     StudentBatch[]
+  payments    Payment[]
+  attendances Attendance[]
+}
+
+model Batch {
+  id         String    @id @default(uuid())
+  name       String // e.g., "Class 10 CBSE Maths - 2025"
+  subject    String? // e.g., "Maths"
+  teacher    String? // e.g., "Mr. Sharma"
+  start_date DateTime  @default(now())
+  end_date   DateTime?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  // Relation: Many Batches belong to one Tutor
+  tutorId String? // Or String if it's required
+  tutor   User?   @relation(fields: [tutorId], references: [id])
+
+  // Relation: Many Batches have many Students
+  students StudentBatch[]
+  // Relation: Many Batches have many Payments
+  payments Payment[]
+
+  // Relation: Many Batches have many Attendances
+  attendances Attendance[]
+}
+
+// Join table for Students and Batches (Many-to-Many)
+model StudentBatch {
+  id        String  @id @default(uuid())
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId String
+  batch     Batch   @relation(fields: [batchId], references: [id])
+  batchId   String
+
+  total_fee_agreed Float    @default(0)
+  join_date        DateTime @default(now())
+
+  @@unique([studentId, batchId]) // A student can join a batch only once
+}
+
+model Payment {
+  id           String        @id @default(uuid())
+  amount       Float
+  payment_date DateTime      @default(now())
+  method       PaymentMethod // e.g., "Cash", "UPI", "Stripe"
+  notes        String?
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId String
+
+  // Optional: Link payment to a specific batch
+  batch   Batch?  @relation(fields: [batchId], references: [id])
+  batchId String?
+}
+
+model Attendance {
+  id         String            @id @default(uuid())
+  date       DateTime          @db.Date
+  status     AttendanceStatus?
+  notes      String?
+  created_at DateTime          @default(now())
+  updated_at DateTime          @updatedAt
+
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId String
+  batch     Batch?  @relation(fields: [batchId], references: [id])
+  batchId   String?
+
+  // A student can only have one attendance record per batch per day
+  @@unique([studentId, batchId, date])
+}

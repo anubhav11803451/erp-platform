@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to NestJS Dev",
+      "port": 9229,
+      "restart": true,
+      "cwd": "${workspaceFolder}/apps/backend",
+      "outFiles": ["${workspaceFolder}/apps/backend/dist/**/*.js"],
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

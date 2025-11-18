@@ -1,0 +1,39 @@
+{
+  "name": "@erp/shared",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Shared Zod schemas, types, and constants for ERP",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "node": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "default": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsup",
+    "build-local": "tsup",
+    "start:dev": "tsup --watch"
+  },
+  "dependencies": {
+    "@erp/db": "workspace:*",
+    "zod": "catalog:zod"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.2",
+    "typescript": "catalog:typescript"
+  },
+  "author": {
+    "name": "Anubhav Gupta",
+    "email": "anubhav.11803451@gmail.com",
+    "url": "https://github.com/anubhav11803451"
+  },
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.3"
+}

@@ -1,17 +1,29 @@
 {
-  "name": "erp-monorepo",
-  "version": "1.0.0",
+  "name": "erp-platform",
+  "version": "0.0.1",
   "description": "A full-stack, modular Enterprise Resource Planning (ERP) system designed for educational institutions. This project is structured as a pnpm monorepo and features a NestJS backend, a React frontend, and a shared Prisma package to ensure end-to-end type safety.",
   "main": "index.js",
   "keywords": [],
-  "author": "Anubhav Gupta",
+  "author": {
+    "name": "Anubhav Gupta",
+    "email": "anubhav.11803451@gmail.com",
+    "url": "https://github.com/anubhav11803451"
+  },
   "license": "ISC",
   "scripts": {
-    "dev:backend": "pnpm --filter @erp/backend dev",
-    "dev:frontend": "pnpm --filter @erp/frontend dev",
+    "dev:backend": "pnpm --filter @erp/backend start:dev",
+    "dev:frontend": "pnpm --filter @erp/frontend start:dev",
     "db:generate": "pnpm --filter @erp/db db:generate",
+    "db:generate-no-engine": "pnpm --filter @erp/db db:generate-no-engine",
     "db:migrate": "pnpm --filter @erp/db db:migrate",
-    "build": "pnpm --filter \"./apps/*\" build"
+    "db:format": "pnpm --filter @erp/db db:format",
+    "db:studio": "pnpm --filter @erp/db db:studio",
+    "build": "pnpm run --parallel build-local",
+    "dev": "pnpm run --parallel --filter '!@erp/db' start:dev",
+    "prod": "pnpm run --parallel --filter '!@erp/db' start:prod",
+    "clean": "pnpm run --parallel clean && rm -rf node_modules && pnpm install",
+    "clean:build": "pnpm run --parallel clean:build",
+    "postinstall": "pnpm db:generate-no-engine && pnpm --filter @erp/shared build"
   },
   "dependencies": {},
   "devDependencies": {

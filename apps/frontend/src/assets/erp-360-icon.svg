@@ -1,0 +1,69 @@
+<svg
+  width="40"
+  height="40"
+  viewBox="0 0 40 40"
+  xmlns="http://www.w3.org/2000/svg"
+  fill="currentColor"
+  stroke="currentColor"
+>
+  <style>
+    /* --- Animation Definitions --- */
+    @keyframes fadeIn_icon {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    @keyframes drawStroke_icon {
+      from {
+        stroke-dashoffset: 200;
+      }
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    /* --- Applying Animations --- */
+    #e-icon-2 {
+      opacity: 0;
+      animation: fadeIn_icon 0.5s ease-out 0.2s forwards;
+    }
+    #orbit-path-2 {
+      stroke-dasharray: 200;
+      stroke-dashoffset: 200;
+      animation: drawStroke_icon 1.2s ease-out 0.5s forwards;
+    }
+  </style>
+  
+  {/* Base Circle (fades in) */}
+  <rect id="e-icon-2" width="40" height="40" rx="8" fill-opacity="0.1" />
+  
+  {/* The 'e' shape (fades in) */}
+  <g id="e-icon-2">
+    <path
+      d="M26.6667 20C26.6667 23.682 23.682 26.6667 20 26.6667C16.318 26.6667 13.3333 23.682 13.3333 20C13.3333 16.318 16.318 13.3333 20 13.3333"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+    <path
+      d="M13.3333 20H28"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+  </g>
+  
+  {/* The '360' Orbit (draws itself) */}
+  <path
+    id="orbit-path-2"
+    d="M12.5 28.3333C15.0833 30.5833 18.5 31.6667 22.0833 30.8333C25.6667 30 28.5833 27.4167 30 24.1667C31.4167 20.9167 30.8333 17.25 28.3333 14.5833C25.8333 11.9167 22.0833 10.5 18.3333 11.0833C14.5833 11.6667 11.6667 14.25 10.8333 17.9167"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    fill="none"
+  />
+</svg>

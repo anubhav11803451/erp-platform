@@ -1,0 +1,66 @@
+{
+  "name": "@erp/db",
+  "version": "0.0.1",
+  "description": "Shared Prisma client, types & enums for frontend and backend",
+  "private": true,
+  "main": "./generated/prisma/client.ts",
+  "type": "module",
+  "exports": {
+    "./client": {
+      "import": "./generated/prisma/client.ts",
+      "types": "./generated/prisma/client.ts",
+      "default": "./generated/prisma/client.ts"
+    },
+    "./frontend": {
+      "import": "./generated/prisma/browser.ts",
+      "types": "./generated/prisma/browser.ts",
+      "default": "./generated/prisma/browser.ts"
+    },
+    "./models": {
+      "import": "./generated/prisma/models.ts",
+      "types": "./generated/prisma/models.ts",
+      "default": "./generated/prisma/models.ts"
+    },
+    "./enums": {
+      "import": "./generated/prisma/enums.ts",
+      "types": "./generated/prisma/enums.ts",
+      "default": "./generated/prisma/enums.ts"
+    }
+  },
+  "keywords": [],
+  "author": {
+    "name": "Anubhav Gupta",
+    "email": "anubhav.11803451@gmail.com",
+    "url": "https://github.com/anubhav11803451"
+  },
+  "license": "ISC",
+  "scripts": {
+    "db:studio": "dotenv -e ../../.env -- prisma studio",
+    "db:generate": "dotenv -e ../../.env -- prisma generate",
+    "db:generate-no-engine": "dotenv -e ../../.env -- prisma generate --no-engine",
+    "db:migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "db:format": "dotenv -e ../../.env -- prisma format",
+    "db:seed": "dotenv -e ../../.env -- prisma db seed",
+    "build": "pnpm db:generate --no-engine && dotenv -e ../../.env -- prisma migrate deploy",
+    "build-local": "pnpm db:generate --no-engine",
+    "clean": "rm -rf ./generated node_modules",
+    "clean:build": "rm -rf ./generated"
+  },
+  "dependencies": {
+    "@erp/prisma-zod-v4": "workspace:*",
+    "@prisma/client": "^6.18.0",
+    "@prisma/extension-accelerate": "catalog:@prisma/extension-accelerate",
+    "dotenv-cli": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:@types/node",
+    "bcrypt": "^6.0.0",
+    "prisma": "catalog:prisma",
+    "prisma-class-validator-generator": "^6.1.2",
+    "prisma-generator-typescript-interfaces": "^3.1.0"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.ts"
+  },
+  "packageManager": "pnpm@10.18.3"
+}

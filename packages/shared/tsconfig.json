@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        // ---- Module Settings ----
+        "target": "ES2022",
+        "module": "ESNext",
+        // This is the most important fix:
+        // It's designed for bundlers like tsup/vite
+        "moduleResolution": "bundler",
+        "esModuleInterop": true,
+
+        // ---- Strictness & Checks ----
+        "strict": true,
+        "skipLibCheck": true,
+        "isolatedModules": true, // tsup/esbuild requires this
+
+        // ---- Build Output ----
+        // We set "noEmit" to true because 'tsup' is what
+        // creates the 'dist' folder, not the 'tsc' command.
+        // 'tsc' is only for type-checking.
+        "noEmit": true,
+        "declaration": true, // tsup will use this to generate .d.ts
+        "outDir": "dist"
+    },
+    "include": ["src"], // Tell TS to only look at your src folder
+    "exclude": ["node_modules", "dist"]
+}
