@@ -4,8 +4,10 @@
     "compilerOptions": {
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": ["./src/*"],
+            "@erp/shared/*": ["../../packages/shared/src/*"],
+            "@erp/db/*": ["../../packages/db/src/*"]
         }
     },
-    "exclude": ["../../packages/shared/dist", "../../packages/shared/src/*", "node_modules"]
+    "exclude": ["../../packages/shared/dist", "node_modules"]
 }

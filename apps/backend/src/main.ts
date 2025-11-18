@@ -1,12 +1,13 @@
+import 'reflect-metadata';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
-import { AppModule } from '@/app.module';
+import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 // import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerDocumentOptions, SwaggerModule } from '@nestjs/swagger';
 
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import { PrismaClientExceptionFilter } from '@/common/filters/prisma-client-exception.filter';
+import { PrismaClientExceptionFilter } from './common/filters/prisma-client-exception.filter';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { ConfigService } from '@nestjs/config';
 
@@ -59,4 +60,4 @@ async function bootstrap() {
         `Application is running on: http://localhost:${process.env.BACKEND_PORT ?? 3000}/v1/api`,
     );
 }
-void bootstrap();
+bootstrap();

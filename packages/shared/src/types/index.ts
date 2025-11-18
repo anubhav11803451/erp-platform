@@ -6,7 +6,7 @@ import type {
     StudentBatch as IStudentBatch,
     Payment as IPayment,
     Attendance as IAttendance,
-} from '@erp/db/frontend';
+} from '@erp/db/client';
 
 //Request Types
 export interface TokenPayload {

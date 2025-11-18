@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/core/prisma.service';
+import { PrismaService } from '../../core/prisma.service';
 import { AttendanceMarkDto } from './dto/attendance.dto';
 import { Attendance, Prisma } from '@erp/db/client';
 import type { AttendanceMarkResponse, BatchAttendanceResponse } from '@erp/shared';
