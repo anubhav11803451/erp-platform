@@ -1,5 +1,5 @@
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
-import { AppModule } from '@/app.module';
+import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 // import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerDocumentOptions, SwaggerModule } from '@nestjs/swagger';
