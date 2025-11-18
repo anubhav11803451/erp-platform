@@ -18,6 +18,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "build-local": "tsup",
     "start:dev": "tsup --watch"
   },
   "dependencies": {

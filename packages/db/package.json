@@ -41,7 +41,8 @@
     "db:migrate": "dotenv -e ../../.env -- prisma migrate dev",
     "db:format": "dotenv -e ../../.env -- prisma format",
     "db:seed": "dotenv -e ../../.env -- prisma db seed",
-    "build": "pnpm db:generate",
+    "build": "pnpm db:generate --no-engine && dotenv -e ../../.env -- prisma migrate deploy",
+    "build-local": "pnpm db:generate --no-engine",
     "clean": "rm -rf ./generated node_modules",
     "clean:build": "rm -rf ./generated"
   },

@@ -8,15 +8,30 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { PrismaClientExceptionFilter } from '@/common/filters/prisma-client-exception.filter';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
+    const configService = app.get(ConfigService);
 
     // --- Security Headers ---
     app.use(helmet());
 
     // --- Cookie Parser ---
     app.use(cookieParser());
+
+    // --- Read the Client URL from the environment variable ---
+    const clientUrl = configService.get<string>('CLIENT_URL')!;
+
+    app.enableCors({
+        origin: ['http://localhost:5173', clientUrl], // frontend URL
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        allowedHeaders: 'Content-Type, Accept, Authorization, X-CSRF-Token', // Added X-CSRF-Token
+        credentials: true, // This is CRITICAL for cookies
+    });
+
+    const { httpAdapter } = app.get(HttpAdapterHost);
+    app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
     // Set global API prefix to match /api endpoint
     app.setGlobalPrefix('/v1/api');
@@ -38,16 +53,6 @@ async function bootstrap() {
     };
     const document = SwaggerModule.createDocument(app, config, options);
     SwaggerModule.setup('api', app, cleanupOpenApiDoc(document));
-
-    app.enableCors({
-        origin: ['http://localhost:5173', 'http://localhost:4173'], // frontend URL
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-        allowedHeaders: 'Content-Type, Accept, Authorization, X-CSRF-Token', // Added X-CSRF-Token
-        credentials: true, // This is CRITICAL for cookies
-    });
-
-    const { httpAdapter } = app.get(HttpAdapterHost);
-    app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
     await app.listen(process.env.BACKEND_PORT ?? 3000);
     console.log(

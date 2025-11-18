@@ -10,7 +10,8 @@
   "private": true,
   "license": "ISC",
   "scripts": {
-    "build": "nest build",
+    "build": "pnpm --filter @erp/db build && pnpm --filter @erp/shared build && nest build",
+    "build-local": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

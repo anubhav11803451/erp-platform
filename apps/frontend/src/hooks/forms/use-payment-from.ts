@@ -6,7 +6,7 @@ import {
     useUpdatePaymentMutation,
 } from '@/features/payments/payments-api-slice';
 import { useGetEnrollmentsByStudentQuery } from '@/features/enrollment/enrollment-api-slice';
-import { type PaymentCreatePayload, type EnrichedPayment } from '@erp/shared';
+import { type PaymentCreatePayload, type EnrichedPayment, PaymentMethod } from '@erp/shared';
 import { getApiErrorMessage } from '@/lib/utils';
 
 type UsePaymentFormProps = {
@@ -56,7 +56,7 @@ export function usePaymentForm({
                 studentId: studentId || '',
                 amount: 0,
                 batchId: batchId || '',
-                method: '',
+                method: PaymentMethod.Cash,
                 notes: batchId
                     ? 'Adding payment for batch id: ' +
                       batchId +

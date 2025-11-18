@@ -6,6 +6,7 @@
   "scripts": {
     "start:dev": "vite",
     "build": "tsc -b && vite build",
+    "build-local": "tsc -b && vite build",
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",
     "prettier-check": "prettier src --check",
