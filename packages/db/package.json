@@ -28,6 +28,9 @@
     }
   },
   "keywords": [],
+  "files": [
+    "generated"
+  ],
   "author": {
     "name": "Anubhav Gupta",
     "email": "anubhav.11803451@gmail.com",
@@ -45,7 +48,8 @@
     "build": "pnpm generate:vercel && dotenv -e ../../.env -- prisma migrate deploy",
     "build-local": "pnpm db:generate --no-engine",
     "clean": "rm -rf ./generated node_modules",
-    "clean:build": "rm -rf ./generated"
+    "clean:build": "rm -rf ./generated",
+    "postinstall": "dotenv -e ../../.env -- prisma generate --no-engine"
   },
   "dependencies": {
     "@erp/prisma-zod-v4": "workspace:*",

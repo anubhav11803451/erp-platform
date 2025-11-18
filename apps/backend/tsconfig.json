@@ -2,6 +2,9 @@
     "extends": "../../tsconfig/backend.tsconfig.json",
     "compilerOptions": {
         "outDir": "./dist",
-        "baseUrl": "./"
+        "baseUrl": "./",
+        "paths": {
+            "@erp/db/*": ["../../packages/db/src/*"]
+        }
     }
 }
