@@ -2,17 +2,17 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
-import { CoreModule } from 'src/core/core.module';
-import { AuthModule } from 'src/auth/auth.module';
+import { CoreModule } from './core/core.module';
+import { AuthModule } from './auth/auth.module';
 // We will import our domain/feature modules here as we create them
-import { UsersModule } from 'src/domains/users/users.module';
-import { StudentsModule } from 'src/domains/students/students.module';
-import { GuardiansModule } from 'src/domains/guardians/guardians.module';
-import { BatchesModule } from 'src/domains/batches/batches.module';
-import { EnrollmentModule } from 'src/features/enrollment/enrollment.module';
-import { PaymentsModule } from 'src/features/payments/payments.module';
-import { AttendanceModule } from 'src/features/attendance/attendance.module';
-import { DashboardModule } from 'src/features/dashboard/dashboard.module';
+import { UsersModule } from './domains/users/users.module';
+import { StudentsModule } from './domains/students/students.module';
+import { GuardiansModule } from './domains/guardians/guardians.module';
+import { BatchesModule } from './domains/batches/batches.module';
+import { EnrollmentModule } from './features/enrollment/enrollment.module';
+import { PaymentsModule } from './features/payments/payments.module';
+import { AttendanceModule } from './features/attendance/attendance.module';
+import { DashboardModule } from './features/dashboard/dashboard.module';
 
 @Module({
     imports: [

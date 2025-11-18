@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -6,7 +7,7 @@ import { DocumentBuilder, SwaggerDocumentOptions, SwaggerModule } from '@nestjs/
 
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import { PrismaClientExceptionFilter } from 'src/common/filters/prisma-client-exception.filter';
+import { PrismaClientExceptionFilter } from './common/filters/prisma-client-exception.filter';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { ConfigService } from '@nestjs/config';
 

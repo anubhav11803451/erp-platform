@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { CoreModule } from 'src/core/core.module';
-import { UsersModule } from 'src/domains/users/users.module'; // Needed to satisfy the tutorId foreign key
+import { CoreModule } from '../../core/core.module';
+import { UsersModule } from '../../domains/users/users.module'; // Needed to satisfy the tutorId foreign key
 import { BatchesService } from './batches.service';
 import { BatchesController } from './batches.controller';
 

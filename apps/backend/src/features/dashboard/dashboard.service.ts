@@ -1,7 +1,7 @@
 import { Inject, Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import type { Request as ExpressRequest } from 'express';
-import { PrismaService } from 'src/core/prisma.service';
+import { PrismaService } from '../../core/prisma.service';
 import { UserRole } from '@erp/shared';
 
 // Define the shape of our user payload from the JWT

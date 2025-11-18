@@ -12,9 +12,9 @@ import {
 import { StudentsService } from './students.service';
 import { CreateStudentDto, UpdateStudentDto } from './dto';
 import { Student, UserRole } from '@erp/db/client';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 // All routes in this controller will be prefixed with /domains/students
 @Controller('domains/students')

@@ -1,5 +1,5 @@
 import { Injectable, ConflictException } from '@nestjs/common';
-import { PrismaService } from 'src/core/prisma.service';
+import { PrismaService } from '../../core/prisma.service';
 import { CreateEnrollmentDto, RemoveEnrollmentDto } from './dto/enrollment.dto';
 import { StudentBatch } from '@erp/db/client';
 
