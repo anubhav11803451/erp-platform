@@ -6,7 +6,7 @@ import { DocumentBuilder, SwaggerDocumentOptions, SwaggerModule } from '@nestjs/
 
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import { PrismaClientExceptionFilter } from '@/common/filters/prisma-client-exception.filter';
+import { PrismaClientExceptionFilter } from 'src/common/filters/prisma-client-exception.filter';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { ConfigService } from '@nestjs/config';
 

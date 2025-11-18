@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { DashboardController } from './dashboard.controller';
-import { CoreModule } from '@/core/core.module';
+import { CoreModule } from 'src/core/core.module';
 
 @Module({
     imports: [CoreModule],

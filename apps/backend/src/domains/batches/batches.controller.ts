@@ -13,9 +13,9 @@ import {
 import { BatchesService } from './batches.service';
 import { CreateBatchDto, UpdateBatchDto } from './dto';
 import { Batch, UserRole } from '@erp/db/client';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { RolesGuard } from '@/common/guards/roles.guard';
-import { Roles } from '@/common/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserResponse } from '@erp/shared';
 
 @Controller('domains/batches')

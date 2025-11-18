@@ -6,11 +6,11 @@ import * as crypto from 'crypto';
 import { Response } from 'express';
 
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from '@/domains/users/users.service';
-import { PrismaService } from '@/core/prisma.service';
+import { UsersService } from 'src/domains/users/users.service';
+import { PrismaService } from 'src/core/prisma.service';
 
 import { UserResponse, AuthResponse, TokenPayload } from '@erp/shared';
-import { UtilsService } from '@/utils/utils.service';
+import { UtilsService } from 'src/utils/utils.service';
 
 @Injectable()
 export class AuthService {

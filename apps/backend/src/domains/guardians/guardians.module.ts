@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { CoreModule } from '@/core/core.module';
+import { CoreModule } from 'src/core/core.module';
 import { GuardiansService } from './guardians.service';
 import { GuardiansController } from './guardians.controller';
 

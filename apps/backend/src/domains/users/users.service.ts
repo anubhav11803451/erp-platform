@@ -5,7 +5,7 @@ import { Prisma, User, UserRole } from '@erp/db/client';
 import * as bcrypt from 'bcrypt';
 
 import { UserResponse } from '@erp/shared';
-import { UtilsService } from '@/utils/utils.service';
+import { UtilsService } from 'src/utils/utils.service';
 
 @Injectable()
 export class UsersService {
