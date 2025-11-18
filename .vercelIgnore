@@ -1,0 +1,4 @@
+apps/backend/src/
+apps/backend/node_modules/
+packages/db/node_modules/
+packages/shared/node_modules/

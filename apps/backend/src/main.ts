@@ -59,4 +59,4 @@ async function bootstrap() {
         `Application is running on: http://localhost:${process.env.BACKEND_PORT ?? 3000}/v1/api`,
     );
 }
-void bootstrap();
+bootstrap();

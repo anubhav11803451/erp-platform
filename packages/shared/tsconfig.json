@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         // ---- Module Settings ----
-        "target": "ES2022",
+        "target": "ES2023",
         "module": "ESNext",
         // This is the most important fix:
         // It's designed for bundlers like tsup/vite
