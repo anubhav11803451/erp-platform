@@ -5,7 +5,7 @@
         }
     },
     "installCommand": "pnpm install --recursive",
-    "buildCommand": "pnpm run build:vercel",
+    "buildCommand": "pnpm -w run build:vercel",
     "functions": {
         "apps/backend/dist/api/**": {
             "runtime": "nodejs20.x",
