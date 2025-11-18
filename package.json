@@ -25,7 +25,7 @@
     "clean": "pnpm run --parallel clean && rm -rf node_modules && pnpm install",
     "clean:build": "pnpm run --parallel clean:build",
     "build:frontend": "pnpm -F db generate:vercel && pnpm -F shared build && pnpm -F frontend build",
-    "build:backend": "pnpm -F db generate:vercel && pnpm -F shared build && pnpm -F backend build"
+    "build:backend": "pnpm -F shared build && pnpm -F backend build"
   },
   "dependencies": {},
   "devDependencies": {

@@ -1,3 +1,4 @@
 {
-    "extends": "../../tsconfig/package.tsconfig.json"
+    "extends": "../../tsconfig/package.tsconfig.json",
+    "exclude": ["node_modules", "dist", "generated"]
 }

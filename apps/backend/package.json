@@ -10,7 +10,7 @@
   "private": true,
   "license": "ISC",
   "scripts": {
-    "build": "nest build",
+    "build": "pnpm -F db build && nest build",
     "build-local": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
