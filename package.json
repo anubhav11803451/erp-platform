@@ -22,8 +22,7 @@
     "dev": "pnpm run --parallel --filter '!@erp/db' start:dev",
     "prod": "pnpm run --parallel --filter '!@erp/db' start:prod",
     "clean": "pnpm run --parallel clean && rm -rf node_modules && pnpm install",
-    "clean:build": "pnpm run --parallel clean:build",
-    "postinstall": "pnpm db:generate-no-engine && pnpm --filter @erp/shared build"
+    "clean:build": "pnpm run --parallel clean:build"
   },
   "dependencies": {},
   "devDependencies": {
