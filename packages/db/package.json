@@ -45,7 +45,7 @@
     "format": "dotenv -e ../../.env -- prisma format",
     "seed": "dotenv -e ../../.env -- prisma db seed",
     "generate:vercel": "dotenv -e ../../.env -- prisma generate",
-    "build": "pnpm generate:vercel && dotenv -e ../../.env -- prisma migrate deploy",
+    "build": "dotenv -e ../../.env -- prisma migrate deploy",
     "build-local": "pnpm db:generate",
     "clean": "rm -rf ./generated node_modules",
     "clean:build": "rm -rf ./generated",
