@@ -116,7 +116,7 @@ export const ROLE_PERMISSIONS = extendRolePermissions(BASE_ROLE_PERMISSIONS);
 // Reverse mapping
 export const FEATURE_PERMISSIONS: Record<FeatureKey, UserRole[]> = (
     Object.values(UserRole) as UserRole[]
-).reduce(
+).reduce<Record<FeatureKey, UserRole[]>>(
     (acc, role) => {
         const features = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS];
         for (const feature of features) {

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start:dev": "vite",
+    "prebuild": "pnpm --filter @erp/db exec prisma generate --no-hints && pnpm --filter @erp/shared build",
     "build": "tsc -b && vite build",
     "build-local": "tsc -b && vite build",
     "lint": "eslint .",
