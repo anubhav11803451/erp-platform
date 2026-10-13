@@ -8,7 +8,6 @@
         "moduleResolution": "node",
         "removeComments": true,
         "forceConsistentCasingInFileNames": true,
-        "noEmit": false,
         "skipLibCheck": true,
         "noFallthroughCasesInSwitch": false
     }

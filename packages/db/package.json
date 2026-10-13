@@ -49,11 +49,11 @@
     "build-local": "pnpm db:generate --no-engine",
     "clean": "rm -rf ./generated node_modules",
     "clean:build": "rm -rf ./generated",
-    "postinstall": "dotenv -e ../../.env -- prisma generate --no-engine"
+    "postinstall": "dotenv -e ../../.env -- prisma generate"
   },
   "dependencies": {
     "@erp/prisma-zod-v4": "workspace:*",
-    "@prisma/client": "^6.18.0",
+    "@prisma/client": "catalog:@prisma/client",
     "@prisma/extension-accelerate": "catalog:@prisma/extension-accelerate",
     "dotenv-cli": "^10.0.0"
   },
