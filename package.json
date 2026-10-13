@@ -13,11 +13,11 @@
   "scripts": {
     "dev:backend": "pnpm --filter @erp/backend start:dev",
     "dev:frontend": "pnpm --filter @erp/frontend start:dev",
-    "db:generate": "pnpm --filter @erp/db db:generate",
-    "db:generate-no-engine": "pnpm --filter @erp/db db:generate-no-engine",
-    "db:migrate": "pnpm --filter @erp/db db:migrate",
-    "db:format": "pnpm --filter @erp/db db:format",
-    "db:studio": "pnpm --filter @erp/db db:studio",
+    "db:generate": "pnpm --filter @erp/db generate",
+    "db:generate-no-engine": "pnpm --filter @erp/db generate-no-engine",
+    "db:migrate": "pnpm --filter @erp/db migrate",
+    "db:format": "pnpm --filter @erp/db format",
+    "db:studio": "pnpm --filter @erp/db studio",
     "build": "pnpm run --parallel build",
     "build-local": "pnpm run --parallel build-local",
     "dev": "pnpm run --parallel --filter '!@erp/db' start:dev",
@@ -25,7 +25,7 @@
     "clean": "pnpm run --parallel clean && rm -rf node_modules && pnpm install",
     "clean:build": "pnpm run --parallel clean:build",
     "build:frontend": "pnpm --filter @erp/frontend build",
-    "build:backend": "pnpm -F shared build && pnpm -F backend build"
+    "build:backend": "pnpm -F db generate && pnpm -F shared build && pnpm -F backend build"
   },
   "dependencies": {},
   "devDependencies": {
