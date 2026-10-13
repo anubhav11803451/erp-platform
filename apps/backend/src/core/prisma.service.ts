@@ -1,23 +1,19 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@erp/db/client';
-import { withAccelerate } from '@prisma/extension-accelerate';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-    // 2. Inject ConfigService to access environment variables
-    constructor(private configService: ConfigService) {
-        super({
-            datasourceUrl: configService.get<string>('DATABASE_URL'),
-        });
-    }
-    async onModuleInit() {
-        // Note: this is optional
-        await this.$connect();
+    constructor(private readonly configService: ConfigService) {
+        const connectionString = configService.getOrThrow<string>('DATABASE_URL');
+        const adapter = new PrismaPg({ connectionString });
+
+        super({ adapter });
     }
 
-    extendedPrismaClient() {
-        return this.$extends(withAccelerate());
+    async onModuleInit() {
+        await this.$connect();
     }
 
     async onModuleDestroy() {
