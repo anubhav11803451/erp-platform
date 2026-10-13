@@ -1,11 +1,15 @@
 {
     "installCommand": "pnpm install --recursive",
     "buildCommand": "pnpm -w run build:backend",
-    "functions": {
-        "src/main.ts": {
-            "includeFiles": "../../packages/db/generated/prisma/**"
+    "builds": [
+        {
+            "src": "src/main.ts",
+            "use": "@vercel/nestjs",
+            "config": {
+                "includeFiles": "../../packages/db/generated/prisma/**"
+            }
         }
-    },
+    ],
     "rewrites": [
         {
             "source": "/v1/api/(.*)",
