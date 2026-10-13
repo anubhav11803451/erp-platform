@@ -13,6 +13,7 @@ import { EnrollmentModule } from './features/enrollment/enrollment.module';
 import { PaymentsModule } from './features/payments/payments.module';
 import { AttendanceModule } from './features/attendance/attendance.module';
 import { DashboardModule } from './features/dashboard/dashboard.module';
+import { HealthController } from './health.controller';
 
 @Module({
     imports: [
@@ -40,7 +41,7 @@ import { DashboardModule } from './features/dashboard/dashboard.module';
         AttendanceModule,
         DashboardModule,
     ],
-    controllers: [],
+    controllers: [HealthController],
     providers: [
         { provide: APP_PIPE, useClass: ZodValidationPipe },
         { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
