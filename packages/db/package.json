@@ -5,7 +5,7 @@
   "private": true,
   "main": "./dist/prisma/client.js",
   "types": "./generated/prisma/client.ts",
-  "type": "module",
+  "type": "commonjs",
   "exports": {
     "./client": {
       "import": "./dist/prisma/client.js",
