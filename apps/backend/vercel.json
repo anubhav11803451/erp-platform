@@ -6,7 +6,7 @@
             "src": "src/main.ts",
             "use": "@vercel/nestjs",
             "config": {
-                "includeFiles": "node_modules/@erp/db/generated/prisma/**"
+                "includeFiles": "node_modules/@erp/db/dist/prisma/**"
             }
         }
     ],

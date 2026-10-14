@@ -16,23 +16,24 @@
     "db:generate": "pnpm --filter @erp/db generate",
     "db:generate-no-engine": "pnpm --filter @erp/db generate-no-engine",
     "db:migrate": "pnpm --filter @erp/db migrate",
+    "db:migrate:deploy": "pnpm --filter @erp/db migrate:deploy",
     "db:format": "pnpm --filter @erp/db format",
     "db:studio": "pnpm --filter @erp/db studio",
-    "build": "pnpm run --parallel build",
-    "build-local": "pnpm run --parallel build-local",
+    "build": "pnpm -r run build",
+    "build-local": "pnpm -r run build-local",
     "dev": "pnpm run --parallel --filter '!@erp/db' start:dev",
     "prod": "pnpm run --parallel --filter '!@erp/db' start:prod",
     "clean": "pnpm run --parallel clean && rm -rf node_modules && pnpm install",
     "clean:build": "pnpm run --parallel clean:build",
     "build:frontend": "pnpm --filter @erp/frontend build",
-    "build:backend": "pnpm -F db generate && pnpm -F shared build && pnpm -F backend build"
+    "build:backend": "pnpm --filter @erp/backend build"
   },
   "dependencies": {},
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "catalog:typescript"
   },
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=20.19.0",
     "pnpm": ">=8.0.0"
   },
   "packageManager": "pnpm@10.18.3"
