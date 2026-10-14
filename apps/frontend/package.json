@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start:dev": "vite",
-    "prebuild": "pnpm --filter @erp/db generate && pnpm --filter @erp/shared build",
+    "prebuild": "pnpm --filter @erp/db build && pnpm --filter @erp/shared build",
     "build": "tsc -b && vite build",
     "build-local": "tsc -b && vite build",
     "lint": "eslint .",
