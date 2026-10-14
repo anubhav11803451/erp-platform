@@ -4,7 +4,6 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "prestart:dev": "pnpm --filter @erp/db build && pnpm --filter @erp/shared build",
     "start:dev": "vite",
     "prebuild": "pnpm --filter @erp/db build && pnpm --filter @erp/shared build",
     "build": "tsc -b && vite build",
