@@ -26,6 +26,7 @@
     "zod": "catalog:zod"
   },
   "devDependencies": {
+    "@types/node": "catalog:@types/node",
     "tsup": "^8.0.2",
     "typescript": "catalog:typescript"
   },

@@ -7,6 +7,7 @@ import {
     type SubmitHandler,
     type UseFormProps,
     type UseFormReturn, // We'll use this for the children prop
+    type Resolver,
     type FieldValues,
     type DefaultValues,
     FormProvider,
@@ -28,11 +29,15 @@ const useZodForm = <TSchema extends z.ZodObject<z.ZodRawShape>>({
     mode,
 }: {
     schema: TSchema;
-    defaultValues: DefaultValues<z.input<TSchema> & FieldValues>;
-    mode: UseFormProps<z.input<TSchema> & FieldValues>['mode'];
-}) => {
-    const form = useForm({
-        resolver: schema ? zodResolver(schema) : undefined,
+    defaultValues: DefaultValues<z.input<TSchema>>;
+    mode: UseFormProps<z.input<TSchema>>['mode'];
+}): UseFormReturn<z.input<TSchema>, unknown, z.output<TSchema>> => {
+    const form = useForm<z.input<TSchema>, unknown, z.output<TSchema>>({
+        resolver: zodResolver(schema) as unknown as Resolver<
+            z.input<TSchema>,
+            unknown,
+            z.output<TSchema>
+        >,
         defaultValues: defaultValues,
         mode,
     });

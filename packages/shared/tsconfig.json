@@ -19,7 +19,8 @@
         // 'tsc' is only for type-checking.
         "noEmit": true,
         "declaration": true, // tsup will use this to generate .d.ts
-        "outDir": "dist"
+        "outDir": "dist",
+        "types": ["node"]
     },
     "include": ["src"], // Tell TS to only look at your src folder
     "exclude": ["node_modules", "dist"]

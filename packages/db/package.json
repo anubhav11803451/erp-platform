@@ -3,33 +3,36 @@
   "version": "0.0.1",
   "description": "Shared Prisma client, types & enums for frontend and backend",
   "private": true,
-  "main": "./generated/prisma/client.ts",
-  "type": "module",
+  "main": "./dist/prisma/client.js",
+  "types": "./generated/prisma/client.ts",
+  "type": "commonjs",
   "exports": {
     "./client": {
-      "import": "./generated/prisma/client.ts",
+      "import": "./dist/prisma/client.js",
       "types": "./generated/prisma/client.ts",
-      "default": "./generated/prisma/client.ts"
+      "default": "./dist/prisma/client.js"
     },
     "./frontend": {
-      "import": "./generated/prisma/browser.ts",
+      "import": "./dist/prisma/browser.js",
       "types": "./generated/prisma/browser.ts",
-      "default": "./generated/prisma/browser.ts"
+      "default": "./dist/prisma/browser.js"
     },
     "./models": {
-      "import": "./generated/prisma/models.ts",
+      "import": "./dist/prisma/models.js",
       "types": "./generated/prisma/models.ts",
-      "default": "./generated/prisma/models.ts"
+      "default": "./dist/prisma/models.js"
     },
     "./enums": {
-      "import": "./generated/prisma/enums.ts",
       "types": "./generated/prisma/enums.ts",
-      "default": "./generated/prisma/enums.ts"
+      "browser": "./generated/prisma/enums.ts",
+      "import": "./dist/prisma/enums.js",
+      "default": "./dist/prisma/enums.js"
     }
   },
   "keywords": [],
   "files": [
-    "generated"
+    "generated",
+    "dist"
   ],
   "author": {
     "name": "Anubhav Gupta",
@@ -44,9 +47,10 @@
     "migrate": "dotenv -e ../../.env -- prisma migrate dev",
     "format": "dotenv -e ../../.env -- prisma format",
     "seed": "dotenv -e ../../.env -- prisma db seed",
-    "generate:vercel": "dotenv -e ../../.env -- prisma generate",
-    "build": "dotenv -e ../../.env -- prisma migrate deploy",
-    "build-local": "pnpm db:generate",
+    "generate:vercel": "pnpm run generate",
+    "build": "pnpm run generate && tsc -p tsconfig.build.json",
+    "build-local": "pnpm run build",
+    "migrate:deploy": "dotenv -e ../../.env -- prisma migrate deploy",
     "clean": "rm -rf ./generated node_modules",
     "clean:build": "rm -rf ./generated",
     "postinstall": "dotenv -e ../../.env -- prisma generate"
@@ -62,7 +66,8 @@
     "bcrypt": "^6.0.0",
     "prisma": "catalog:prisma",
     "prisma-class-validator-generator": "^6.1.2",
-    "prisma-generator-typescript-interfaces": "^3.1.0"
+    "prisma-generator-typescript-interfaces": "^3.1.0",
+    "typescript": "catalog:typescript"
   },
   "prisma": {
     "seed": "node prisma/seed.ts"
