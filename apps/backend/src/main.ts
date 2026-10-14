@@ -22,10 +22,14 @@ async function bootstrap() {
     app.use(cookieParser());
 
     // --- Read the Client URL from the environment variable ---
-    const clientUrl = configService.get<string>('CLIENT_URL')!;
+    const clientOrigin = new URL(configService.getOrThrow<string>('CLIENT_URL')).origin;
 
     app.enableCors({
-        origin: ['http://localhost:5173', clientUrl], // frontend URL
+        origin: [
+            'http://localhost:5173',
+            'https://erp-platform-frontend.vercel.app',
+            clientOrigin,
+        ],
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         allowedHeaders: 'Content-Type, Accept, Authorization, X-CSRF-Token', // Added X-CSRF-Token
         credentials: true, // This is CRITICAL for cookies
