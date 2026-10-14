@@ -1,22 +1,40 @@
-# This file defines the "workspaces" in our monorepo.
 packages:
-  - 'apps/*'
-  - 'packages/*'
+  - apps/*
+  - packages/*
+
 catalogs:
-  prisma:
-    prisma: latest
-  "@prisma/extension-accelerate":
-    "@prisma/extension-accelerate": latest
-  zod:
-    zod: latest
-  typescript:
-    typescript: ^5.7.3
-  '@types/node':
-    '@types/node': ^24.6.0
-  prettier:
-    prettier: ^3.6.2
-  eslint:
-    eslint: ^9.36.0
   '@eslint/js':
     '@eslint/js': ^9.36.0
-  
+  '@prisma/adapter-pg':
+    '@prisma/adapter-pg': ^7.10.0
+  '@prisma/client':
+    '@prisma/client': ^7.10.0
+  '@prisma/extension-accelerate':
+    '@prisma/extension-accelerate': latest
+  '@types/node':
+    '@types/node': ^24.6.0
+  '@types/pg':
+    '@types/pg': latest
+  eslint:
+    eslint: ^9.36.0
+  pg:
+    pg: latest
+  prettier:
+    prettier: ^3.6.2
+  prisma:
+    prisma: ^7.10.0
+  typescript:
+    typescript: ^5.9.3
+  zod:
+    zod: latest
+
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@scarf/scarf'
+  - bcrypt
+  - esbuild
+  - msw
+  - prisma
+  - unrs-resolver

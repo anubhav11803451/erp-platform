@@ -6,16 +6,17 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepare": "pnpm run build",
     "dev": "tsc -w",
     "clean": "rm -rf ./dist/*"
   },
   "bin": {
-    "prisma-zod-v4": "./dist/index.js",
-    "@erp/prisma-zod-v4": "./dist/index.js"
+    "prisma-zod-v4": "./bin/prisma-zod-v4.cjs",
+    "@erp/prisma-zod-v4": "./bin/prisma-zod-v4.cjs"
   },
   "dependencies": {
-    "@prisma/generator-helper": "^6.0.0",
-    "@prisma/internals": "^6.0.0",
+    "@prisma/generator-helper": "^7.10.0",
+    "@prisma/internals": "^7.10.0",
     "prettier": "catalog:prettier",
     "zod": "catalog:zod"
   },

@@ -15,7 +15,7 @@ import {
 import type { Response, Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from '@/common/guards/local-auth.guard';
+import { LocalAuthGuard } from '../common/guards/local-auth.guard';
 
 import { ConfigService } from '@nestjs/config';
 import { UserLoginDto } from './dto/login.dto';

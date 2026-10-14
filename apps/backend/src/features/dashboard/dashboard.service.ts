@@ -1,7 +1,7 @@
 import { Inject, Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import type { Request as ExpressRequest } from 'express';
-import { PrismaService } from 'src/core/prisma.service';
+import { PrismaService } from '../../core/prisma.service';
 import { UserRole } from '@erp/shared';
 
 // Define the shape of our user payload from the JWT
@@ -22,8 +22,8 @@ export class DashboardService {
         const user = this.req.user as JwtPayload;
 
         // --- Stats for ALL roles ---
-        const studentCount = await this.prisma.extendedPrismaClient().student.count();
-        const batchCount = await this.prisma.extendedPrismaClient().batch.count();
+        const studentCount = await this.prisma.student.count();
+        const batchCount = await this.prisma.batch.count();
 
         const stats: any = {
             totalStudents: studentCount,
@@ -32,7 +32,7 @@ export class DashboardService {
 
         // --- ADMIN-Only Stats ---
         if (user.role === UserRole.ADMIN) {
-            const revenue = await this.prisma.extendedPrismaClient().payment.aggregate({
+            const revenue = await this.prisma.payment.aggregate({
                 _sum: {
                     amount: true,
                 },
@@ -45,7 +45,7 @@ export class DashboardService {
 
     async getRecentActivity() {
         // Get the 5 most recent payments
-        const recentPayments = await this.prisma.extendedPrismaClient().payment.findMany({
+        const recentPayments = await this.prisma.payment.findMany({
             take: 5,
             orderBy: {
                 payment_date: 'desc',
@@ -61,7 +61,7 @@ export class DashboardService {
         });
 
         // Get the 5 most recent enrollments
-        const recentEnrollments = await this.prisma.extendedPrismaClient().studentBatch.findMany({
+        const recentEnrollments = await this.prisma.studentBatch.findMany({
             take: 5,
             orderBy: {
                 join_date: 'desc',

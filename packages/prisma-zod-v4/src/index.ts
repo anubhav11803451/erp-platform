@@ -1,6 +1,6 @@
 /**
  * Prisma → Zod v4 Generator
- * Generates per-model Zod schemas + enums in /common/src/schemas
+ * Generates per-model Zod schemas + enums in /shared/src/schemas
  *
  * Compatible with:
  * - Prisma v6+
@@ -114,7 +114,7 @@ function fieldToZodEntry(f: any) {
 // -------------------------------------------------------
 // Generator Implementation
 // -------------------------------------------------------
-const DefaultOutputPath = "../common/src/generated/schemas";
+const DefaultOutputPath = "../shared/src/generated/schemas";
 generatorHandler({
   onManifest() {
     return {
@@ -150,7 +150,7 @@ generatorHandler({
 
     fs.writeFileSync(
       path.join(outDir, "enums.ts"),
-      await format(`import { z } from "zod";\n${enumsCode}`)
+      await format(`import { z } from "zod";\n${enumsCode}`),
     );
 
     // ---------------------------------------------------

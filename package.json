@@ -13,23 +13,27 @@
   "scripts": {
     "dev:backend": "pnpm --filter @erp/backend start:dev",
     "dev:frontend": "pnpm --filter @erp/frontend start:dev",
-    "db:generate": "pnpm --filter @erp/db db:generate",
-    "db:generate-no-engine": "pnpm --filter @erp/db db:generate-no-engine",
-    "db:migrate": "pnpm --filter @erp/db db:migrate",
-    "db:format": "pnpm --filter @erp/db db:format",
-    "db:studio": "pnpm --filter @erp/db db:studio",
-    "build": "pnpm run --parallel build-local",
+    "db:generate": "pnpm --filter @erp/db generate",
+    "db:generate-no-engine": "pnpm --filter @erp/db generate-no-engine",
+    "db:migrate": "pnpm --filter @erp/db migrate",
+    "db:migrate:deploy": "pnpm --filter @erp/db migrate:deploy",
+    "db:format": "pnpm --filter @erp/db format",
+    "db:studio": "pnpm --filter @erp/db studio",
+    "build": "pnpm -r run build",
+    "build-local": "pnpm -r run build-local",
     "dev": "pnpm run --parallel --filter '!@erp/db' start:dev",
     "prod": "pnpm run --parallel --filter '!@erp/db' start:prod",
     "clean": "pnpm run --parallel clean && rm -rf node_modules && pnpm install",
-    "clean:build": "pnpm run --parallel clean:build"
+    "clean:build": "pnpm run --parallel clean:build",
+    "build:frontend": "pnpm --filter @erp/frontend build",
+    "build:backend": "pnpm --filter @erp/backend build"
   },
   "dependencies": {},
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "catalog:typescript"
   },
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=20.19.0",
     "pnpm": ">=8.0.0"
   },
   "packageManager": "pnpm@10.18.3"

@@ -8,9 +8,13 @@
     "url": "https://github.com/anubhav11803451"
   },
   "private": true,
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "license": "ISC",
   "scripts": {
-    "build": "pnpm --filter @erp/db build && pnpm --filter @erp/shared build && nest build",
+    "prebuild": "pnpm --filter @erp/db build && pnpm --filter @erp/shared build",
+    "build": "nest build",
     "build-local": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -37,7 +41,7 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/throttler": "^6.4.0",
-    "@prisma/extension-accelerate": "catalog:@prisma/extension-accelerate",
+    "@prisma/adapter-pg": "catalog:@prisma/adapter-pg",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "helmet": "^8.1.0",
@@ -46,6 +50,7 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
+    "pg": "catalog:pg",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -62,6 +67,7 @@
     "@types/lodash": "^4.17.20",
     "@types/node": "catalog:@types/node",
     "@types/passport-local": "^1.0.38",
+    "@types/pg": "catalog:@types/pg",
     "@types/supertest": "^6.0.2",
     "eslint": "catalog:eslint",
     "eslint-config-prettier": "^10.0.1",
@@ -76,7 +82,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "catalog:typescript",
-    "typescript-eslint": "^8.20.0"
+    "typescript-eslint": "^8.70.0"
   },
   "jest": {
     "moduleFileExtensions": [

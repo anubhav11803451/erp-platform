@@ -6,8 +6,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
 
-    /* This is the magic fix for TypeScript */
-    "baseUrl": ".",
+    /* Workspace package aliases */
     "paths": {
       "@erp/db": ["packages/db"],
       "@erp/db/*": ["packages/db/*"],

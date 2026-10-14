@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/core/prisma.service';
+import { PrismaService } from '../../core/prisma.service';
 // import { CreateUserDto } from './dto/create-user.dto';
 import { Prisma, User, UserRole } from '@erp/db/client';
 import * as bcrypt from 'bcrypt';
 
 import { UserResponse } from '@erp/shared';
-import { UtilsService } from '@/utils/utils.service';
+import { UtilsService } from '../../utils/utils.service';
 
 @Injectable()
 export class UsersService {
@@ -19,7 +19,7 @@ export class UsersService {
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(createUserInput.password as string, saltRounds);
 
-        const user = await this.prisma.extendedPrismaClient().user.create({
+        const user = await this.prisma.user.create({
             data: {
                 ...createUserInput,
                 role: createUserInput.role || UserRole.STAFF,
@@ -30,7 +30,7 @@ export class UsersService {
     }
 
     async update(id: string, updateUserInput: Prisma.UserUpdateInput): Promise<UserResponse> {
-        const user = await this.prisma.extendedPrismaClient().user.update({
+        const user = await this.prisma.user.update({
             where: { id },
             data: updateUserInput,
         });
@@ -42,7 +42,7 @@ export class UsersService {
      * Used by the AuthModule to validate login.
      */
     async findByEmail(email: string): Promise<User | null> {
-        return this.prisma.extendedPrismaClient().user.findUnique({
+        return this.prisma.user.findUnique({
             where: { email },
         });
     }
@@ -50,7 +50,7 @@ export class UsersService {
     // Find by ID (useful for JWT)
     async findById(id: string): Promise<UserResponse | null> {
         try {
-            return this.prisma.extendedPrismaClient().user.findUnique({
+            return this.prisma.user.findUnique({
                 where: { id },
                 omit: { password: true },
             });
@@ -60,12 +60,12 @@ export class UsersService {
     }
 
     async findAll(): Promise<UserResponse[]> {
-        return this.prisma.extendedPrismaClient().user.findMany({ omit: { password: true } });
+        return this.prisma.user.findMany({ omit: { password: true } });
     }
 
     async remove(id: string): Promise<UserResponse> {
         try {
-            return await this.prisma.extendedPrismaClient().user.delete({
+            return await this.prisma.user.delete({
                 where: { id },
                 omit: { password: true },
             });

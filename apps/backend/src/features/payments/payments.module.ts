@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
-import { CoreModule } from 'src/core/core.module';
+import { CoreModule } from '../../core/core.module';
 
 @Module({
     imports: [CoreModule],
