@@ -28,6 +28,7 @@ async function bootstrap() {
         origin: [
             'http://localhost:5173',
             'https://erp-platform-frontend.vercel.app',
+            'https://erp-platform-frontend-anubhav11803451s-projects.vercel.app',
             clientOrigin,
         ],
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
