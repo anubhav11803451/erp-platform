@@ -1,85 +1,56 @@
 # Educational ERP Platform
 
-A full-stack, modular Enterprise Resource Planning (ERP) system designed for educational institutions. This project is structured as a pnpm monorepo and features a NestJS backend, a React frontend, and a shared Prisma package to ensure end-to-end type safety.
+A modular ERP platform for educational institutions, maintained as a pnpm TypeScript monorepo.
 
-## About The Project
+## Workspace
 
-The goal of this project is to create a flexible, cloud-native SaaS platform that can cater to a diverse range of educational institutions, from small tuition centers to large-scale K-12 schools and coaching institutes.
+| Path | Purpose |
+| --- | --- |
+| `apps/backend` | NestJS API, authentication, domain modules, and feature services |
+| `apps/frontend` | React, Vite, and Redux Toolkit web application |
+| `packages/db` | Prisma schema, migrations, generated client, and database package |
+| `packages/shared` | Shared Zod schemas, inferred payloads, types, and enums |
+| `packages/prisma-zod-v4` | Internal Prisma-to-Zod generator |
 
-The core architecture is built on a modular design, allowing features to be packaged into different product tiers ("Tuition Lite", "School ERP", etc.) to meet specific needs and budgets.
+## Prerequisites and setup
 
-### Key Features (Tier 1 MVP)
+- Node.js `>=20.19.0`
+- pnpm `10.18.3` (the version specified by `packageManager`)
+- PostgreSQL for database-backed development
 
-*   **Student Management**: Add, view, edit, and manage student profiles.
-*   **Batch Management**: Create custom batches (e.g., "10th CBSE Maths") and enroll students.
-*   **Fee Collection**: Log payments and track fee dues for each student.
-*   **Attendance Tracking**: Mark and view attendance for each batch.
+Install dependencies from the repository root:
 
-## Built With
-
-*   **Monorepo**: [pnpm](https://pnpm.io/) Workspaces
-*   **Backend**: [NestJS](https://nestjs.com/), [Prisma](https://www.prisma.io/)
-*   **Frontend**: [React](https://react.dev/), [Vite](https://vitejs.dev/), [Redux Toolkit](https://redux-toolkit.js.org/), [shadcn/ui](https://ui.shadcn.com/)
-*   **Database**: [PostgreSQL](https://www.postgresql.org/)
-*   **Shared Types**: A dedicated `@erp/db` package ensures type safety between the frontend and backend.
-
-## Project Structure
-
-The monorepo is organized into `apps` and `packages`:
-
-```
-/
-├── apps/
-│   ├── backend/      # NestJS application
-│   └── frontend/     # React (Vite) application
-│
-└── packages/
-    ├── db/           # Shared Prisma schema, client, and types
-    ├── eslint-config/  # Shared ESLint configurations
-    └── tsconfig-base/  # Shared TypeScript configurations
+```sh
+pnpm install
 ```
 
-## Getting Started
+Create a root `.env` with the required local configuration. At minimum, the backend reads `DATABASE_URL` and `CLIENT_URL`; authentication also uses `JWT_SECRET`. Keep real secrets out of source control. Generate the Prisma client and apply local migrations when a database is configured:
 
-To get a local copy up and running, follow these steps.
+```sh
+pnpm db:generate
+pnpm db:migrate
+```
 
-### Prerequisites
+Start the backend and frontend together with `pnpm dev`, or start them separately with `pnpm dev:backend` and `pnpm dev:frontend`. The API defaults to port `3000` with the `/v1/api` prefix; Vite defaults to port `5173`.
 
-*   Node.js (v20.0.0 or higher)
-*   pnpm (v8.0.0 or higher)
-*   Docker (for running a local PostgreSQL instance)
+## Common commands
 
-### Installation & Setup
+| Command | Purpose |
+| --- | --- |
+| `pnpm build` | Build all workspace packages |
+| `pnpm --filter @erp/backend build` | Build the backend and its package prerequisites |
+| `pnpm --filter @erp/frontend build` | Type-check and build the frontend |
+| `pnpm --filter @erp/frontend lint` | Lint frontend files |
+| `pnpm --filter @erp/frontend prettier-check` | Check frontend formatting |
+| `pnpm db:format` | Format the Prisma schema |
 
-1.  **Clone the repository:**
-    ```sh
-    git clone <your-repo-url>
-    cd erp-monorepo
-    ```
+The backend lint script applies ESLint fixes (`--fix`). Review its diff if you run it. Current automated test setup is limited: the tracked backend e2e spec is commented out and the frontend has no test script.
 
-2.  **Install dependencies** from the root of the project:
-    ```sh
-    pnpm install
-    ```
+## Copilot repository guidance
 
-3.  **Set up environment variables:**
-    Create a `.env` file in the root directory. You can copy the example file if one exists.
-    ```env
-    DATABASE_URL="postgresql://user:password@localhost:5432/erp_db?schema=public"
-    ```
+- General conventions: [`.github/copilot-instructions.md`](.github/copilot-instructions.md)
+- Scoped backend, frontend, and data/shared-package instructions: [`.github/instructions/`](.github/instructions/)
+- Main product/feature entry point and specialized implementation, architecture, data-contracts, UI/UX design, and product-strategy agents: [`.github/agents/`](.github/agents/)
+- Current architecture, feature inventory, workflows, bug triage, and roadmap: [`docs/`](docs/)
 
-4.  **Run database migrations:**
-    This command runs the `db:migrate` script defined in the `packages/db` package.
-    ```sh
-    pnpm db:migrate
-    ```
-
-5.  **Run the development servers:**
-    This will start both the backend and frontend applications concurrently.
-    ```sh
-    pnpm dev
-    ```
-    *   Backend will be available at `http://localhost:3000`
-    *   Frontend will be available at `http://localhost:5173`
-
-
+Start whole-product reviews and coordinated feature work with the [Feature Delivery Orchestrator](.github/agents/feature-delivery-orchestrator.agent.md). Use the [feature-delivery workflow](docs/product/feature-delivery/README.md), read applicable scoped instructions, and keep package boundaries in mind when changing API contracts or persisted data.
