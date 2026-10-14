@@ -20,7 +20,7 @@ The API defaults to port `3000` and uses the `/v1/api` prefix. Swagger is config
 pnpm --filter @erp/backend lint
 ```
 
-The `lint` script runs ESLint with `--fix`, so inspect its changes. Test scripts are present, but the current tracked e2e spec is commented out and there are no active backend tests to run as coverage.
+The `lint` script runs ESLint with `--fix`, so inspect its changes. Test scripts are present. Tracked active backend Jest coverage currently consists of `src/auth/auth.service.spec.ts` (3 test cases); `test/app.e2e-spec.ts` remains commented out. On 2026-10-14, the user reported a passing focused Jest run (1 suite, 3 tests), successful manual verification, and backend build/deployment on another laptop; deployment environment/version were not supplied, and those actions were not independently verified in this audit.
 
 ## Project conventions
 
