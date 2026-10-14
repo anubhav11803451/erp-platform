@@ -56,7 +56,9 @@ describe('AuthService credential validation', () => {
     it('rejects an incorrect password', async () => {
         const getUserResponse = jest.spyOn(module.get(UtilsService), 'getUserResponse');
 
-        await expect(authService.validateUser(user.email, 'incorrect-password')).resolves.toBeNull();
+        await expect(
+            authService.validateUser(user.email, 'incorrect-password'),
+        ).resolves.toBeNull();
         expect(getUserResponse).not.toHaveBeenCalled();
     });
 
