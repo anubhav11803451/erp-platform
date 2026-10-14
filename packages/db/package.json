@@ -23,8 +23,9 @@
       "default": "./dist/prisma/models.js"
     },
     "./enums": {
-      "import": "./dist/prisma/enums.js",
       "types": "./generated/prisma/enums.ts",
+      "browser": "./generated/prisma/enums.ts",
+      "import": "./dist/prisma/enums.js",
       "default": "./dist/prisma/enums.js"
     }
   },
