@@ -24,7 +24,7 @@ catalogs:
   prisma:
     prisma: ^7.10.0
   typescript:
-    typescript: ^6.0.3
+    typescript: ^5.9.3
   zod:
     zod: latest
 
