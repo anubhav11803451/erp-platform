@@ -39,7 +39,10 @@ export class AuthService {
         const user = await this.usersService.findByEmail(email);
         if (user) {
             const encryptedPass: string = user.password;
-            await bcrypt.compare(pass, encryptedPass);
+            const isPasswordValid = await bcrypt.compare(pass, encryptedPass);
+            if (!isPasswordValid) {
+                return null;
+            }
             // Passwords match. Return user *without* the password hash.
 
             //use loadash omit

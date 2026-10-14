@@ -6,6 +6,7 @@
 - Read the complete files you intend to change and the relevant neighboring files and package configuration before editing. For repository-wide guidance work, inspect the tracked source, configuration, tests, and documentation across all workspaces.
 - Preserve package boundaries and existing naming/layout patterns. For a contract or persistence change, check the database schema, shared contracts, API, and frontend call sites that depend on it.
 - Make focused changes. Do not edit generated output such as `apps/frontend/src/router.generated.ts`, Prisma generated clients, or `dist` files by hand.
+- When starting work from `dev`, create a fresh task-specific branch based on `dev` before editing; never make task changes directly on `dev`. Check branch and worktree state first, preserve existing uncommitted work, and do not switch or stash changes whose ownership is unclear—ask before proceeding if they cannot be safely isolated.
 
 ## Engineering practices
 
