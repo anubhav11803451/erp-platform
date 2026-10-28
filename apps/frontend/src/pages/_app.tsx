@@ -1,37 +1,34 @@
 import { Fragment, useEffect, useRef } from 'react';
 import { Outlet } from 'react-router';
-import { useRefreshMutation } from '@/features/auth/auth-api-slice';
-import { Loader } from 'lucide-react';
 import { Toaster } from '@/components/ui/sonner';
+import { AuthLoading } from '@/features/auth/auth-loading';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { useRefreshMutation } from '@/features/auth/auth-api-slice';
+import { logOut, selectIsAuthLoading } from '@/features/auth/auth-slice';
+import { CSRF_TOKEN_COOKIE_NAME } from '@/lib/constants';
+import Cookies from 'js-cookie';
 
-/**
- * This is the root layout shell for the entire app.
- * Its primary job is to handle the "silent refresh" on page load.
- */
-function App() {
-    // We use a ref to prevent StrictMode from running the refresh twice.
+export default function App() {
     const refreshCalled = useRef(false);
-
-    const [refresh, { isLoading }] = useRefreshMutation();
+    const dispatch = useAppDispatch();
+    const isAuthLoading = useAppSelector(selectIsAuthLoading);
+    const [refresh] = useRefreshMutation();
 
     useEffect(() => {
-        // Only call refresh if the ref is false
         if (!refreshCalled.current) {
-            refreshCalled.current = true; // Set it to true immediately
-            refresh();
+            refreshCalled.current = true;
+            if (Cookies.get(CSRF_TOKEN_COOKIE_NAME)) {
+                void refresh();
+            } else {
+                dispatch(logOut());
+            }
         }
-    }, [refresh]);
+    }, [dispatch, refresh]);
 
-    if (isLoading) {
-        return (
-            <div className="flex h-screen w-screen items-center justify-center">
-                <Loader className="text-primary size-4 animate-spin" />
-            </div>
-        );
+    if (isAuthLoading) {
+        return <AuthLoading />;
     }
 
-    // Once loading is false, the auth state is either set or not.
-    // The (app)/_layout.tsx will handle redirecting to /login if not auth'd.
     return (
         <Fragment>
             <Outlet />
@@ -39,5 +36,3 @@ function App() {
         </Fragment>
     );
 }
-
-export default App;

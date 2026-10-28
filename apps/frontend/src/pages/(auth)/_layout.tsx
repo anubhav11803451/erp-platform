@@ -7,10 +7,7 @@ import { FlexItem } from '@/components/ui/flex-item';
 import { ModeToggle } from '@/components/themes/theme-toggle';
 
 /**
- * This is the shared layout for the (auth) group (e.g., /signin, /signup).
- * It provides:
- * 1. Auth Guard: Redirects logged-in users to the dashboard.
- * 2. Visual Layout: A full-screen, centered container for the auth forms.
+ * Shared layout for Platform Owner authentication pages.
  */
 const AuthLayout = () => {
     const { isAuthenticated, isAuthLoading } = useAuth();
@@ -24,12 +21,9 @@ const AuthLayout = () => {
     }
 
     if (isAuthenticated) {
-        // User is logged in, redirect them to the app's home page
-        return <Navigate to="/" replace />;
+        return <Navigate to="/owner" replace />;
     }
 
-    // User is not logged in, show the auth page (login, register, etc.)
-    // This <Outlet> will render the signin, signup, or forgot-password page.
     return (
         <Container id="auth-protected-layout" fullScreen>
             <Flex

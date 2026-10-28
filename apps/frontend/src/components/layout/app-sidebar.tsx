@@ -1,6 +1,5 @@
-import { Link } from 'react-router';
-import { LogOut } from 'lucide-react';
-import { DashboardSidebarMenu, SidebarNav } from './app-sidebar-nav';
+import { Link, useLocation } from 'react-router';
+import { LayoutDashboard, LogOut } from 'lucide-react';
 
 import {
     Sidebar,
@@ -16,6 +15,7 @@ import {
     SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
+import { cn } from '@/lib/utils';
 import Brand from '../shared/brand';
 import { Typography } from '../ui/typography';
 
@@ -24,12 +24,14 @@ import { Typography } from '../ui/typography';
  */
 export function AppSidebar() {
     const { handleLogout } = useAuth();
+    const { pathname } = useLocation();
+
     return (
         // Use the shadcn Sidebar component
         <Sidebar variant="inset" collapsible="icon" className="hidden h-full md:visible">
             <SidebarHeader>
                 <SidebarMenu>
-                    <Link to="/">
+                    <Link to="/owner">
                         <SidebarMenuItem>
                             <SidebarMenuButton size="lg">
                                 <Brand className="mr-0 aspect-square size-8 rounded-lg [&>span]:hidden [&>svg]:mr-0" />
@@ -43,17 +45,23 @@ export function AppSidebar() {
             </SidebarHeader>
             {/* --- Content --- */}
             <SidebarContent>
-                {/* --- Main Navigation (from shared component) --- */}
-                <SidebarGroup className="mt-6">
-                    <SidebarGroupContent>
-                        <DashboardSidebarMenu />
-                    </SidebarGroupContent>
-                </SidebarGroup>
-
                 <SidebarGroup>
-                    <SidebarGroupLabel>Menu</SidebarGroupLabel>
+                    <SidebarGroupLabel>Platform</SidebarGroupLabel>
                     <SidebarGroupContent>
-                        <SidebarNav />
+                        <SidebarMenu>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    asChild
+                                    variant={pathname.startsWith('/owner') ? 'outline' : 'default'}
+                                    className={cn('w-full justify-start')}
+                                >
+                                    <Link to="/owner">
+                                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                                        <span>Platform workspace</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>

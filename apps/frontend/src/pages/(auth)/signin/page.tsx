@@ -7,17 +7,21 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Link } from 'react-router';
-import { SignInForm } from '@/features/auth/sigin-in-form';
+import { SignInForm } from '@/features/auth/sign-in-form';
 
 export default function SignInPage() {
     return (
-        <Card className="w-full max-w-md">
-            <CardHeader className="space-y-1 text-center">
-                <CardTitle className="text-2xl">Sign In</CardTitle>
-                <CardDescription>Enter your credentials to access your account</CardDescription>
+        <Card className="w-full max-w-md shadow-sm">
+            <CardHeader className="space-y-2 text-center">
+                <p className="text-primary text-xs font-semibold tracking-[0.16em] uppercase">
+                    ERP360 Platform
+                </p>
+                <CardTitle className="text-2xl">Platform Owner sign in</CardTitle>
+                <CardDescription>
+                    Sign in to manage institution onboarding and your platform workspace.
+                </CardDescription>
             </CardHeader>
             <CardContent>
-                {/* Sign In Form */}
                 <SignInForm />
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">

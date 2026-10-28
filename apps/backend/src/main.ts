@@ -58,7 +58,7 @@ async function bootstrap() {
         deepScanRoutes: true,
     };
     const document = SwaggerModule.createDocument(app, config, options);
-    SwaggerModule.setup('api', app, cleanupOpenApiDoc(document));
+    SwaggerModule.setup('/v1/api/docs', app, cleanupOpenApiDoc(document));
 
     await app.listen(process.env.BACKEND_PORT ?? 3000);
     console.log(

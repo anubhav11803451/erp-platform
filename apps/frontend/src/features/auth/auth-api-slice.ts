@@ -1,48 +1,43 @@
 import { apiSlice } from '@/api/api-slice';
 import type {
-    AuthResponse,
-    ForgotPasswordPayload,
-    SignInPayload,
-    SignUpPayload,
+    PlatformOwnerLogoutResponse,
+    PlatformOwnerSignInPayload,
+    PlatformOwnerSignInResponse,
 } from '@erp/shared';
 import { logOut, setCredentials } from './auth-slice';
 
 const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        login: builder.mutation<AuthResponse, SignInPayload>({
+        login: builder.mutation<PlatformOwnerSignInResponse, PlatformOwnerSignInPayload>({
             query: (credentials) => ({
                 url: '/auth/login',
                 method: 'POST',
-                body: { ...credentials },
+                body: credentials,
             }),
             onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
                 try {
                     const { data } = await queryFulfilled;
                     dispatch(setCredentials(data));
-                } catch (_err) {
-                    // Handle login error
+                } catch (_error) {
+                    // The sign-in form renders the request error inline.
                 }
             },
         }),
-        refresh: builder.mutation<AuthResponse, void>({
+        refresh: builder.mutation<PlatformOwnerSignInResponse, void>({
             query: () => ({
                 url: '/auth/refresh',
-                method: 'GET',
+                method: 'POST',
             }),
-            // We must add this block to save the new tokens to state
             onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
                 try {
                     const { data } = await queryFulfilled;
-                    // Dispatch setCredentials to save the new user/tokens
                     dispatch(setCredentials(data));
-                } catch (_err) {
-                    // Refresh failed (e.g., cookie was invalid), do nothing
-                    // The baseQueryWithReauth will dispatch logOut()
+                } catch (_error) {
+                    dispatch(logOut());
                 }
             },
         }),
-
-        logout: builder.mutation<{ message: string }, void>({
+        logout: builder.mutation<PlatformOwnerLogoutResponse, void>({
             query: () => ({
                 url: '/auth/logout',
                 method: 'POST',
@@ -50,38 +45,12 @@ const authApiSlice = apiSlice.injectEndpoints({
             onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
                 try {
                     await queryFulfilled;
-                    // On logout success, clear the state
-                    dispatch(logOut());
-                } catch (_err) {
-                    // logout failed, but we clear the state
+                } catch (_error) {
+                    // Clear local credentials even if the server session has already expired.
+                } finally {
                     dispatch(logOut());
                 }
             },
-        }),
-
-        register: builder.mutation<AuthResponse, SignUpPayload>({
-            query: (body) => ({
-                url: '/auth/register', // You will need to build this endpoint
-                method: 'POST',
-                body,
-            }),
-            onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
-                try {
-                    const { data } = await queryFulfilled;
-                    dispatch(setCredentials(data)); // Log user in immediately
-                } catch (_err) {
-                    // Handle error in component
-                }
-            },
-        }),
-
-        // --- NEW MUTATION ---
-        forgotPassword: builder.mutation<{ message: string }, ForgotPasswordPayload>({
-            query: (body) => ({
-                url: '/auth/forgot-password', // You will need to build this endpoint
-                method: 'POST',
-                body,
-            }),
         }),
     }),
 });

@@ -1,113 +1,123 @@
-import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { PassportModule } from '@nestjs/passport';
-import { User, UserRole } from '@erp/db/client';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import type { Response } from 'express';
 import * as bcrypt from 'bcrypt';
-import request from 'supertest';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { LocalAuthGuard } from '../common/guards/local-auth.guard';
-import { LocalStrategy } from './strategies/local.strategy';
-import { UsersService } from '../domains/users/users.service';
+import { createHash } from 'node:crypto';
 import { PrismaService } from '../core/prisma.service';
-import { UtilsService } from '../utils/utils.service';
+import { AuthService } from './auth.service';
 
-describe('AuthService credential validation', () => {
-    let authService: AuthService;
-    let usersService: Pick<jest.Mocked<UsersService>, 'findByEmail'>;
-    let user: User;
-    let module: TestingModule;
+describe('AuthService', () => {
+    const account = {
+        id: 'owner-account-id',
+        email: 'owner@example.test',
+        password_hash: '',
+        owner_grant: { account_id: 'owner-account-id' },
+    };
+    let service: AuthService;
+    let prisma: {
+        account: { findUnique: jest.Mock };
+        platformOwnerGrant: { findUnique: jest.Mock };
+        session: { create: jest.Mock; findUnique: jest.Mock; updateMany: jest.Mock };
+        $transaction: jest.Mock;
+    };
+    let jwtService: { signAsync: jest.Mock };
+    let response: {
+        cookie: jest.Mock;
+        clearCookie: jest.Mock;
+    };
 
-    beforeAll(async () => {
-        user = {
-            id: 'user-1',
-            email: 'staff@example.com',
-            first_name: 'Staff',
-            last_name: 'Member',
-            password: await bcrypt.hash('correct-password', 4),
-            role: UserRole.STAFF,
-            created_at: new Date(),
-            updated_at: new Date(),
-        };
-    });
     beforeEach(async () => {
-        usersService = { findByEmail: jest.fn().mockResolvedValue(user) };
-
-        module = await Test.createTestingModule({
-            providers: [
-                AuthService,
-                { provide: UsersService, useValue: usersService },
-                { provide: JwtService, useValue: {} },
-                { provide: PrismaService, useValue: {} },
-                { provide: ConfigService, useValue: { get: jest.fn() } },
-                UtilsService,
-            ],
-        }).compile();
-
-        authService = module.get<AuthService>(AuthService);
+        account.password_hash = await bcrypt.hash('correct-password', 4);
+        prisma = {
+            account: { findUnique: jest.fn() },
+            platformOwnerGrant: { findUnique: jest.fn() },
+            session: {
+                create: jest.fn(),
+                findUnique: jest.fn(),
+                updateMany: jest.fn(),
+            },
+            $transaction: jest.fn((callback: (transaction: typeof prisma) => unknown) =>
+                callback(prisma),
+            ),
+        };
+        jwtService = { signAsync: jest.fn().mockResolvedValue('signed-access-token') };
+        response = { cookie: jest.fn(), clearCookie: jest.fn() };
+        service = new AuthService(
+            prisma as unknown as PrismaService,
+            jwtService as unknown as JwtService,
+            { get: jest.fn().mockReturnValue(undefined) } as unknown as ConfigService,
+        );
     });
 
-    afterEach(async () => {
-        await module.close();
-    });
-
-    it('rejects an incorrect password', async () => {
-        const getUserResponse = jest.spyOn(module.get(UtilsService), 'getUserResponse');
+    it('rejects correct credentials when the account has no active Owner grant', async () => {
+        prisma.account.findUnique.mockResolvedValue({ ...account, owner_grant: null });
 
         await expect(
-            authService.validateUser(user.email, 'incorrect-password'),
-        ).resolves.toBeNull();
-        expect(getUserResponse).not.toHaveBeenCalled();
+            service.signIn(
+                { email: account.email, password: 'correct-password' },
+                response as unknown as Response,
+            ),
+        ).rejects.toThrow('Invalid credentials');
+
+        expect(prisma.$transaction).not.toHaveBeenCalled();
+        expect(response.cookie).not.toHaveBeenCalled();
     });
 
-    it('returns the user response when the password matches', async () => {
-        const result = await authService.validateUser(user.email, 'correct-password');
+    it('creates a session with only a refresh-token hash for an active Owner', async () => {
+        prisma.account.findUnique.mockResolvedValue(account);
+        prisma.platformOwnerGrant.findUnique.mockResolvedValue({
+            account_id: account.id,
+        });
 
-        expect(result).toEqual(
+        const result = await service.signIn(
+            { email: account.email, password: 'correct-password' },
+            response as unknown as Response,
+        );
+
+        expect(result).toEqual({
+            access_token: 'signed-access-token',
+            csrf_token: expect.any(String),
+            account: { id: account.id, email: account.email },
+        });
+        expect(result).not.toHaveProperty('password_hash');
+
+        const createdSession = prisma.session.create.mock.calls[0][0].data;
+        const refreshCookie = response.cookie.mock.calls.find(
+            ([name]) => name === 'erp360_rtk',
+        )?.[1] as string;
+        expect(createdSession.account_id).toBe(account.id);
+        expect(createdSession.refresh_token_hash).toBe(
+            createHash('sha256').update(refreshCookie).digest('hex'),
+        );
+        expect(createdSession.refresh_token_hash).not.toBe(refreshCookie);
+        expect(response.cookie).toHaveBeenCalledWith(
+            'erp360_rtk',
+            refreshCookie,
             expect.objectContaining({
-                id: user.id,
-                email: user.email,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                role: user.role,
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/v1/api/auth',
             }),
         );
-        expect(result).not.toHaveProperty('password');
     });
 
-    it('does not issue tokens or cookies when the password is incorrect', async () => {
-        const authServiceMock = {
-            validateUser: jest.fn().mockResolvedValue(null),
-            login: jest.fn(),
-        };
-        const strategyModule = await Test.createTestingModule({
-            imports: [PassportModule.register({ defaultStrategy: 'local' })],
-            controllers: [AuthController],
-            providers: [
-                LocalStrategy,
-                LocalAuthGuard,
-                { provide: ConfigService, useValue: { get: jest.fn() } },
-                {
-                    provide: AuthService,
-                    useValue: authServiceMock,
-                },
-            ],
-        }).compile();
-        const app: INestApplication = strategyModule.createNestApplication();
-        await app.init();
+    it('does not rotate a revoked session', async () => {
+        prisma.session.findUnique.mockResolvedValue({
+            id: 'old-session-id',
+            account_id: account.id,
+            refresh_token_hash: 'stored-hash',
+            created_at: new Date(),
+            expires_at: new Date(Date.now() + 60_000),
+            revoked_at: new Date(),
+            account: { ...account, owner_grant: account.owner_grant },
+        });
 
-        try {
-            const response = await request(app.getHttpServer())
-                .post('/auth/login')
-                .send({ email: user.email, password: 'incorrect-password' });
+        await expect(
+            service.refresh('old-refresh-token', response as unknown as Response),
+        ).rejects.toThrow('Invalid or expired session');
 
-            expect(response.status).toBe(401);
-            expect(authServiceMock.login).not.toHaveBeenCalled();
-            expect(response.headers['set-cookie']).toBeUndefined();
-        } finally {
-            await app.close();
-        }
+        expect(prisma.session.updateMany).not.toHaveBeenCalled();
+        expect(prisma.session.create).not.toHaveBeenCalled();
+        expect(response.clearCookie).toHaveBeenCalledTimes(2);
     });
 });

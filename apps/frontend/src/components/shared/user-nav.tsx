@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import { LayoutDashboard, LogOut, User2Icon } from 'lucide-react';
+import { LayoutDashboard, LogOut } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -26,11 +26,6 @@ export function UserNav() {
 
     const user = authUser;
 
-    // Helper to get initials from name
-    const getInitials = (firstName: string, lastName: string) => {
-        return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
-    };
-
     if (!isAuthenticated || !user) {
         return <GuestNav />; // Should not happen on protected routes, but good practice
     }
@@ -44,34 +39,24 @@ export function UserNav() {
                             <AvatarImage
                                 // src={user?.avatarUrl || ''}
                                 src="https://github.com/shadcn.png"
-                                alt={user?.first_name || 'User'}
+                                alt={user.email}
                             />
-                            <AvatarFallback>
-                                {user ? getInitials(user.first_name, user.last_name) : 'U'}
-                            </AvatarFallback>
+                            <AvatarFallback>{user.email.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
                         <Flex direction="column" className="space-y-1">
-                            <Typography variant="small">
-                                {user?.first_name} {user?.last_name}
-                            </Typography>
-                            <Typography variant="tiny">{user?.email}</Typography>
+                            <Typography variant="small">Platform Owner</Typography>
+                            <Typography variant="tiny">{user.email}</Typography>
                         </Flex>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                        <Link to="/dashboard">
+                        <Link to="/owner">
                             <LayoutDashboard className="mr-2 h-4 w-4" />
-                            <span>Dashboard</span>
-                        </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <Link to="/account">
-                            <User2Icon className="mr-2 h-4 w-4" />
-                            <span>Account</span>
+                            <span>Platform workspace</span>
                         </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

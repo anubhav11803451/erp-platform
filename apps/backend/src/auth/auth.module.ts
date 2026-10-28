@@ -1,28 +1,28 @@
 import { Module } from '@nestjs/common';
-import { UsersModule } from '../domains/users/users.module';
-import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthService } from './auth.service';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { CoreModule } from '../core/core.module';
 import { AuthController } from './auth.controller';
-import { LocalStrategy } from './strategies/local.strategy';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { AuthService } from './auth.service';
+import { PlatformOwnerJwtAuthGuard } from './guards/platform-owner-jwt-auth.guard';
+import { PlatformOwnerJwtStrategy } from './strategies/platform-owner-jwt.strategy';
 
 @Module({
     imports: [
-        UsersModule,
-        PassportModule,
-        ConfigModule, // Ensure ConfigModule is imported
+        CoreModule,
+        ThrottlerModule.forRoot([{ limit: 5, ttl: 60_000 }]),
+        PassportModule.register({ defaultStrategy: 'platform-owner-jwt' }),
         JwtModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET'),
-                signOptions: { expiresIn: '1h' }, // Token expires in 1 hour
+                secret: configService.getOrThrow<string>('JWT_SECRET'),
             }),
         }),
     ],
     controllers: [AuthController],
-    providers: [AuthService, LocalStrategy, JwtStrategy],
+    providers: [AuthService, PlatformOwnerJwtStrategy, PlatformOwnerJwtAuthGuard],
 })
 export class AuthModule {}

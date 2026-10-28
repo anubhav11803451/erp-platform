@@ -26,36 +26,12 @@ export const routes = [{
       },
       children: [
 {
-        path: 'signup',
-        children: [
-{
-          path: '',
-          lazy: async () => {
-            const m = await import('./pages/(auth)/signup/page.tsx');
-            return { Component: m.default, ...m };
-          },
-        }
-        ],
-      },
-{
         path: 'signin',
         children: [
 {
           path: '',
           lazy: async () => {
             const m = await import('./pages/(auth)/signin/page.tsx');
-            return { Component: m.default, ...m };
-          },
-        }
-        ],
-      },
-{
-        path: 'forgot-password',
-        children: [
-{
-          path: '',
-          lazy: async () => {
-            const m = await import('./pages/(auth)/forgot-password/page.tsx');
             return { Component: m.default, ...m };
           },
         }
@@ -70,74 +46,12 @@ export const routes = [{
       },
       children: [
 {
-        path: 'users',
+        path: 'owner',
         children: [
 {
           path: '',
           lazy: async () => {
-            const m = await import('./pages/(app)/users/page.tsx');
-            return { Component: m.default, ...m };
-          },
-        }
-        ],
-      },
-{
-        path: 'students',
-        children: [
-{
-          path: '',
-          lazy: async () => {
-            const m = await import('./pages/(app)/students/page.tsx');
-            return { Component: m.default, ...m };
-          },
-        },
-{
-          path: ':id',
-          lazy: async () => {
-            const m = await import('./pages/(app)/students/[id].tsx');
-            return { Component: m.default, ...m };
-          },
-        }
-        ],
-      },
-{
-        path: 'dashboard',
-        children: [
-{
-          path: '',
-          lazy: async () => {
-            const m = await import('./pages/(app)/dashboard/page.tsx');
-            return { Component: m.default, ...m };
-          },
-        }
-        ],
-      },
-{
-        path: 'batches',
-        children: [
-{
-          path: '',
-          lazy: async () => {
-            const m = await import('./pages/(app)/batches/page.tsx');
-            return { Component: m.default, ...m };
-          },
-        },
-{
-          path: ':id',
-          lazy: async () => {
-            const m = await import('./pages/(app)/batches/[id].tsx');
-            return { Component: m.default, ...m };
-          },
-        }
-        ],
-      },
-{
-        path: 'attendance',
-        children: [
-{
-          path: '',
-          lazy: async () => {
-            const m = await import('./pages/(app)/attendance/page.tsx');
+            const m = await import('./pages/(app)/owner/page.tsx');
             return { Component: m.default, ...m };
           },
         }
