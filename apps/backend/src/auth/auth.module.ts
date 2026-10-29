@@ -6,8 +6,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { CoreModule } from '../core/core.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { PlatformOwnerJwtAuthGuard } from './guards/platform-owner-jwt-auth.guard';
-import { PlatformOwnerJwtStrategy } from './strategies/platform-owner-jwt.strategy';
+import { PlatformOwnerJwtAuthGuard } from '../common/guards/platform-owner-jwt-auth.guard';
+import { PlatformOwnerJwtStrategy } from '../common/strategies/platform-owner-jwt.strategy';
 
 @Module({
     imports: [
@@ -24,5 +24,6 @@ import { PlatformOwnerJwtStrategy } from './strategies/platform-owner-jwt.strate
     ],
     controllers: [AuthController],
     providers: [AuthService, PlatformOwnerJwtStrategy, PlatformOwnerJwtAuthGuard],
+    exports: [PlatformOwnerJwtAuthGuard],
 })
 export class AuthModule {}

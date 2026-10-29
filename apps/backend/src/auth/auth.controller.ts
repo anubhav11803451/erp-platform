@@ -14,14 +14,16 @@ import { ConfigService } from '@nestjs/config';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { timingSafeEqual } from 'node:crypto';
-import type {
-    PlatformOwnerAccountResponse,
-    PlatformOwnerLogoutResponse,
-    PlatformOwnerSignInResponse,
-} from '@erp/shared';
+import type { PlatformOwnerAccountResponse } from '@erp/shared';
+import { ZodResponse } from 'nestjs-zod';
 import { AuthService } from './auth.service';
-import { PlatformOwnerSignInDto } from './dto/platform-owner-sign-in.dto';
-import { PlatformOwnerJwtAuthGuard } from './guards/platform-owner-jwt-auth.guard';
+import {
+    PlatformOwnerAccountResponseDto,
+    PlatformOwnerLogoutResponseDto,
+    PlatformOwnerSignInDto,
+    PlatformOwnerSignInResponseDto,
+} from './dto/auth-controller.dto';
+import { PlatformOwnerJwtAuthGuard } from '../common/guards/platform-owner-jwt-auth.guard';
 
 type AuthenticatedRequest = Request & {
     user: PlatformOwnerAccountResponse;
@@ -45,19 +47,24 @@ export class AuthController {
     @Post('login')
     @HttpCode(HttpStatus.OK)
     @UseGuards(ThrottlerGuard)
+    @ZodResponse({
+        status: HttpStatus.OK,
+        type: PlatformOwnerSignInResponseDto,
+    })
     signIn(
         @Body() payload: PlatformOwnerSignInDto,
         @Res({ passthrough: true }) response: Response,
-    ): Promise<PlatformOwnerSignInResponse> {
+    ) {
         return this.authService.signIn(payload, response);
     }
 
     @Post('refresh')
     @HttpCode(HttpStatus.OK)
-    refresh(
-        @Req() request: Request,
-        @Res({ passthrough: true }) response: Response,
-    ): Promise<PlatformOwnerSignInResponse> {
+    @ZodResponse({
+        status: HttpStatus.OK,
+        type: PlatformOwnerSignInResponseDto,
+    })
+    refresh(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
         this.assertCsrf(request);
         const refreshToken = request.cookies?.[this.refreshTokenCookieName] as string | undefined;
         return this.authService.refresh(refreshToken ?? '', response);
@@ -65,10 +72,11 @@ export class AuthController {
 
     @Post('logout')
     @HttpCode(HttpStatus.OK)
-    logout(
-        @Req() request: Request,
-        @Res({ passthrough: true }) response: Response,
-    ): Promise<PlatformOwnerLogoutResponse> {
+    @ZodResponse({
+        status: HttpStatus.OK,
+        type: PlatformOwnerLogoutResponseDto,
+    })
+    logout(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
         this.assertCsrf(request);
         const refreshToken = request.cookies?.[this.refreshTokenCookieName] as string | undefined;
         return this.authService.logout(refreshToken, response);
@@ -76,7 +84,11 @@ export class AuthController {
 
     @Get('me')
     @UseGuards(PlatformOwnerJwtAuthGuard)
-    me(@Req() request: AuthenticatedRequest): PlatformOwnerAccountResponse {
+    @ZodResponse({
+        status: HttpStatus.OK,
+        type: PlatformOwnerAccountResponseDto,
+    })
+    me(@Req() request: AuthenticatedRequest) {
         return request.user;
     }
 

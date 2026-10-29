@@ -4,7 +4,8 @@ import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { CoreModule } from './core/core.module';
 import { AuthModule } from './auth/auth.module';
-import { HealthController } from './health.controller';
+import { HealthController } from './health/health.controller';
+import { OwnerModule } from './owner/owner.module';
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { HealthController } from './health.controller';
         }),
         CoreModule,
         AuthModule,
+        OwnerModule,
     ],
     controllers: [HealthController],
     providers: [

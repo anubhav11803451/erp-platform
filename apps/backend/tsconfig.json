@@ -1,5 +1,6 @@
 {
     "extends": "../../tsconfig/backend.tsconfig.json",
+    "exclude": ["legacy-reference"],
     "compilerOptions": {
         "outDir": "./dist"
     }

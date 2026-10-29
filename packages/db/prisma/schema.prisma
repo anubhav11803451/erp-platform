@@ -36,3 +36,22 @@ model Session {
   @@index([account_id])
   @@index([expires_at])
 }
+
+model LegalEntity {
+  id           String        @id @default(uuid())
+  name         String
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  institutions Institution[]
+}
+
+model Institution {
+  id              String      @id @default(uuid())
+  legal_entity_id String
+  name            String
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+  legal_entity    LegalEntity @relation(fields: [legal_entity_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([legal_entity_id], type: BTree)
+}
