@@ -59,8 +59,8 @@ describe('AccountSessionJwtStrategy', () => {
             prisma as unknown as PrismaService,
         );
 
-        await expect(
-            strategy.validate({ sub: 'account-id', sid: 'session-id' }),
-        ).rejects.toThrow(UnauthorizedException);
+        await expect(strategy.validate({ sub: 'account-id', sid: 'session-id' })).rejects.toThrow(
+            UnauthorizedException,
+        );
     });
 });
