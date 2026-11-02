@@ -70,8 +70,9 @@ export class AuthController {
         @Req() request: Request,
         @Res({ passthrough: true }) response: Response,
     ) {
+        this.assertExactOrigin(request);
+
         if (payload.intent === 'INVITATION') {
-            this.assertExactOrigin(request);
             this.assertDoubleSubmitCsrf(request, this.continuationCsrfCookieName);
             return this.invitationService
                 .signInExistingAccount(

@@ -96,6 +96,7 @@ describe('AuthController shared sign-in and session endpoints', () => {
         for (let attempt = 0; attempt < 5; attempt += 1) {
             const response = await request(app.getHttpServer())
                 .post('/auth/login')
+                .set('Origin', 'http://localhost:5173')
                 .send({
                     intent: 'WORKSPACE',
                     email: 'owner@example.test',
@@ -115,6 +116,7 @@ describe('AuthController shared sign-in and session endpoints', () => {
 
         await request(app.getHttpServer())
             .post('/auth/login')
+            .set('Origin', 'http://localhost:5173')
             .send({
                 intent: 'WORKSPACE',
                 email: 'owner@example.test',
@@ -147,6 +149,35 @@ describe('AuthController shared sign-in and session endpoints', () => {
             })
             .expect(403);
         expect(invitationService.signInExistingAccount).not.toHaveBeenCalled();
+    });
+
+    it('rejects workspace login when Origin is absent before calling the auth service', async () => {
+        const response = await request(app.getHttpServer())
+            .post('/auth/login')
+            .send({
+                intent: 'WORKSPACE',
+                email: 'owner@example.test',
+                password: 'valid-password',
+            })
+            .expect(403);
+
+        expect(response.headers['set-cookie']).toBeUndefined();
+        expect(authService.signInWorkspace).not.toHaveBeenCalled();
+    });
+
+    it('rejects workspace login with an untrusted Origin before calling the auth service', async () => {
+        const response = await request(app.getHttpServer())
+            .post('/auth/login')
+            .set('Origin', 'https://unexpected.example')
+            .send({
+                intent: 'WORKSPACE',
+                email: 'owner@example.test',
+                password: 'valid-password',
+            })
+            .expect(403);
+
+        expect(response.headers['set-cookie']).toBeUndefined();
+        expect(authService.signInWorkspace).not.toHaveBeenCalled();
     });
 
     it('returns only the safe continuation context and never falls back to workspace login', async () => {
@@ -184,9 +215,10 @@ describe('AuthController shared sign-in and session endpoints', () => {
         expect(authService.signInWorkspace).not.toHaveBeenCalled();
     });
 
-    it('keeps workspace intent independent from any invitation cookies', async () => {
+    it('accepts exact-Origin workspace login independently from invitation cookies', async () => {
         await request(app.getHttpServer())
             .post('/auth/login')
+            .set('Origin', 'http://localhost:5173')
             .set('Cookie', 'erp360_iac=stale-continuation; erp360_iac_ctk=stale-csrf')
             .send({
                 intent: 'WORKSPACE',
