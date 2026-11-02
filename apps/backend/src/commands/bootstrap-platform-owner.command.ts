@@ -43,7 +43,10 @@ async function bootstrapPlatformOwner(): Promise<void> {
                     },
                 });
             },
-            { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+            {
+                isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+                maxWait: 15_000,
+            },
         );
 
         console.info('Initial Platform Owner created.');
@@ -54,9 +57,10 @@ async function bootstrapPlatformOwner(): Promise<void> {
 }
 
 if (require.main === module) {
-    void bootstrapPlatformOwner().catch(() => {
+    void bootstrapPlatformOwner().catch((e) => {
         console.error(
             'Platform Owner bootstrap failed. Check the supplied environment and empty-database precondition.',
+            e,
         );
         process.exitCode = 1;
     });
