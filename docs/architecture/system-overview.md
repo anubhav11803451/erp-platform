@@ -1,91 +1,90 @@
 # System overview
 
-**Last reviewed:** 2026-10-29<br>
-**Repository state:** `feature/institution-onboarding-foundation`, local HEAD `68584c1`<br>
-**Scope:** tracked frontend/backend source, workspace manifests, active Prisma schema/migration, and shared
-contracts. Generated output, dependencies, and reusable `src/components/ui` primitives are excluded.
-Legacy-reference source is counted as retained source, not as active application capability.
+**Last reviewed:** 2026-11-02<br>
+**Repository state:** `review/delivered-feature-portfolio`, HEAD `ac672771194f7c96892ba73ff56d4b1ba8ad684d` (merge commit for PR #8; `dev` and `origin/dev` pointed to this commit during review). Worktree was clean before this documentation update.<br>
+**Scope:** active tracked frontend/backend source, workspace manifests/configuration, active Prisma schema and tracked migrations, shared-contract source/barrels, tests, and documented integration/deployment boundaries. No build, test, or database command was run for this review. Generated output, dependencies, and reusable UI primitives are excluded from business-feature counts.
 
 ## Runtime and package map
 
 ```mermaid
 flowchart LR
     Browser[React/Vite browser app]
-    Shared[packages/shared<br/>Zod contracts and response types]
+    Shared[packages/shared<br/>Zod schemas and inferred types]
     API[NestJS API<br/>/v1/api]
-    DBPkg[packages/db<br/>Prisma client and schema]
-    Generator[packages/prisma-zod-v4]
+    DBPkg[packages/db<br/>Prisma schema/client]
+    Generator[packages/prisma-zod-v4<br/>not selected by active schema]
     Postgres[(PostgreSQL)]
 
-    Browser -->|RTK Query| API
-    Browser -. typed contracts .-> Shared
+    Browser -->|RTK Query and invitation fetch| API
+    Browser -. public contracts .-> Shared
     API --> Shared
     API --> DBPkg
     DBPkg --> Postgres
-    Generator -. separate package; not active generator .-> Shared
+    Generator -. separate, inactive generator .-> Shared
 ```
 
-| Workspace | Repository implementation | Evidence |
+| Workspace | Active implementation and boundary |
+| --- | --- |
+| `apps/frontend` | React/Vite SPA, file-derived routes, Redux/RTK Query, session state, and feature pages/components. Route source is `src/pages`; the three active feature directories are `auth` (cross-cutting), `owner`, and `institution-admin-invitation`. [`vite-plugin-file-routes.ts`](../../apps/frontend/vite-plugin-file-routes.ts) generates `src/router.generated.ts`; generated output is excluded from counts and was not edited. |
+| `apps/backend` | NestJS application. [`AppModule`](../../apps/backend/src/app.module.ts) imports `CoreModule`, `AuthModule`, and `OwnerModule`, and mounts `HealthController`. Active source has four controllers and 18 controller-declared handlers. |
+| `packages/db` | PostgreSQL Prisma schema, five tracked SQL migrations, Prisma client generation, and the PostgreSQL adapter used by [`PrismaService`](../../apps/backend/src/core/prisma.service.ts). |
+| `packages/shared` | Active public Zod contracts and inferred types. The root barrel exports four schema modules; other business-schema files remain source but are not part of the active root exports. |
+| `packages/prisma-zod-v4` | A separate generator implementation. The active Prisma schema selects `prisma-client`, not this generator; package presence does not indicate generated public contracts. |
+
+## Request, identity, and persistence flow
+
+- The frontend API base defaults to `http://localhost:3000/v1/api` and may be configured with `VITE_API_BASE_URL` ([`base-query.ts`](../../apps/frontend/src/api/base-query.ts)). RTK Query handles workspace auth and Owner directory/status calls; invitation continuation uses the active invitation client.
+- The backend bootstrap applies Helmet, cookie parsing, configured CORS, the Prisma exception filter, `/v1/api`, and Swagger at `/v1/api/docs` ([`main.ts`](../../apps/backend/src/main.ts)). Global Zod validation and response serialization are configured in [`AppModule`](../../apps/backend/src/app.module.ts).
+- CORS source contains `http://localhost:5173`, `https://erp-platform-frontend.vercel.app`, `https://erp-platform-frontend-anubhav11803451s-projects.vercel.app`, plus configured `CLIENT_URL` ([`main.ts`](../../apps/backend/src/main.ts)). Actual production origin/cookie topology is not established by this repository review. Auth and invitation routes additionally compare the request's exact Origin with configured `CLIENT_URL`.
+- [`PrismaService`](../../apps/backend/src/core/prisma.service.ts) connects through `@prisma/adapter-pg` and `DATABASE_URL`. The active schema contains eight identity/onboarding models. It has no Student, Guardian, Batch, Enrollment, Attendance, Payment, or operational education-data model.
+- One `/signin` UI and `POST /v1/api/auth/login` serve ordinary Platform Owner and approved Institution Admin sessions. The server derives identity from the Account identity, Owner grant, or Institution Admin membership. Invitation continuation uses an explicit login intent on the same endpoint and does not create a workspace session ([`AuthController`](../../apps/backend/src/auth/auth.controller.ts), [`AuthService`](../../apps/backend/src/auth/auth.service.ts), [`auth.ts`](../../packages/shared/src/schemas/auth.ts)).
+- Owner provisioning is an out-of-band [`bootstrap:owner` command](../../apps/backend/src/commands/bootstrap-platform-owner.command.ts), not public sign-up. It requires the Account table to be empty and creates the Account plus Owner grant transactionally.
+- A Platform Owner creates a coded LegalEntity, then separately creates an Institution and its addressed first-Admin invitation in one transaction ([`OwnerService`](../../apps/backend/src/owner/owner.service.ts)). The bearer is returned once in a URL fragment for manual sharing; active source has no invitation email delivery.
+- A claimant may use an existing eligible account or establish a new account through the addressed invitation. Claim records `PENDING_APPROVAL`, not membership. A separate Owner decision transaction grants the fixed Institution Admin identity and membership on approval. The claimant signs in separately; rejection/revocation/expiry do not grant membership. Source stores decision actor/time but not proof or details of the approved out-of-band identity check.
+- `InstitutionAdminMembership` and an `InstitutionAdminJwtAuthGuard` exist, but no active operational business controller consumes that guard or an institution-scoped operational query. The Institution page is an authenticated account/Institution overview, not an operational ERP workspace.
+- `AuthModule` starts an in-process continuation cleanup service that sweeps hourly after startup and deletes unconsumed expired/revoked continuations after a 24-hour retention delay. Consumed continuation rows are excluded by its query; longer-term retention/cleanup policy is not established here.
+
+## Active frontend journeys
+
+There are **9 tracked page/layout source files** under `apps/frontend/src/pages`, yielding **6 route paths**:
+
+| Path | Active source behavior |
+| --- | --- |
+| `/` | Static marketing page (`pages/page.tsx`); demo CTAs have no active demo-submission API. Marketing claims are not evidence of delivered integrations or AI functionality. |
+| `/signin` | Shared workspace sign-in (`pages/(auth)/signin/page.tsx`). Role-specific destination follows the backend-returned identity. Public registration is not exposed. |
+| `/owner` | Authenticated Platform Owner LegalEntity/Institution directory, Institution creation, first-Admin invitation, and claim review controls. |
+| `/institution` | Authenticated Institution Admin account/Institution summary only. |
+| `/invite/admin` | Invitation bearer exchange, existing/new-account claim, claim-status resumption, and outcome states. |
+| `*` | Not-found page. |
+
+The other three page-tree files are `_app.tsx` and the `(auth)` and `(app)` layouts. Parenthesized groups are layout-only route groups; route generation behavior is defined in [`vite-plugin-file-routes.ts`](../../apps/frontend/vite-plugin-file-routes.ts). The active `src/features` tree has **3 feature directories** (`auth`, `owner`, `institution-admin-invitation`) and 21 source files. `bug-report-form.tsx` is a standalone disconnected file, not a feature directory or routed capability. Reusable `src/components/ui` primitives are excluded.
+
+## Backend, legacy source, and coverage boundary
+
+The active Nest tree has **4 modules counting `AppModule`** (`AppModule`, `AuthModule`, `CoreModule`, `OwnerModule`), **4 controllers**, and **18 handlers**. [`api-catalog.md`](api-catalog.md) lists every active controller route with method and access behavior.
+
+`apps/backend/legacy-reference/` contains **43 retained files**, including eight old business controllers/modules for Batches, Guardians, Students, Users, Attendance, Dashboard, Enrollment, and Payments. `apps/frontend/legacy-reference/` contains **38 retained files**, including old business pages/features. They are excluded from active route/feature counts unless active imports or module wiring prove otherwise; current root `AppModule` does not import those legacy modules. The active tree's three feature directories are separate from these reference sources.
+
+Count reconciliation inspected `apps/frontend/src/pages`, `src/features`, route generation/configuration and active imports; active backend modules/controllers/handlers and guard/strategy wiring; the full active Prisma schema and migration directory; shared source modules and public barrels; package/test/config files; and tracked Vercel/environment examples. `node_modules`, `dist`, generated Prisma client output, generated router output, and reusable UI primitives were excluded from source/business counts. The detailed feature-by-feature status and evidence are in [`docs/product/feature-inventory.md`](../product/feature-inventory.md).
+
+## Integrations, deployment, tests, and unresolved facts
+
+- Active persistence uses PostgreSQL. Repository configuration references `DATABASE_URL`, `CLIENT_URL`, `JWT_SECRET`, `BACKEND_PORT`, and frontend `VITE_API_BASE_URL`; cookie names and SameSite behavior have environment configuration. [`.env.example`](../../.env.example) contains placeholders only.
+- [`apps/backend/vercel.json`](../../apps/backend/vercel.json) and [`apps/frontend/vercel.json`](../../apps/frontend/vercel.json) describe repository deployment build/rewrite configuration. They do not prove a deployment, its current source/version, environment, database, or release status.
+- No active source/client or workspace dependency for external identity, email delivery, payment processing, SIS/LMS, or webhook integration was found. The landing page's AI/integration copy is not evidence that such a service is connected.
+- Active backend test source has **12 unit `*.spec.ts` files / 50 `it`/`test` cases**. A separate PostgreSQL integration spec has **5 cases** and requires an explicitly acknowledged disposable database. `apps/backend/test/app.e2e-spec.ts` is commented out. The frontend declares no test script and has no test source in this scope. No tests were run for this review.
+- The feature-delivery record reports a clean five-migration replay and five passing PostgreSQL integration cases on a newly provisioned disposable database, plus a limited isolated browser acceptance on 2026-11-02. Those are prior reported verification results, not checks repeated here. This review did not inspect any live database or run the application.
+- Migration application to any shared or production database, runtime configuration, deployment state, production rate-limit topology, external/proxy logging, backups, monitoring, operator recovery, customer use, geography, and regulatory requirements remain unverified. The feature record reports a local database with a removed migration recorded in its ledger; that database was not inspected here.
+- Source implementation is merged at `ac67277` on the reviewed `dev` refs. Merge status does not establish deployment, release, feature enablement, or user validation.
+
+## Coverage summary
+
+| Area | Audited source scope | Reconciled count |
 | --- | --- | --- |
-| `apps/frontend` | React/Vite application, generated file routes, Redux Toolkit Query, auth/session state, and locally maintained UI components | [`main.tsx`](../../apps/frontend/src/main.tsx), [`vite.config.ts`](../../apps/frontend/vite.config.ts), [`vite-plugin-file-routes.ts`](../../apps/frontend/vite-plugin-file-routes.ts), [`api-slice.ts`](../../apps/frontend/src/api/api-slice.ts) |
-| `apps/backend` | NestJS application; active `AppModule` imports config, Core/Prisma, and Auth, and mounts the health controller | [`main.ts`](../../apps/backend/src/main.ts), [`AppModule`](../../apps/backend/src/app.module.ts), [`AuthModule`](../../apps/backend/src/auth/auth.module.ts), [`CoreModule`](../../apps/backend/src/core/core.module.ts) |
-| `packages/db` | PostgreSQL Prisma schema, one tracked baseline migration, and generated-client package scripts | [`schema.prisma`](../../packages/db/prisma/schema.prisma), [`migrations`](../../packages/db/prisma/migrations/), [`package.json`](../../packages/db/package.json) |
-| `packages/shared` | Public Zod sign-in schema, inferred sign-in payload, and Platform Owner auth response types; older business schema source files are not exported by the active schema barrel | [`index.ts`](../../packages/shared/src/index.ts), [`schemas.ts`](../../packages/shared/src/schemas.ts), [`schemas/auth.ts`](../../packages/shared/src/schemas/auth.ts), [`types/index.ts`](../../packages/shared/src/types/index.ts) |
-| `packages/prisma-zod-v4` | Separate custom generator package; no generator declaration in the active Prisma schema | [`src/index.ts`](../../packages/prisma-zod-v4/src/index.ts), [`schema.prisma`](../../packages/db/prisma/schema.prisma) |
-
-## Request and persistence flow
-
-- The frontend [RTK Query API slice](../../apps/frontend/src/api/api-slice.ts) uses the [base query](../../apps/frontend/src/api/base-query.ts), whose default API URL is `http://localhost:3000/v1/api` and may be overridden by `VITE_API_BASE_URL`.
-- The [backend bootstrap](../../apps/backend/src/main.ts) enables Helmet, cookie parsing, credentialed CORS, the Prisma exception filter, Swagger at `/v1/api/docs`, and the `/v1/api` global prefix. [`AppModule`](../../apps/backend/src/app.module.ts) installs global Zod validation and serialization.
-- [`PrismaService`](../../apps/backend/src/core/prisma.service.ts) connects through `@prisma/adapter-pg` and `DATABASE_URL`. The active Prisma schema has only Platform Owner identity/session tables; it has no Institution or LegalEntity model.
-- Platform Owner sign-in, refresh, logout, and current-account calls use the shared auth contract and active [`AuthController`](../../apps/backend/src/auth/auth.controller.ts). The JWT strategy checks the current persisted session and `PlatformOwnerGrant`; an active Owner grant is not an institution membership.
-- There are no active institution-scoped operational APIs, tenant memberships, or institution-data queries. No institution boundary can yet be exercised through the active application.
-
-## Frontend application surface
-
-The tracked `src/pages` tree contains **7 page/layout files** and generates four route paths:
-
-| Route | Current source behavior |
-| --- | --- |
-| `/` | Static marketing landing page (`pages/page.tsx`); no demo-lead API workflow was found. |
-| `/signin` | Platform Owner sign-in (`pages/(auth)/signin/page.tsx`). |
-| `/owner` | Protected Platform Owner workspace with an institution-setup placeholder (`pages/(app)/owner/page.tsx`). |
-| `*` | Not-found page (`pages/404.tsx`). |
-
-The other three files are `_app.tsx` and the `(auth)` and `(app)` layout files. The [route generator](../../apps/frontend/vite-plugin-file-routes.ts) omits parenthesized groups from public paths and maps `404.tsx` to `*`; generated `router.generated.ts` is not counted as source.
-
-There are **8 tracked, nonempty feature directories**: `auth` plus seven legacy business directories (`attendance`, `batches`, `dashboard`, `enrollment`, `payments`, `students`, `users`). Only the auth feature is connected to active routes and active auth APIs. The seven business directories retain UI source, but their former pages and API implementations are in `apps/frontend/legacy-reference/` and `apps/backend/legacy-reference/`; they are not current tenant-safe capabilities. `bug-report-form.tsx` is a standalone source file, not a feature directory, and is not connected to a page/API. Reusable UI primitives are excluded from the business-feature count.
-
-## Backend routes, modules, and build boundary
-
-The active Nest application has **2 controllers, 5 route handlers, and 2 non-root modules plus `AppModule`**. The routes, prefix, and access controls are listed in the [API catalog](api-catalog.md). Active modules are `AuthModule` and `CoreModule`; `AppModule` also mounts `HealthController`. No legacy business controller/module is imported by `AppModule`.
-
-The configured Nest source root is `src`, but the build configuration has a mismatch that needs resolution: [`nest-cli.json`](../../apps/backend/nest-cli.json) explicitly selects `tsconfig.json`, while [`tsconfig.build.json`](../../apps/backend/tsconfig.build.json) is the file that excludes `legacy-reference`, specs, and test files. A read-only `tsc --project tsconfig.json --listFilesOnly` check included legacy-reference TypeScript, active specs, and `test/app.e2e-spec.ts`. The frontend has a similar coverage distinction: [`tsconfig.app.json`](../../apps/frontend/tsconfig.app.json) includes `src`, and a read-only `tsc --project tsconfig.app.json --listFilesOnly` check listed retained legacy business feature files as well as active imports. Vite's runtime bundle follows the active import graph, but the selected TypeScript project does not limit its file list to that graph.
-
-The user subsequently reported that `pnpm --filter @erp/backend run build-local` passed; `pnpm dev` returned HTTP 200 for backend health and Owner login; and `pnpm --filter @erp/frontend exec vite build` passed. This is evidence of successful backend build/runtime routes and frontend bundling as reported, but does **not** show that legacy TypeScript inputs were excluded. The full frontend build/typecheck was not run in that verification. No build was run by this architecture refresh; do not treat successful bundling/runtime checks as proof of the desired TypeScript boundary.
-
-## Persistence and shared-contract boundary
-
-The active Prisma schema has **3 models, 0 enums, and 2 explicit `@relation` fields**; one SQL migration is tracked. See the [data-model catalog](data-model.md). Shared source contains 9 schema modules, but the public schema barrel exports only the auth schema; the shared type barrel defines 3 Platform Owner response interfaces. Legacy business schemas and enum re-exports remain in source but are not part of the active root `@erp/shared` exports. Generated Prisma output and `dist` are excluded from counts and were not edited.
-
-## Integration, deployment, tests, and current constraints
-
-- Active auth is local email/password, JWT access tokens, and refresh-token/CSRF cookies. No external identity provider or email-delivery client is evidenced in active source/manifests.
-- No institution/LegalEntity create API, invitation-delivery service, payment-provider client, or external SIS/LMS integration is evidenced in the active route tree or backend modules. A `Stripe` value in old/legacy code does not establish a provider integration.
-- Vercel configuration files are tracked for both apps (`apps/backend/vercel.json`, `apps/frontend/vercel.json`). They establish repository configuration only; deployment status/version, runtime environment, migration state, backups, observability, and production controls were not inspected.
-- Three active backend Jest spec files contain five test cases; `apps/backend/test/app.e2e-spec.ts` is commented out. The frontend package has no test script. Tests were not run during this refresh.
-- The approved product direction is a shared schema, one institution per account, Platform Owner access separate from institution membership, and LegalEntity as grouping metadata rather than an authorization boundary. The Data Contracts Engineer's model-specific 1:N Institution/LegalEntity proposal is now integrated in the [data-model gate](data-model.md); explicit user approval remains pending.
-- The current source has no `Institution`, `LegalEntity`, tenant membership, or invitation model. The user-approved Slice 2 is not implemented and is not a runtime/deployment capability. The specialist design has been integrated as a recommendation; explicit architecture/data-design approval remains required before implementation.
-- This Architecture Analyst refresh did not inspect live database state or identify the database behind the user's reported local Owner login. The tracked baseline migration does not prove which database has applied it. The intended production tenancy model outside the approved repository direction, target geography, customer usage, and runtime integrations remain unverified.
-
-## Audit coverage
-
-| Area | Reviewed scope and recorded count |
-| --- | --- |
-| Backend controllers/routes/modules | `apps/backend/src`; 2 controllers, 5 handlers, 2 non-root modules plus root `AppModule`. Legacy reference source is separately noted. |
-| Frontend routes/pages | `apps/frontend/src/pages`; 7 page/layout files, 4 paths. Generated router output excluded. |
-| Frontend business feature directories | `apps/frontend/src/features`; 7 retained business directories (inactive legacy), 1 active auth directory; standalone bug-report form excluded from directory count. UI primitives excluded. |
-| Active persistence/migration | Active `schema.prisma` and tracked migrations; 3 models, 0 enums, 2 explicit relation fields, 1 SQL migration. |
-| Shared contracts | `packages/shared/src`; 9 schema source modules, 1 public schema module, 3 response interfaces. Legacy source exports are distinguished from the active package barrel. |
-| Automated test source | 3 active backend spec files / 5 test cases; 1 commented-out e2e file; no frontend test script. |
-| Integration/deployment boundary | App source and manifests, `apps/*/vercel.json`, bootstrap/config; repository configuration only, not a live-service audit. |
+| Frontend routes/pages | `apps/frontend/src/pages`, Vite route plugin/config | 9 page/layout files; 6 paths |
+| Frontend feature directories | `apps/frontend/src/features` and active page imports | 3 directories; 21 source files; standalone bug-report form excluded |
+| Backend routes/modules | `apps/backend/src` controller/module wiring | 4 controllers; 18 handlers; 4 modules including root |
+| Legacy reference | `apps/backend/legacy-reference`, `apps/frontend/legacy-reference` | 43 backend files; 38 frontend files; not active capability counts |
+| Active persistence | `packages/db/prisma/schema.prisma`, migration tree | 8 models; 2 enums; 14 explicit relation annotations; 5 SQL migrations |
+| Shared contracts | `packages/shared/src`, active root/schema barrels | 13 schema modules; 4 publicly re-exported modules; 48 exported inferred type aliases |
+| Automated test source | Backend Jest unit/integration specs and frontend package/scripts | 12 unit spec files / 50 cases; 1 integration spec / 5 cases; commented e2e; no frontend test runner |
