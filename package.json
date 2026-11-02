@@ -11,6 +11,7 @@
   },
   "license": "ISC",
   "scripts": {
+    "bootstrap:owner": "pnpm --filter @erp/backend bootstrap:owner",
     "dev:backend": "pnpm --filter @erp/backend start:dev",
     "dev:frontend": "pnpm --filter @erp/frontend start:dev",
     "db:generate": "pnpm --filter @erp/db generate",

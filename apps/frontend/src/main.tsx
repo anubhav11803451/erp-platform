@@ -11,15 +11,11 @@ import { routes } from './router.generated';
 
 import '@/index.css';
 import { ActiveThemeProvider } from './components/themes/active-theme';
+import { captureInitialInvitationBearer } from '@/features/institution-admin-invitation/invitation-client';
 
-if (import.meta.env) {
-    console.log('Running in', import.meta.env.MODE, 'mode');
-    console.log('Loaded Environment variables:', import.meta.env);
-}
+captureInitialInvitationBearer();
 
 const router = createBrowserRouter(routes);
-
-console.log('Final routes:', routes);
 
 const container = document.getElementById('root');
 

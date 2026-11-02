@@ -1,53 +1,41 @@
 # API catalog
 
-**Last reviewed:** 2026-10-14<br>
-**Base prefix:** `/v1/api` (`apps/backend/src/main.ts`)<br>
-**Coverage:** all 38 route handlers in the 10 tracked controllers under `apps/backend/src`.
+**Last reviewed:** 2026-10-29<br>
+**Base prefix:** `/v1/api` ([`main.ts`](../../apps/backend/src/main.ts))<br>
+**Scope:** controllers wired from `apps/backend/src`; legacy-reference controllers are not active routes.
 
-`ADMIN` and `STAFF` are the role names in the current Prisma enum. `Public` means the controller does not declare the JWT/role guards; it does not imply that an operation has no other credential checks. DTOs are validated through the global Zod pipe configured in `AppModule`.
+The active Nest application has two controllers and five route handlers. The routes below preserve the controller-declared methods and paths. `Public` means there is no JWT guard on the handler; cookie/CSRF requirements are stated separately. No `ADMIN`/`STAFF` role guard is active in the current app.
 
-| Method | Path (after base prefix) | Access in controller | Behavior / source |
+| Method | Full path | Access / guard behavior | Behavior and source |
 | --- | --- | --- | --- |
-| GET | `/health` | Public | Health status, timestamp and uptime — `apps/backend/src/health.controller.ts` |
-| POST | `/auth/login` | Local credentials; login throttle | Login and issue tokens/cookies — `apps/backend/src/auth/auth.controller.ts` |
-| GET | `/auth/refresh` | Refresh-token cookie | Rotate refresh/access tokens — `apps/backend/src/auth/auth.controller.ts` |
-| POST | `/auth/logout` | Refresh-token cookie when present | Revoke refresh token and clear cookies — `apps/backend/src/auth/auth.controller.ts` |
-| POST | `/domains/users` | ADMIN | Create user — `apps/backend/src/domains/users/users.controller.ts` |
-| GET | `/domains/users` | ADMIN | List users |
-| GET | `/domains/users/:id` | ADMIN | Read one user |
-| PATCH | `/domains/users/:id` | ADMIN | Update user |
-| DELETE | `/domains/users/:id` | ADMIN | Delete user |
-| POST | `/domains/students` | ADMIN | Create student with optional embedded guardian data — `apps/backend/src/domains/students/students.controller.ts` |
-| GET | `/domains/students` | ADMIN, STAFF | List students |
-| GET | `/domains/students/:id` | ADMIN, STAFF | Read one student |
-| PATCH | `/domains/students/:id` | ADMIN | Update student |
-| DELETE | `/domains/students/:id` | ADMIN | Delete student |
-| POST | `/domains/guardians` | ADMIN | Create guardian — `apps/backend/src/domains/guardians/guardians.controller.ts` |
-| GET | `/domains/guardians` | ADMIN, STAFF | List guardians |
-| GET | `/domains/guardians/:id` | ADMIN, STAFF | Read one guardian |
-| PATCH | `/domains/guardians/:id` | ADMIN | Update guardian |
-| DELETE | `/domains/guardians/:id` | ADMIN | Delete guardian |
-| POST | `/domains/batches` | ADMIN | Create batch — `apps/backend/src/domains/batches/batches.controller.ts` |
-| PATCH | `/domains/batches/:id` | ADMIN | Update batch |
-| DELETE | `/domains/batches/:id` | ADMIN | Delete batch |
-| GET | `/domains/batches` | ADMIN, STAFF | List batches |
-| GET | `/domains/batches/my-batches` | STAFF | List batches assigned to the current tutor |
-| GET | `/domains/batches/:id` | ADMIN, STAFF | Read one batch |
-| POST | `/features/enrollment` | ADMIN, STAFF | Enroll a student — `apps/backend/src/features/enrollment/enrollment.controller.ts` |
-| GET | `/features/enrollment/batch/:batchId` | ADMIN, STAFF | List students enrolled in a batch |
-| GET | `/features/enrollment/student/:studentId` | ADMIN, STAFF | List a student's batch enrollments |
-| DELETE | `/features/enrollment/disenroll` | ADMIN | Remove one or more student enrollments |
-| POST | `/features/payments` | ADMIN | Record a payment — `apps/backend/src/features/payments/payments.controller.ts` |
-| GET | `/features/payments/student/:studentId` | ADMIN, STAFF | List a student's payment records |
-| GET | `/features/payments/:id` | ADMIN, STAFF | Read a payment |
-| PATCH | `/features/payments/:id` | ADMIN | Update a payment record |
-| DELETE | `/features/payments/:id` | ADMIN | Delete a payment record |
-| GET | `/features/attendance/batch/:batchId` | ADMIN, STAFF | Get attendance for a batch and date — `apps/backend/src/features/attendance/attendance.controller.ts` |
-| POST | `/features/attendance/mark` | ADMIN, STAFF | Mark attendance for multiple students |
-| GET | `/features/dashboard/stats` | ADMIN, STAFF | Student/batch counts; revenue is returned for ADMIN — `apps/backend/src/features/dashboard/dashboard.controller.ts` |
-| GET | `/features/dashboard/activity` | ADMIN, STAFF | Recent payment and enrollment activity |
+| POST | `/v1/api/auth/login` | No JWT guard; validates Platform Owner credentials. `ThrottlerGuard` is attached to this handler and `AuthModule` configures 5 requests per 60 seconds. | Issues access token and auth cookies — [`auth.controller.ts`](../../apps/backend/src/auth/auth.controller.ts), [`auth.module.ts`](../../apps/backend/src/auth/auth.module.ts), [`auth.service.ts`](../../apps/backend/src/auth/auth.service.ts). |
+| POST | `/v1/api/auth/refresh` | No JWT guard; requires a valid refresh-token cookie and a matching CSRF cookie / `X-CSRF-Token` header. | Rotates persisted refresh session and returns a new access-token response — [`auth.controller.ts`](../../apps/backend/src/auth/auth.controller.ts), [`auth.service.ts`](../../apps/backend/src/auth/auth.service.ts). |
+| POST | `/v1/api/auth/logout` | No JWT guard; requires matching CSRF cookie/header. A refresh cookie, if present, is used to revoke the session. | Revokes the matching session and clears cookies — [`auth.controller.ts`](../../apps/backend/src/auth/auth.controller.ts), [`auth.service.ts`](../../apps/backend/src/auth/auth.service.ts). |
+| GET | `/v1/api/auth/me` | `PlatformOwnerJwtAuthGuard`; the Passport strategy validates the current persisted, unrevoked, unexpired session and active `PlatformOwnerGrant`. | Returns the authenticated Owner account summary — [`auth.controller.ts`](../../apps/backend/src/auth/auth.controller.ts), [`platform-owner-jwt-auth.guard.ts`](../../apps/backend/src/auth/guards/platform-owner-jwt-auth.guard.ts), [`platform-owner-jwt.strategy.ts`](../../apps/backend/src/auth/strategies/platform-owner-jwt.strategy.ts). |
+| GET | `/v1/api/health` | Public; no controller guard. | Returns health status, timestamp, and uptime — [`health.controller.ts`](../../apps/backend/src/health.controller.ts). |
 
-## Frontend/API mismatches and absent routes
+`AppModule` imports global configuration, `CoreModule`, and `AuthModule`, and mounts `HealthController`. `CoreModule` provides the shared `PrismaService`; `AuthModule` registers the throttler module and Platform Owner JWT strategy. Global Zod validation/serialization is configured in [`app.module.ts`](../../apps/backend/src/app.module.ts); the API prefix and middleware are configured in [`main.ts`](../../apps/backend/src/main.ts).
 
-- The frontend API slice declares `/auth/register` and `/auth/forgot-password`, but no backend controller route implements either path. The sign-up form currently does not call the registration mutation, and the forgot-password page sets a local success state without calling the API. See [bug triage](../product/bug-triage.md).
-- No public guardian/student portal, invoice/fee-plan, export/reporting, notification, or payment-provider route appears in the controller inventory. This is an implementation inventory, not a judgment that each route is required.
+## Route/build boundary and inactive source
+
+- The active application does not import institution, membership, invitation, user-management, student, guardian, batch, enrollment, payment, attendance, or dashboard controllers. No Institution or LegalEntity route is present.
+- Older business controller/module source is retained under `apps/backend/legacy-reference/src/`; it is not wired by `AppModule` and is not included in this active-route table.
+- There is a build configuration discrepancy: [`nest-cli.json`](../../apps/backend/nest-cli.json) selects `tsconfig.json`, while [`tsconfig.build.json`](../../apps/backend/tsconfig.build.json) contains exclusions for legacy-reference, tests, and specs. A read-only `tsc --project tsconfig.json --listFilesOnly` check listed legacy-reference files, current specs, and the e2e test source. The user reports `pnpm --filter @erp/backend run build-local` passed and `pnpm dev` returned HTTP 200 for backend health and Owner login. These results establish successful backend build/runtime behavior as reported; they do not establish that the legacy inputs were excluded. The config discrepancy remains.
+- The frontend [`tsconfig.app.json`](../../apps/frontend/tsconfig.app.json) includes `src`; a read-only `tsc --project tsconfig.app.json --listFilesOnly` check listed inactive legacy business feature files. The user reports `pnpm --filter @erp/frontend exec vite build` passed. Vite bundling follows the active import graph, but this command does not run the full `build` script's `tsc -b` step; the user confirms the full frontend build/typecheck was not run. Thus frontend TypeScript inclusion and successful typecheck remain unresolved.
+- Frontend RTK Query calls only the active auth endpoints in the active auth feature. The app also contains a static landing page and Owner placeholder; no institution setup request or demo-lead request is connected. See [`auth-api-slice.ts`](../../apps/frontend/src/features/auth/auth-api-slice.ts) and the [feature inventory](../product/feature-inventory.md).
+
+## Request/data ownership and auth boundary
+
+Platform Owner authority is represented by the presence of a `PlatformOwnerGrant` related to an `Account`; it is not an institution membership or a role selected by the browser. The JWT strategy loads the persisted `Session` and current Owner grant on each protected request. No active API currently accepts an Institution ID or returns institution-owned business data. The active routes therefore do not yet demonstrate institution-level data isolation.
+
+`POST /auth/login` uses the shared `platformOwnerSignInSchema`; the current public shared response types are Platform Owner account/sign-in/logout responses. The active package exports no institution or LegalEntity request/response contract. See [`packages/shared/src/schemas.ts`](../../packages/shared/src/schemas.ts), [`packages/shared/src/schemas/auth.ts`](../../packages/shared/src/schemas/auth.ts), and [`packages/shared/src/types/index.ts`](../../packages/shared/src/types/index.ts).
+
+## Coverage
+
+| Area | Coverage |
+| --- | --- |
+| Controllers and handlers | 2 controllers, 5 route handlers in `apps/backend/src`. |
+| Modules | `AppModule`, `AuthModule`, and `CoreModule`; no other active application module. |
+| Auth/role metadata | Login throttle guard; Owner JWT guard on `/auth/me`; refresh/logout CSRF validation; no active role-decorator policy. |
+| Missing onboarding APIs | Institution create/read, LegalEntity grouping, first-Admin invitation, invitation acceptance, and staff management are absent from active controllers. |
+| Runtime/deployment | Route inventory is source-based. No deployed API, environment, database, or live migration state was checked. |

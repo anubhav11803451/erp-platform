@@ -1,129 +1,61 @@
 // config/permissions.ts
-import { UserRole } from '@erp/shared';
-import { LayoutDashboard, Users, BookMarked } from 'lucide-react';
+import type { AccountIdentityResponse } from '@erp/shared';
+import { Building2, LayoutDashboard } from 'lucide-react';
+
+export type AppRole = AccountIdentityResponse['identity_kind'];
 
 export type Permission = {
     href: string;
     label: string;
     icon: React.ElementType;
-    allowedRoles: UserRole[];
+    allowedRoles: AppRole[];
     exact?: boolean; // optional: for strict route match
 };
 
-// ✅ Single source of truth for all navigation items
 export const NAV_ITEMS: Permission[] = [
     {
-        href: '/dashboard',
-        label: 'Dashboard',
+        href: '/owner',
+        label: 'Platform workspace',
         icon: LayoutDashboard,
-        allowedRoles: [UserRole.ADMIN, UserRole.STAFF],
+        allowedRoles: ['PLATFORM_OWNER'],
     },
     {
-        href: '/students',
-        label: 'Students',
-        icon: Users,
-        allowedRoles: [UserRole.ADMIN, UserRole.STAFF],
-    },
-    {
-        href: '/batches',
-        label: 'Batches',
-        icon: BookMarked,
-        allowedRoles: [UserRole.ADMIN, UserRole.STAFF],
-    },
-    {
-        href: '/users',
-        label: 'Staffs (Tutors)',
-        icon: Users,
-        allowedRoles: [UserRole.ADMIN],
-    },
-    {
-        href: '/attendance',
-        label: 'Attendance',
-        icon: BookMarked,
-        allowedRoles: [UserRole.STAFF],
+        href: '/institution',
+        label: 'Institution workspace',
+        icon: Building2,
+        allowedRoles: ['INSTITUTION_ADMIN'],
     },
 ];
 
-// 1️⃣ Define grouped features
 export const FEATURE_GROUPS = {
     STUDENT: ['ADD', 'EDIT', 'DELETE', 'ENROLL', 'DISENROLL'],
     BATCH: ['ADD', 'EDIT', 'DELETE', 'ASSIGN'],
     PAYMENT: ['ADD', 'REFUND'],
     ATTENDANCE: ['MARK', 'VIEW'],
+    PLATFORM: ['SETUP'],
+    INSTITUTION: ['ACCESS'],
 } as const;
 
-// ✅ Derive the literal union
 type FeatureGroups = typeof FEATURE_GROUPS;
-
-// Combine category and action → e.g. "STUDENT.ADD"
 export type FeatureKey = `${keyof FeatureGroups}.${FeatureGroups[keyof FeatureGroups][number]}`;
 
-type RolePermissionMap = {
-    [key in UserRole]: FeatureKey[];
+type RolePermissionMap = Record<AppRole, FeatureKey[]>;
+
+export const ROLE_PERMISSIONS: RolePermissionMap = {
+    UNASSIGNED: [],
+    PLATFORM_OWNER: ['PLATFORM.SETUP'],
+    INSTITUTION_ADMIN: ['INSTITUTION.ACCESS'],
 };
 
-const BASE_ROLE_PERMISSIONS: RolePermissionMap = {
-    [UserRole.ADMIN]: [
-        'STUDENT.ADD',
-        'STUDENT.EDIT',
-        'STUDENT.DELETE',
-        'BATCH.ADD',
-        'BATCH.EDIT',
-        'BATCH.DELETE',
-        'PAYMENT.ADD',
-        'ATTENDANCE.VIEW',
-        'STUDENT.ENROLL',
-        'STUDENT.DISENROLL',
-    ],
-    [UserRole.STAFF]: ['STUDENT.ENROLL', 'ATTENDANCE.MARK', 'ATTENDANCE.VIEW'],
-};
+const appRoles: AppRole[] = ['UNASSIGNED', 'PLATFORM_OWNER', 'INSTITUTION_ADMIN'];
 
-// Role hierarchy definition
-const ROLE_HIERARCHY: Record<UserRole, UserRole[]> = {
-    [UserRole.ADMIN]: [UserRole.STAFF], // Admin inherits Staff + Manager
-    [UserRole.STAFF]: [],
-};
-
-function getInheritedRoles(role: UserRole, visited = new Set<UserRole>()): UserRole[] {
-    const direct = ROLE_HIERARCHY[role] ?? [];
-    for (const r of direct) {
-        if (!visited.has(r)) {
-            visited.add(r);
-            getInheritedRoles(r, visited).forEach((nested) => visited.add(nested));
-        }
-    }
-    return [...visited];
-}
-
-function extendRolePermissions(base: RolePermissionMap): RolePermissionMap {
-    const result = { ...base };
-
-    for (const role of Object.values(UserRole)) {
-        const inheritedRoles = getInheritedRoles(role);
-        const inheritedPermissions = inheritedRoles.flatMap(
-            (r) => base[r as keyof typeof base] ?? []
-        );
-
-        result[role] = [...new Set([...base[role], ...inheritedPermissions])];
-    }
-
-    return result;
-}
-
-// ✅ Generate final map with inheritance applied
-export const ROLE_PERMISSIONS = extendRolePermissions(BASE_ROLE_PERMISSIONS);
-
-// Reverse mapping
-export const FEATURE_PERMISSIONS: Record<FeatureKey, UserRole[]> = (
-    Object.values(UserRole) as UserRole[]
-).reduce<Record<FeatureKey, UserRole[]>>(
-    (acc, role) => {
-        const features = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS];
+export const FEATURE_PERMISSIONS = appRoles.reduce<Partial<Record<FeatureKey, AppRole[]>>>(
+    (permissions, role) => {
+        const features = ROLE_PERMISSIONS[role];
         for (const feature of features) {
-            if (!acc[feature]) acc[feature] = [];
-            acc[feature]!.push(role);
+            (permissions[feature] ??= []).push(role);
         }
-        return acc;
+        return permissions;
     },
-    {} as Record<FeatureKey, UserRole[]>
+    {}
 );

@@ -1,20 +1,18 @@
 import { Link, Navigate, Outlet } from 'react-router';
 import { Loader, Globe } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import { useRoleAccess } from '@/hooks/use-role-access';
 import { Flex } from '@/components/ui/flex';
 import { Container } from '@/components/ui/container';
 import { FlexItem } from '@/components/ui/flex-item';
 import { ModeToggle } from '@/components/themes/theme-toggle';
 
 /**
- * This is the shared layout for the (auth) group (e.g., /signin, /signup).
- * It provides:
- * 1. Auth Guard: Redirects logged-in users to the dashboard.
- * 2. Visual Layout: A full-screen, centered container for the auth forms.
+ * Shared layout for workspace authentication pages.
  */
 const AuthLayout = () => {
     const { isAuthenticated, isAuthLoading } = useAuth();
-
+    const { isInstitutionAdmin } = useRoleAccess();
     if (isAuthLoading) {
         return (
             <div className="flex h-screen w-screen items-center justify-center">
@@ -24,12 +22,9 @@ const AuthLayout = () => {
     }
 
     if (isAuthenticated) {
-        // User is logged in, redirect them to the app's home page
-        return <Navigate to="/" replace />;
+        return <Navigate to={isInstitutionAdmin ? '/institution' : '/owner'} replace />;
     }
 
-    // User is not logged in, show the auth page (login, register, etc.)
-    // This <Outlet> will render the signin, signup, or forgot-password page.
     return (
         <Container id="auth-protected-layout" fullScreen>
             <Flex

@@ -1,113 +1,235 @@
-import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { PassportModule } from '@nestjs/passport';
-import { User, UserRole } from '@erp/db/client';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import type { Response } from 'express';
 import * as bcrypt from 'bcrypt';
-import request from 'supertest';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { LocalAuthGuard } from '../common/guards/local-auth.guard';
-import { LocalStrategy } from './strategies/local.strategy';
-import { UsersService } from '../domains/users/users.service';
+import { createHash } from 'node:crypto';
 import { PrismaService } from '../core/prisma.service';
-import { UtilsService } from '../utils/utils.service';
+import { AuthService } from './auth.service';
 
-describe('AuthService credential validation', () => {
-    let authService: AuthService;
-    let usersService: Pick<jest.Mocked<UsersService>, 'findByEmail'>;
-    let user: User;
-    let module: TestingModule;
+const ownerAccount = {
+    id: 'owner-account-id',
+    email: 'owner@example.test',
+    password_hash: '',
+    identity_kind: 'PLATFORM_OWNER',
+    owner_grant: { account_id: 'owner-account-id' },
+    institution_admin_membership: null,
+};
 
-    beforeAll(async () => {
-        user = {
-            id: 'user-1',
-            email: 'staff@example.com',
-            first_name: 'Staff',
-            last_name: 'Member',
-            password: await bcrypt.hash('correct-password', 4),
-            role: UserRole.STAFF,
-            created_at: new Date(),
-            updated_at: new Date(),
-        };
-    });
+const adminAccount = {
+    id: 'admin-account-id',
+    email: 'admin@example.test',
+    password_hash: '',
+    identity_kind: 'INSTITUTION_ADMIN',
+    owner_grant: null,
+    institution_admin_membership: {
+        institution_id: '00000000-0000-4000-8000-000000000001',
+        institution: {
+            id: '00000000-0000-4000-8000-000000000001',
+            name: 'School',
+            code_suffix: 'MAIN',
+            legal_entity: { code: 'SPEG' },
+        },
+    },
+};
+
+describe('AuthService shared workspace session', () => {
+    let service: AuthService;
+    let transaction: Record<string, any>;
+    let prisma: Record<string, any>;
+    let jwtService: { signAsync: jest.Mock };
+    let response: { cookie: jest.Mock; clearCookie: jest.Mock };
+
     beforeEach(async () => {
-        usersService = { findByEmail: jest.fn().mockResolvedValue(user) };
-
-        module = await Test.createTestingModule({
-            providers: [
-                AuthService,
-                { provide: UsersService, useValue: usersService },
-                { provide: JwtService, useValue: {} },
-                { provide: PrismaService, useValue: {} },
-                { provide: ConfigService, useValue: { get: jest.fn() } },
-                UtilsService,
-            ],
-        }).compile();
-
-        authService = module.get<AuthService>(AuthService);
+        ownerAccount.password_hash = await bcrypt.hash('correct-password', 4);
+        adminAccount.password_hash = await bcrypt.hash('correct-password', 4);
+        transaction = {
+            account: { findUnique: jest.fn(), updateMany: jest.fn() },
+            session: {
+                create: jest.fn().mockResolvedValue({}),
+                findUnique: jest.fn(),
+                updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+            },
+            $queryRaw: jest.fn().mockResolvedValue([{ id: 'account-id' }]),
+        };
+        prisma = {
+            ...transaction,
+            account: { findUnique: jest.fn() },
+            $transaction: jest.fn((callback: (tx: typeof transaction) => unknown) =>
+                callback(transaction),
+            ),
+        };
+        jwtService = { signAsync: jest.fn().mockResolvedValue('signed-access-token') };
+        response = { cookie: jest.fn(), clearCookie: jest.fn() };
+        service = new AuthService(
+            prisma as unknown as PrismaService,
+            jwtService as unknown as JwtService,
+            { get: jest.fn().mockReturnValue(undefined) } as unknown as ConfigService,
+        );
     });
 
-    afterEach(async () => {
-        await module.close();
-    });
+    it.each([
+        ['Platform Owner', ownerAccount, { identity_kind: 'PLATFORM_OWNER' }],
+        [
+            'approved Institution Admin',
+            adminAccount,
+            {
+                identity_kind: 'INSTITUTION_ADMIN',
+                institution: {
+                    id: '00000000-0000-4000-8000-000000000001',
+                    name: 'School',
+                    code: 'SPEG-MAIN',
+                },
+            },
+        ],
+    ])('creates the same bearer-backed SESSION for a %s', async (_label, account, identity) => {
+        prisma.account.findUnique.mockResolvedValue(account);
+        transaction.account.findUnique.mockResolvedValue(account);
 
-    it('rejects an incorrect password', async () => {
-        const getUserResponse = jest.spyOn(module.get(UtilsService), 'getUserResponse');
+        const result = await service.signInWorkspace(
+            {
+                intent: 'WORKSPACE',
+                email: account.email,
+                password: 'correct-password',
+            },
+            response as unknown as Response,
+        );
 
-        await expect(
-            authService.validateUser(user.email, 'incorrect-password'),
-        ).resolves.toBeNull();
-        expect(getUserResponse).not.toHaveBeenCalled();
-    });
-
-    it('returns the user response when the password matches', async () => {
-        const result = await authService.validateUser(user.email, 'correct-password');
-
-        expect(result).toEqual(
+        expect(result).toEqual({
+            kind: 'SESSION',
+            access_token: 'signed-access-token',
+            csrf_token: expect.any(String),
+            identity: {
+                ...identity,
+                account: { id: account.id, email: account.email },
+            },
+        });
+        expect(transaction.session.create).toHaveBeenCalledWith(
             expect.objectContaining({
-                id: user.id,
-                email: user.email,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                role: user.role,
+                data: expect.objectContaining({
+                    id: expect.any(String),
+                    account_id: account.id,
+                    rotation_family_id: expect.any(String),
+                    refresh_token_hash: expect.any(String),
+                }),
             }),
         );
-        expect(result).not.toHaveProperty('password');
+        const refreshCookie = response.cookie.mock.calls.find(
+            ([name]) => name === 'erp360_rtk',
+        )?.[1] as string;
+        const createdSession = transaction.session.create.mock.calls[0][0].data;
+        expect(createdSession.rotation_family_id).toBe(createdSession.id);
+        expect(createdSession.refresh_token_hash).toBe(
+            createHash('sha256').update(refreshCookie).digest('hex'),
+        );
+        expect(response.cookie).toHaveBeenCalledWith(
+            'erp360_rtk',
+            refreshCookie,
+            expect.objectContaining({
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/v1/api/auth',
+            }),
+        );
+        expect(response.cookie).not.toHaveBeenCalledWith(
+            'erp360_ia_at',
+            expect.anything(),
+            expect.anything(),
+        );
     });
 
-    it('does not issue tokens or cookies when the password is incorrect', async () => {
-        const authServiceMock = {
-            validateUser: jest.fn().mockResolvedValue(null),
-            login: jest.fn(),
+    it('rejects an UNASSIGNED account and invitation intent without creating a session', async () => {
+        const unassigned = {
+            ...ownerAccount,
+            identity_kind: 'UNASSIGNED',
+            owner_grant: null,
+            institution_admin_membership: null,
         };
-        const strategyModule = await Test.createTestingModule({
-            imports: [PassportModule.register({ defaultStrategy: 'local' })],
-            controllers: [AuthController],
-            providers: [
-                LocalStrategy,
-                LocalAuthGuard,
-                { provide: ConfigService, useValue: { get: jest.fn() } },
+        prisma.account.findUnique.mockResolvedValue(unassigned);
+        transaction.account.findUnique.mockResolvedValue(unassigned);
+
+        await expect(
+            service.signInWorkspace(
                 {
-                    provide: AuthService,
-                    useValue: authServiceMock,
+                    intent: 'WORKSPACE',
+                    email: unassigned.email,
+                    password: 'correct-password',
                 },
-            ],
-        }).compile();
-        const app: INestApplication = strategyModule.createNestApplication();
-        await app.init();
+                response as unknown as Response,
+            ),
+        ).rejects.toThrow('Invalid credentials');
+        expect(transaction.session.create).not.toHaveBeenCalled();
+        expect(response.cookie).not.toHaveBeenCalled();
 
-        try {
-            const response = await request(app.getHttpServer())
-                .post('/auth/login')
-                .send({ email: user.email, password: 'incorrect-password' });
+        const transactionCount = prisma.$transaction.mock.calls.length as number;
+        await expect(
+            service.signInWorkspace(
+                {
+                    intent: 'INVITATION',
+                    email: unassigned.email,
+                    password: 'correct-password',
+                },
+                response as unknown as Response,
+            ),
+        ).rejects.toThrow('Invalid credentials');
+        expect(prisma.$transaction).toHaveBeenCalledTimes(transactionCount);
+    });
 
-            expect(response.status).toBe(401);
-            expect(authServiceMock.login).not.toHaveBeenCalled();
-            expect(response.headers['set-cookie']).toBeUndefined();
-        } finally {
-            await app.close();
-        }
+    it('does not rotate a revoked session', async () => {
+        prisma.$queryRaw.mockResolvedValue([
+            { id: 'session-id', rotation_family_id: 'session-id' },
+        ]);
+        transaction.session.findUnique.mockResolvedValue({
+            id: 'session-id',
+            rotation_family_id: 'session-id',
+            expires_at: new Date(Date.now() + 60_000),
+            revoked_at: new Date(),
+            account: ownerAccount,
+        });
+
+        await expect(
+            service.refresh('old-refresh-token', response as unknown as Response),
+        ).rejects.toThrow('Invalid or expired session');
+        expect(transaction.session.updateMany).not.toHaveBeenCalled();
+        expect(transaction.session.create).not.toHaveBeenCalled();
+        expect(response.clearCookie).toHaveBeenCalled();
+    });
+
+    it('inherits the family on refresh and revokes only the submitted family on logout', async () => {
+        const oldToken = 'old-owner-refresh-token';
+        prisma.$queryRaw.mockResolvedValue([
+            { id: 'owner-device-family', rotation_family_id: 'owner-device-family' },
+        ]);
+        transaction.session.findUnique.mockResolvedValue({
+            id: 'old-session-id',
+            rotation_family_id: 'owner-device-family',
+            refresh_token_hash: createHash('sha256').update(oldToken).digest('hex'),
+            expires_at: new Date(Date.now() + 60_000),
+            revoked_at: null,
+            account: ownerAccount,
+        });
+
+        await service.refresh(oldToken, response as unknown as Response);
+
+        const successor = transaction.session.create.mock.calls[0][0].data;
+        expect(successor.id).not.toBe('owner-device-family');
+        expect(successor.rotation_family_id).toBe('owner-device-family');
+        expect(transaction.session.updateMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: {
+                    id: 'old-session-id',
+                    revoked_at: null,
+                    expires_at: { gt: expect.any(Date) },
+                },
+            }),
+        );
+
+        await service.logout(oldToken, response as unknown as Response);
+        expect(transaction.session.updateMany).toHaveBeenLastCalledWith({
+            where: {
+                rotation_family_id: 'owner-device-family',
+                revoked_at: null,
+            },
+            data: { revoked_at: expect.any(Date) },
+        });
     });
 });

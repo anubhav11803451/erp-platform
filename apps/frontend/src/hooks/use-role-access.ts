@@ -1,21 +1,18 @@
 import { useAppSelector } from '@/app/hooks';
 import { selectCurrentUser } from '@/features/auth/auth-slice';
-import { UserRole } from '@erp/shared';
+import type { AppRole } from '@/config/permissions';
 
 export function useRoleAccess() {
     const user = useAppSelector(selectCurrentUser);
-    const role = user?.role ?? UserRole.STAFF;
+    const role = user?.identity_kind ?? null;
 
-    const hasRole = (allowed: UserRole[]) => allowed.includes(role);
-
-    const isStaff = user?.role === UserRole.STAFF;
-    const isAdmin = user?.role === UserRole.ADMIN;
+    const hasRole = (allowed: readonly AppRole[]) => role !== null && allowed.includes(role);
 
     return {
         user,
         role,
-        isStaff,
-        isAdmin,
+        isPlatformOwner: role === 'PLATFORM_OWNER',
+        isInstitutionAdmin: role === 'INSTITUTION_ADMIN',
         hasRole,
     };
 }

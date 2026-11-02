@@ -1,7 +1,7 @@
 import { useAppSelector } from '@/app/hooks';
 import { useLoginMutation, useLogoutMutation } from '@/features/auth/auth-api-slice';
 import {
-    selectCurrentUser,
+    selectCurrentAccount,
     selectIsAuthenticated,
     selectIsAuthLoading,
 } from '@/features/auth/auth-slice';
@@ -11,35 +11,36 @@ import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 
 export function useAuth() {
-    // const dispatch = useAppDispatch();
-
     const isAuthenticated = useAppSelector(selectIsAuthenticated);
     const isAuthLoading = useAppSelector(selectIsAuthLoading);
-    const authUser = useAppSelector(selectCurrentUser);
-
+    const authUser = useAppSelector(selectCurrentAccount);
     const navigate = useNavigate();
 
     const [signIn, { isLoading: isSigningIn }] = useLoginMutation();
-    const [logout] = useLogoutMutation();
+    const [logout, { isLoading: isSigningOut }] = useLogoutMutation();
 
-    async function handleSignIn(values: SignInPayload) {
+    async function handleSignIn(values: Pick<SignInPayload, 'email' | 'password'>) {
         try {
-            await signIn(values).unwrap();
-            toast.success('Logged in successfully');
-            navigate('/');
-        } catch (_err) {
-            console.error('Sign in failed', _err);
-            toast.error(getApiErrorMessage(_err));
+            const session = await signIn({ ...values, intent: 'WORKSPACE' }).unwrap();
+            navigate(
+                session.identity.identity_kind === 'PLATFORM_OWNER' ? '/owner' : '/institution',
+                { replace: true }
+            );
+        } catch (error: unknown) {
+            throw new Error(
+                getApiErrorMessage(error, 'Unable to sign in. Check your details and try again.')
+            );
         }
     }
-    function handleLogout() {
+
+    async function handleLogout() {
         try {
-            logout().unwrap();
-            toast.success('Logged out successfully');
-            navigate('/');
-        } catch (_err) {
-            console.error('Sign out failed', _err);
-            toast.error(getApiErrorMessage(_err));
+            await logout().unwrap();
+            toast.success('You have been signed out.');
+        } catch (error: unknown) {
+            toast.error(getApiErrorMessage(error, 'Your local session has been cleared.'));
+        } finally {
+            navigate('/signin', { replace: true });
         }
     }
 
@@ -48,6 +49,7 @@ export function useAuth() {
         isAuthLoading,
         authUser,
         signIn: { isSigningIn, handleSignIn },
+        isSigningOut,
         handleLogout,
     };
 }

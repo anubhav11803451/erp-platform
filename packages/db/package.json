@@ -45,6 +45,7 @@
     "generate": "dotenv -e ../../.env -- prisma generate",
     "generate-no-engine": "dotenv -e ../../.env -- prisma generate --no-engine",
     "migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "reset": "dotenv -e ../../.env -- prisma migrate reset",
     "format": "dotenv -e ../../.env -- prisma format",
     "seed": "dotenv -e ../../.env -- prisma db seed",
     "generate:vercel": "pnpm run generate",
@@ -68,9 +69,6 @@
     "prisma-class-validator-generator": "^6.1.2",
     "prisma-generator-typescript-interfaces": "^3.1.0",
     "typescript": "catalog:typescript"
-  },
-  "prisma": {
-    "seed": "node prisma/seed.ts"
   },
   "packageManager": "pnpm@10.18.3"
 }

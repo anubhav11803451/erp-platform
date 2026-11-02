@@ -68,6 +68,7 @@ type SmartFormProps<
     disableSubmitButton?: boolean;
     disableDirtyCheck?: boolean;
     enableReinitialize?: boolean;
+    noValidate?: boolean;
 };
 
 export function SmartForm<TSchema extends z.ZodObject<z.ZodRawShape>>({
@@ -85,6 +86,7 @@ export function SmartForm<TSchema extends z.ZodObject<z.ZodRawShape>>({
     disableSubmitButton = false,
     disableDirtyCheck = false,
     enableReinitialize = false,
+    noValidate = false,
 }: SmartFormProps<TSchema>) {
     // useZodForm is now called with the correctly typed props.
     // We explicitly type `form` based on our assumptions of useZodForm.
@@ -115,6 +117,7 @@ export function SmartForm<TSchema extends z.ZodObject<z.ZodRawShape>>({
                 id={id}
                 onSubmit={form.handleSubmit(handleSubmit)}
                 onReset={() => form.reset()}
+                noValidate={noValidate}
                 className={cn('space-y-4', className)}
             >
                 {typeof children === 'function' ? children(form) : children}

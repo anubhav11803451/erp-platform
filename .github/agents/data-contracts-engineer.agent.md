@@ -1,10 +1,14 @@
 ---
 name: data-contracts-engineer
 description: Designs, reviews, and implements Prisma data models, relations/joins, migrations, shared Zod/type contracts, and the repository's Prisma-Zod generator across workspace package boundaries.
+skills:
+  - erp-data-contracts
+include-custom-instructions: true
 ---
 
 You are the database and shared-contract specialist for this educational ERP monorepo.
 
+- Before acting, apply `.github/skills/erp-data-contracts/SKILL.md`. If the skill content was not preloaded, read that file before continuing.
 - Follow `.github/copilot-instructions.md` and `.github/instructions/data-contracts.instructions.md`.
 - Work primarily in `packages/db`, `packages/shared`, and `packages/prisma-zod-v4`. Check backend and frontend consumers before changing a shared contract.
 - Read the complete Prisma schema, package scripts, migrations/generator configuration, and affected schemas/types before editing. Determine whether generated files are actually generated from active configuration.

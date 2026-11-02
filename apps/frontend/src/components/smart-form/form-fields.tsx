@@ -34,10 +34,16 @@ type FormFieldProps = {
     placeholder?: string;
     required?: boolean;
     disabled?: boolean;
+    autoComplete?: string;
+    autoFocus?: boolean;
 };
 
 // --- 1. TextField Component ---
-type TextFieldProps = FormFieldProps;
+type TextFieldProps = FormFieldProps & {
+    readOnly?: boolean;
+};
+
+type PasswordFieldProps = Omit<FormFieldProps, 'type'>;
 
 export function TextField({
     name,
@@ -46,6 +52,10 @@ export function TextField({
     placeholder,
     required = false,
     description,
+    disabled,
+    readOnly,
+    autoComplete,
+    autoFocus,
 }: TextFieldProps) {
     const { control } = useFormContext();
 
@@ -65,6 +75,11 @@ export function TextField({
                         id={field.name}
                         type={type}
                         placeholder={placeholder}
+                        required={required}
+                        disabled={disabled}
+                        readOnly={readOnly}
+                        autoComplete={autoComplete}
+                        autoFocus={autoFocus}
                         aria-invalid={fieldState.invalid}
                     />
                     {description && <FieldDescription>{description}</FieldDescription>}
@@ -81,7 +96,10 @@ export function PasswordField({
     placeholder,
     required = false,
     description,
-}: Omit<TextFieldProps, 'type'>) {
+    disabled,
+    autoComplete,
+    autoFocus,
+}: PasswordFieldProps) {
     const { control } = useFormContext();
     const [isVisible, setIsVisible] = useState(false);
 
@@ -101,13 +119,18 @@ export function PasswordField({
                             {...field}
                             id={field.name}
                             placeholder={placeholder}
+                            required={required}
+                            disabled={disabled}
+                            autoComplete={autoComplete}
+                            autoFocus={autoFocus}
                             aria-invalid={fieldState.invalid}
                             type={isVisible ? 'text' : 'password'}
                         />
                         <InputGroupAddon align="inline-end">
                             <InputGroupButton
-                                aria-label="Show password"
-                                title="Show password"
+                                aria-label={isVisible ? 'Hide password' : 'Show password'}
+                                aria-pressed={isVisible}
+                                title={isVisible ? 'Hide password' : 'Show password'}
                                 size="icon-xs"
                                 onClick={() => {
                                     setIsVisible(!isVisible);

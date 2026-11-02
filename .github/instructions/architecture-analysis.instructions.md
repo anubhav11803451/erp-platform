@@ -5,6 +5,7 @@ applyTo: "docs/architecture/**,docs/product/feature-inventory.md"
 # Architecture analysis documentation
 
 - Describe the implemented system, not the intended future design. Read complete source files and trace each documented feature across its frontend page/feature, API controller/service, shared contract, and database model where applicable.
+- In `docs/product/feature-inventory.md`, summarize each capability in institute/workflow context (who at an institute can do what), alongside cross-layer evidence. Distinguish source implementation from feature flags, approval gates, runtime enablement, merge, or release; repository evidence does not establish deployment or user validation.
 - Enumerate all backend controllers and route handlers, all application pages/features (excluding reusable UI primitives from the business feature count), all active Prisma models/enums/relations, and shared schemas/types. Record the paths examined and reconcile the inventory against the repository tree.
 - Label a missing connection as absent or unverified; do not infer implementation from a UI label, a commented-out endpoint, schema alone, or a package's existence.
 - Record API base paths, request/data ownership, auth guards and declared roles as implemented. Avoid implying a UI permission check is server authorization.

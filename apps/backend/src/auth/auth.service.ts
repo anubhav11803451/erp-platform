@@ -1,249 +1,402 @@
-import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-
-import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
-import { Response } from 'express';
-
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from '../domains/users/users.service';
+import { JwtService } from '@nestjs/jwt';
+import { Prisma } from '@erp/db/client';
+import {
+    authenticatedAccountIdentityResponseSchema,
+    platformOwnerLogoutResponseSchema,
+    workspaceIdentityResponseSchema,
+    workspaceSessionResponseSchema,
+} from '@erp/shared';
+import type {
+    AuthenticatedAccountIdentityResponse,
+    AuthSessionResponse,
+    PlatformOwnerLogoutResponse,
+    SignInPayload,
+} from '@erp/shared';
+import * as bcrypt from 'bcrypt';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import type { Response } from 'express';
 import { PrismaService } from '../core/prisma.service';
 
-import { UserResponse, AuthResponse, TokenPayload } from '@erp/shared';
-import { UtilsService } from '../utils/utils.service';
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const ACCESS_TOKEN_TTL = '15m';
+const REFRESH_COOKIE_PATH = '/v1/api/auth';
+const LEGACY_ADMIN_ACCESS_COOKIE_PATHS = ['/v1/api', '/v1/api/auth'];
+const LEGACY_ADMIN_REFRESH_COOKIE_PATHS = ['/v1/api/auth', '/v1/api/auth/invitations'];
+const WORKSPACE_ACCOUNT_RELATIONS = {
+    owner_grant: true,
+    institution_admin_membership: {
+        include: {
+            institution: {
+                include: {
+                    legal_entity: { select: { code: true } },
+                },
+            },
+        },
+    },
+} satisfies Prisma.AccountInclude;
+
+type WorkspaceAccount = Prisma.AccountGetPayload<{
+    include: typeof WORKSPACE_ACCOUNT_RELATIONS;
+}>;
 
 @Injectable()
 export class AuthService {
-    private refreshTokenCookieName: string; // Refresh Token
-    private csrfTokenCookieName: string; // Csrf ToKen
-    private isProduction: boolean;
+    private readonly refreshTokenCookieName: string;
+    private readonly csrfTokenCookieName: string;
+    private readonly adminRefreshTokenCookieName: string;
+    private readonly adminCsrfTokenCookieName: string;
+    private readonly adminAccessTokenCookieName: string;
+    private readonly isProduction: boolean;
+
     constructor(
-        private readonly usersService: UsersService,
-        private readonly jwtService: JwtService,
         private readonly prisma: PrismaService,
+        private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
-        private readonly utilsService: UtilsService,
     ) {
-        this.csrfTokenCookieName =
-            configService.get<string>('CSRF_TOKEN_COOKIE_NAME') || 'erp360_ctk';
         this.refreshTokenCookieName =
-            configService.get<string>('REFRESH_TOKEN_COOKIE_NAME') || 'erp360_rtk';
+            this.configService.get<string>('REFRESH_TOKEN_COOKIE_NAME') || 'erp360_rtk';
+        this.csrfTokenCookieName =
+            this.configService.get<string>('CSRF_TOKEN_COOKIE_NAME') || 'erp360_ctk';
+        this.adminRefreshTokenCookieName =
+            this.configService.get<string>('INSTITUTION_ADMIN_REFRESH_COOKIE_NAME') ||
+            'erp360_ia_rtk';
+        this.adminCsrfTokenCookieName =
+            this.configService.get<string>('INSTITUTION_ADMIN_CSRF_COOKIE_NAME') || 'erp360_ia_ctk';
+        this.adminAccessTokenCookieName =
+            this.configService.get<string>('INSTITUTION_ADMIN_ACCESS_COOKIE_NAME') ||
+            'erp360_ia_at';
         this.isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     }
 
-    /**
-     * Validates a user based on email and password.
-     * Called by LocalStrategy.
-     */
-    async validateUser(email: string, pass: string): Promise<UserResponse | null> {
-        const user = await this.usersService.findByEmail(email);
-        if (user) {
-            const encryptedPass: string = user.password;
-            const isPasswordValid = await bcrypt.compare(pass, encryptedPass);
-            if (!isPasswordValid) {
-                return null;
-            }
-            // Passwords match. Return user *without* the password hash.
-
-            //use loadash omit
-            return this.utilsService.getUserResponse(user);
-        }
-        return null; // Invalid credentials
-    }
-
-    /**
-     * Creates a CSRF token
-     */
-    private createCsrfToken(): string {
-        return crypto.randomBytes(32).toString('hex');
-    }
-
-    /**
-     * Hashes a token with SHA256 for database storage
-     */
-    private hashToken(token: string): string {
-        return crypto.createHash('sha256').update(token).digest('hex');
-    }
-
-    /**
-     * Creates a secure refresh token, stores it in the DB, and returns it.
-     */
-    private async createAndStoreRefreshToken(
-        user_id: string,
-        ip: string,
-        user_agent: string,
-    ): Promise<string> {
-        const raw_token = crypto.randomBytes(64).toString('hex');
-        const hashed_token = this.hashToken(raw_token);
-        const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-
-        await this.prisma.refreshToken.create({
-            data: {
-                userId: user_id,
-                hashed_token,
-                ip,
-                user_agent,
-                expires_at,
-            },
-        });
-        return raw_token;
-    }
-
-    /**
-     * Creates an access token from a user payload
-     */
-    private async createAccessToken(user: UserResponse): Promise<string> {
-        const payload: TokenPayload = { email: user.email, sub: user.id, role: user.role };
-        return this.jwtService.signAsync(payload, { expiresIn: '15m' }); // Access token expires in 15 minutes (Short-lived)
-    }
-
-    /**
-     * Sets the secure HttpOnly refresh token cookie on the response
-     */
-    private setRefreshTokenCookie(res: Response, token: string) {
-        const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 30 days
-        res.cookie(this.refreshTokenCookieName, token, {
-            httpOnly: true, // Not accessible by JavaScript
-            secure: this.isProduction, // HTTPS only
-            sameSite: 'lax', // Strict SameSite
-            path: '/v1/api/auth', // Only sent to auth endpoints
-            expires,
-        });
-    }
-
-    /**
-     * Sets the client-visible CSRF token cookie on the response
-     */
-    private setCsrfTokenCookie(res: Response, token: string) {
-        const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 30 days
-        res.cookie(this.csrfTokenCookieName, token, {
-            httpOnly: false, // IS accessible by JavaScript (for double-submit)
-            secure: this.isProduction,
-            sameSite: 'lax',
-            path: '/', // Accessible on all paths
-            expires,
-        });
-    }
-
-    /**
-     * Logs in a user and returns a JWT.
-     * Called by the AuthController.
-     */
-    async login(
-        user: UserResponse,
-        res: Response,
-        ip: string,
-        userAgent: string,
-    ): Promise<AuthResponse> {
-        const access_token = await this.createAccessToken(user);
-        const refresh_token = await this.createAndStoreRefreshToken(user.id, ip, userAgent);
-        const csrf_token = this.createCsrfToken();
-
-        this.setRefreshTokenCookie(res, refresh_token);
-        this.setCsrfTokenCookie(res, csrf_token);
-
-        return {
-            access_token,
-            csrf_token,
-            user,
-        };
-    }
-
-    /**
-     * Refresh Access Token (with Refresh Token Rotation)
-     */
-    async refresh(
-        old_raw_token: string,
-        res: Response,
-        ip: string,
-        user_agent: string,
-    ): Promise<AuthResponse> {
-        const old_hashed_token = this.hashToken(old_raw_token);
-
-        // 1. Find the token in the DB
-        const dbToken = await this.prisma.refreshToken.findUnique({
-            where: { hashed_token: old_hashed_token },
-            include: { user: true },
-        });
-
-        // 2. Check if token is valid, not revoked, and not expired
-        if (!dbToken || dbToken.revoked_at || dbToken.expires_at < new Date()) {
-            // Security: This could be a stolen token. Clear the cookie.
-            this.clearCookies(res);
-            throw new UnauthorizedException('Invalid or expired refresh token');
+    async signInWorkspace(
+        payload: SignInPayload,
+        response: Response,
+    ): Promise<AuthSessionResponse> {
+        if (payload.intent !== 'WORKSPACE') {
+            throw new UnauthorizedException('Invalid credentials');
         }
 
-        // --- REFRESH TOKEN ROTATION ---
+        const normalizedEmail = payload.email.trim().toLowerCase();
+        const account = await this.prisma.account.findUnique({
+            where: { email: normalizedEmail },
+            include: WORKSPACE_ACCOUNT_RELATIONS,
+        });
+        const comparisonHash =
+            account?.password_hash ?? (await bcrypt.hash(randomBytes(24).toString('hex'), 12));
+        if (!(await bcrypt.compare(payload.password, comparisonHash)) || !account) {
+            throw new UnauthorizedException('Invalid credentials');
+        }
 
-        // 3. Check for Token Reuse: If token is valid but revoked, it's been reused!
-        // This is a sign of token theft. Revoke all user's tokens and log them out.
-        if (dbToken.revoked_at) {
-            await this.prisma.refreshToken.updateMany({
-                where: { userId: dbToken.userId },
-                data: { revoked_at: new Date() },
+        const sessionId = randomUUID();
+        const refreshToken = this.createOpaqueToken();
+        const csrfToken = this.createOpaqueToken();
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + SESSION_TTL_MS);
+        const result = await this.prisma.$transaction(async (transaction) => {
+            await this.lockAccount(transaction, account.id);
+            const activeAccount = await transaction.account.findUnique({
+                where: { id: account.id },
+                include: WORKSPACE_ACCOUNT_RELATIONS,
             });
-            this.clearCookies(res);
-            throw new ForbiddenException('Refresh token reuse detected. All sessions revoked.');
-        }
+            if (
+                !activeAccount ||
+                activeAccount.password_hash !== account.password_hash ||
+                activeAccount.email.trim().toLowerCase() !== normalizedEmail
+            ) {
+                throw new UnauthorizedException('Invalid credentials');
+            }
 
-        // 4. Revoke the old token (mark as used)
-        await this.prisma.refreshToken.update({
-            where: { id: dbToken.id },
-            data: { revoked_at: new Date() },
+            const identity = this.toAuthenticatedIdentity(activeAccount);
+            if (identity.identity_kind === 'UNASSIGNED') {
+                throw new UnauthorizedException('Invalid credentials');
+            }
+            const workspaceIdentity = workspaceIdentityResponseSchema.parse(identity);
+
+            await transaction.session.create({
+                data: {
+                    id: sessionId,
+                    account_id: activeAccount.id,
+                    rotation_family_id: sessionId,
+                    refresh_token_hash: this.hashToken(refreshToken),
+                    expires_at: expiresAt,
+                },
+            });
+            return { identity: workspaceIdentity };
         });
 
-        // 5. Issue new tokens
-        const user = this.utilsService.getUserResponse(dbToken.user);
-        const access_token = await this.createAccessToken(user);
-        const refresh_token = await this.createAndStoreRefreshToken(user.id, ip, user_agent);
-        const csrf_token = this.createCsrfToken();
-
-        // 6. Set new cookies
-        this.setRefreshTokenCookie(res, refresh_token);
-        this.setCsrfTokenCookie(res, csrf_token);
-
-        // 7. Return new tokens and user info
-        return {
-            access_token,
-            csrf_token,
-            user,
-        };
+        const accessToken = await this.jwtService.signAsync(
+            { sub: account.id, sid: sessionId, email: normalizedEmail },
+            { expiresIn: ACCESS_TOKEN_TTL },
+        );
+        this.setAuthCookies(response, refreshToken, csrfToken, expiresAt);
+        this.clearLegacyAdminCookies(response);
+        return workspaceSessionResponseSchema.parse({
+            kind: 'SESSION',
+            access_token: accessToken,
+            csrf_token: csrfToken,
+            identity: result.identity,
+        });
     }
 
-    /**
-     * Clears all auth cookies on the response
-     */
-    private clearCookies(res: Response) {
-        res.cookie(this.refreshTokenCookieName, '', {
-            httpOnly: true,
-            secure: this.isProduction,
-            sameSite: 'lax',
-            path: '/v1/api/auth',
-            expires: new Date(0), // Expire immediately
+    async getAuthenticatedIdentity(
+        accountId: string,
+    ): Promise<AuthenticatedAccountIdentityResponse> {
+        const account = await this.prisma.account.findUnique({
+            where: { id: accountId },
+            include: WORKSPACE_ACCOUNT_RELATIONS,
         });
-        res.cookie(this.csrfTokenCookieName, '', {
+        if (!account) {
+            throw new UnauthorizedException();
+        }
+        return authenticatedAccountIdentityResponseSchema.parse(
+            this.toAuthenticatedIdentity(account),
+        );
+    }
+
+    async refresh(oldRefreshToken: string, response: Response): Promise<AuthSessionResponse> {
+        const oldTokenHash = this.hashToken(oldRefreshToken);
+        const now = new Date();
+        const nextSessionId = randomUUID();
+        const nextRefreshToken = this.createOpaqueToken();
+        const csrfToken = this.createOpaqueToken();
+        const expiresAt = new Date(now.getTime() + SESSION_TTL_MS);
+
+        try {
+            const result = await this.prisma.$transaction(async (transaction) => {
+                const lockedFamily = await this.lockSessionFamily(transaction, oldTokenHash);
+                if (!lockedFamily) {
+                    throw new UnauthorizedException('Invalid or expired session');
+                }
+
+                const session = await transaction.session.findUnique({
+                    where: { refresh_token_hash: oldTokenHash },
+                    include: { account: { include: WORKSPACE_ACCOUNT_RELATIONS } },
+                });
+                if (
+                    !session ||
+                    session.revoked_at ||
+                    session.expires_at <= now ||
+                    session.rotation_family_id !== lockedFamily.rotation_family_id
+                ) {
+                    throw new UnauthorizedException('Invalid or expired session');
+                }
+
+                const identity = this.toAuthenticatedIdentity(session.account);
+                if (identity.identity_kind === 'UNASSIGNED') {
+                    throw new UnauthorizedException('Invalid or expired session');
+                }
+                const workspaceIdentity = workspaceIdentityResponseSchema.parse(identity);
+
+                const revoked = await transaction.session.updateMany({
+                    where: {
+                        id: session.id,
+                        revoked_at: null,
+                        expires_at: { gt: now },
+                    },
+                    data: { revoked_at: now },
+                });
+                if (revoked.count !== 1) {
+                    throw new UnauthorizedException('Invalid or expired session');
+                }
+
+                await transaction.session.create({
+                    data: {
+                        id: nextSessionId,
+                        account_id: session.account.id,
+                        rotation_family_id: session.rotation_family_id,
+                        refresh_token_hash: this.hashToken(nextRefreshToken),
+                        expires_at: expiresAt,
+                    },
+                });
+                return {
+                    accountId: session.account.id,
+                    email: session.account.email,
+                    identity: workspaceIdentity,
+                };
+            });
+
+            const accessToken = await this.jwtService.signAsync(
+                { sub: result.accountId, sid: nextSessionId, email: result.email },
+                { expiresIn: ACCESS_TOKEN_TTL },
+            );
+            this.setAuthCookies(response, nextRefreshToken, csrfToken, expiresAt);
+            this.clearLegacyAdminCookies(response);
+            return workspaceSessionResponseSchema.parse({
+                kind: 'SESSION',
+                access_token: accessToken,
+                csrf_token: csrfToken,
+                identity: result.identity,
+            });
+        } catch (error) {
+            if (error instanceof UnauthorizedException) {
+                this.clearAuthCookies(response);
+                this.clearLegacyAdminCookies(response);
+            }
+            throw error;
+        }
+    }
+
+    async logout(
+        refreshToken: string | undefined,
+        response: Response,
+    ): Promise<PlatformOwnerLogoutResponse> {
+        if (refreshToken) {
+            const refreshTokenHash = this.hashToken(refreshToken);
+            await this.prisma.$transaction(async (transaction) => {
+                const lockedFamily = await this.lockSessionFamily(transaction, refreshTokenHash);
+                if (!lockedFamily) {
+                    return;
+                }
+
+                await transaction.session.updateMany({
+                    where: {
+                        rotation_family_id: lockedFamily.rotation_family_id,
+                        revoked_at: null,
+                    },
+                    data: { revoked_at: new Date() },
+                });
+            });
+        }
+
+        this.clearAuthCookies(response);
+        this.clearLegacyAdminCookies(response);
+        return platformOwnerLogoutResponseSchema.parse({ message: 'Logged out successfully' });
+    }
+
+    private toAuthenticatedIdentity(
+        account: WorkspaceAccount,
+    ): AuthenticatedAccountIdentityResponse {
+        const accountSummary = { id: account.id, email: account.email.trim().toLowerCase() };
+        const membership = account.institution_admin_membership;
+        const institutionAdmin = account.identity_kind === 'INSTITUTION_ADMIN';
+        const platformOwner = account.identity_kind === 'PLATFORM_OWNER';
+
+        if (account.identity_kind === 'UNASSIGNED' && !account.owner_grant && !membership) {
+            return { identity_kind: 'UNASSIGNED', account: accountSummary };
+        }
+        if (platformOwner && account.owner_grant && !membership) {
+            return { identity_kind: 'PLATFORM_OWNER', account: accountSummary };
+        }
+        if (institutionAdmin && !account.owner_grant && membership) {
+            const { institution } = membership;
+            const code =
+                institution.legal_entity.code && institution.code_suffix
+                    ? `${institution.legal_entity.code}-${institution.code_suffix}`
+                    : null;
+            return {
+                identity_kind: 'INSTITUTION_ADMIN',
+                account: accountSummary,
+                institution: { id: institution.id, name: institution.name, code },
+            };
+        }
+        throw new UnauthorizedException('Account identity is invalid');
+    }
+
+    private async lockAccount(
+        transaction: Prisma.TransactionClient,
+        accountId: string,
+    ): Promise<void> {
+        const rows = await transaction.$queryRaw<Array<{ id: string }>>`
+            SELECT "id" FROM "Account" WHERE "id" = ${accountId} FOR UPDATE
+        `;
+        if (rows.length === 0) {
+            throw new UnauthorizedException('Invalid credentials');
+        }
+    }
+
+    private async lockSessionFamily(
+        transaction: Prisma.TransactionClient,
+        refreshTokenHash: string,
+    ): Promise<{ id: string; rotation_family_id: string } | undefined> {
+        const rows = await transaction.$queryRaw<Array<{ id: string; rotation_family_id: string }>>`
+            SELECT anchor."id" AS "id",
+                   source."rotation_family_id" AS "rotation_family_id"
+            FROM "Session" AS anchor
+            INNER JOIN "Session" AS source
+                ON source."rotation_family_id" = anchor."id"
+            WHERE source."refresh_token_hash" = ${refreshTokenHash}
+              AND anchor."rotation_family_id" = anchor."id"
+            FOR UPDATE OF anchor
+        `;
+        return rows[0];
+    }
+
+    private createOpaqueToken(): string {
+        return randomBytes(64).toString('hex');
+    }
+
+    private hashToken(token: string): string {
+        return createHash('sha256').update(token).digest('hex');
+    }
+
+    private cookieIsSecure(response: Response): boolean {
+        return this.isProduction || response.req?.secure === true;
+    }
+
+    private setAuthCookies(
+        response: Response,
+        refreshToken: string,
+        csrfToken: string,
+        expiresAt: Date,
+    ): void {
+        const secure = this.cookieIsSecure(response);
+        response.cookie(this.refreshTokenCookieName, refreshToken, {
+            httpOnly: true,
+            secure,
+            sameSite: 'lax',
+            path: REFRESH_COOKIE_PATH,
+            expires: expiresAt,
+        });
+        response.cookie(this.csrfTokenCookieName, csrfToken, {
             httpOnly: false,
-            secure: this.isProduction,
+            secure,
             sameSite: 'lax',
             path: '/',
-            expires: new Date(0),
+            expires: expiresAt,
         });
     }
 
-    /**
-     * Logout
-     */
-    async logout(refreshToken: string, res: Response): Promise<{ message: string }> {
-        if (refreshToken) {
-            const hashedToken = this.hashToken(refreshToken);
-            // Revoke the token in the DB
-            await this.prisma.refreshToken.updateMany({
-                where: { hashed_token: hashedToken },
-                data: { revoked_at: new Date() },
+    private clearAuthCookies(response: Response): void {
+        const secure = this.cookieIsSecure(response);
+        response.clearCookie(this.refreshTokenCookieName, {
+            httpOnly: true,
+            secure,
+            sameSite: 'lax',
+            path: REFRESH_COOKIE_PATH,
+        });
+        response.clearCookie(this.csrfTokenCookieName, {
+            httpOnly: false,
+            secure,
+            sameSite: 'lax',
+            path: '/',
+        });
+    }
+
+    private clearLegacyAdminCookies(response: Response): void {
+        const secure = this.cookieIsSecure(response);
+        for (const path of LEGACY_ADMIN_ACCESS_COOKIE_PATHS) {
+            response.clearCookie(this.adminAccessTokenCookieName, {
+                httpOnly: true,
+                secure,
+                sameSite: 'lax',
+                path,
             });
         }
-        // Clear cookies regardless
-        this.clearCookies(res);
-        return { message: 'Logged out successfully' };
+        for (const path of LEGACY_ADMIN_REFRESH_COOKIE_PATHS) {
+            response.clearCookie(this.adminRefreshTokenCookieName, {
+                httpOnly: true,
+                secure,
+                sameSite: 'lax',
+                path,
+            });
+        }
+        response.clearCookie(this.adminCsrfTokenCookieName, {
+            httpOnly: false,
+            secure,
+            sameSite: 'lax',
+            path: '/',
+        });
     }
 }

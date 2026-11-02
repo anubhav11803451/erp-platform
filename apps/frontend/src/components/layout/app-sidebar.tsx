@@ -1,6 +1,5 @@
 import { Link } from 'react-router';
 import { LogOut } from 'lucide-react';
-import { DashboardSidebarMenu, SidebarNav } from './app-sidebar-nav';
 
 import {
     Sidebar,
@@ -15,7 +14,9 @@ import {
     SidebarMenuItem,
     SidebarSeparator,
 } from '@/components/ui/sidebar';
+import { SidebarNav } from '@/components/layout/app-sidebar-nav';
 import { useAuth } from '@/hooks/use-auth';
+import { useRoleAccess } from '@/hooks/use-role-access';
 import Brand from '../shared/brand';
 import { Typography } from '../ui/typography';
 
@@ -24,12 +25,15 @@ import { Typography } from '../ui/typography';
  */
 export function AppSidebar() {
     const { handleLogout } = useAuth();
+    const { isPlatformOwner } = useRoleAccess();
+    const homePath = isPlatformOwner ? '/owner' : '/institution';
+
     return (
         // Use the shadcn Sidebar component
         <Sidebar variant="inset" collapsible="icon" className="hidden h-full md:visible">
             <SidebarHeader>
                 <SidebarMenu>
-                    <Link to="/">
+                    <Link to={homePath}>
                         <SidebarMenuItem>
                             <SidebarMenuButton size="lg">
                                 <Brand className="mr-0 aspect-square size-8 rounded-lg [&>span]:hidden [&>svg]:mr-0" />
@@ -43,15 +47,10 @@ export function AppSidebar() {
             </SidebarHeader>
             {/* --- Content --- */}
             <SidebarContent>
-                {/* --- Main Navigation (from shared component) --- */}
-                <SidebarGroup className="mt-6">
-                    <SidebarGroupContent>
-                        <DashboardSidebarMenu />
-                    </SidebarGroupContent>
-                </SidebarGroup>
-
                 <SidebarGroup>
-                    <SidebarGroupLabel>Menu</SidebarGroupLabel>
+                    <SidebarGroupLabel>
+                        {isPlatformOwner ? 'Platform' : 'Institution'}
+                    </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarNav />
                     </SidebarGroupContent>

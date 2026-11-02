@@ -5,13 +5,14 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import type { ReactNode } from 'react';
 
 type FormDialogShellProps = {
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
     title: string;
     description: string;
-    children: React.ReactNode;
+    children: ReactNode;
     className?: string;
 };
 

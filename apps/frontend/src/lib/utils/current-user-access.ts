@@ -2,13 +2,12 @@
 import { store } from '@/app/store';
 import { selectCurrentUser } from '@/features/auth/auth-slice';
 import { canRoleAccessFeature, getRoleAvailableFeatures } from './feature-access';
-import type { FeatureKey } from '@/config/permissions';
-import { UserRole } from '@erp/shared';
+import type { AppRole, FeatureKey } from '@/config/permissions';
 
-export function getCurrentUserRole(): UserRole {
+export function getCurrentUserRole(): AppRole | null {
     const state = store.getState();
     const user = selectCurrentUser(state);
-    return user?.role ?? UserRole.STAFF; // fallback
+    return user?.identity_kind ?? null;
 }
 
 export function canCurrentUserAccess(feature: FeatureKey): boolean {

@@ -1,74 +1,59 @@
-import { createAppSlice } from '@/app/create-app-slice';
 import type { RootState } from '@/app/root-reducer';
-import type { UserResponse } from '@erp/shared';
+import uiSlice from '@/app/ui-slice';
+import { createAppSlice } from '@/app/create-app-slice';
+import type { WorkspaceSessionResponse, WorkspaceIdentityResponse } from '@erp/shared';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 type AuthState = {
     access_token: string | null;
-    csrf_token: string | null;
-    user: UserResponse | null;
+    account: WorkspaceIdentityResponse['account'] | null;
+    currentUser: WorkspaceIdentityResponse | null;
     isAuthLoading: boolean;
 };
 
 const initialState: AuthState = {
     access_token: null,
-    csrf_token: null,
-    user: null,
+    account: null,
+    currentUser: null,
     isAuthLoading: true,
 };
 
 const authSlice = createAppSlice({
     name: 'auth',
-    initialState: initialState,
+    initialState,
     reducers: {
-        setCredentials: (
-            state,
-            action: PayloadAction<{ user: UserResponse; csrf_token: string; access_token: string }>
-        ) => {
-            state.user = action.payload.user;
+        setCredentials: (state, action: PayloadAction<WorkspaceSessionResponse>) => {
+            state.account = action.payload.identity.account;
             state.access_token = action.payload.access_token;
-            state.csrf_token = action.payload.csrf_token;
+            state.currentUser = action.payload.identity;
             state.isAuthLoading = false;
         },
         logOut: (state) => {
-            state.user = null;
+            state.account = null;
             state.access_token = null;
-            state.csrf_token = null;
-            state.isAuthLoading = false;
-        },
-        // This is a new reducer to handle just the loading state on refresh failure
-        authLoadingFailed: (state) => {
+            state.currentUser = null;
             state.isAuthLoading = false;
         },
     },
-    // extraReducers: (builder) => {
-    //     builder
-    //         // Listen for the "login" endpoint to be fulfilled
-    //         .addMatcher(authApiSlice.endpoints.login.matchFulfilled, (state, action) => {
-    //             // The action.payload is the AuthResponse object
-    //             // Call our existing setCredentials reducer
-    //             authSlice.caseReducers.setCredentials(state, action);
-    //         })
-    //         // Listen for the "refresh" endpoint to be fulfilled
-    //         .addMatcher(authApiSlice.endpoints.refresh.matchFulfilled, (state, action) => {
-    //             // Same as above
-    //             authSlice.caseReducers.setCredentials(state, action);
-    //         })
-    //         // Listen for "logout" to be fulfilled
-    //         .addMatcher(authApiSlice.endpoints.logout.matchFulfilled, (state) => {
-    //             // Call our existing logOut reducer
-    //             authSlice.caseReducers.logOut(state);
-    //         });
-    // },
 });
 
 export const { setCredentials, logOut } = authSlice.actions;
 export default authSlice;
 
-// --- NEW: Selectors ---
-export const selectAuthState = (state: RootState) => state.auth;
-export const selectCurrentUser = (state: RootState) => state.auth.user;
-export const selectAccessToken = (state: RootState) => state.auth.access_token;
-export const selectCsrfToken = (state: RootState) => state.auth.csrf_token;
-export const selectIsAuthenticated = (state: RootState) => !!state.auth.access_token;
-export const selectIsAuthLoading = (state: RootState) => state.auth.isAuthLoading;
+declare module '@/app/ui-slice' {
+    // Module augmentation requires an interface.
+    // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+    interface LazyLoadedSlices {
+        auth?: ReturnType<typeof authSlice.reducer>;
+    }
+}
+
+uiSlice.inject(authSlice);
+
+export const selectAuthState = (state: RootState) => state.ui.auth ?? initialState;
+export const selectCurrentAccount = (state: RootState) => selectAuthState(state).account;
+export const selectCurrentUser = (state: RootState) => selectAuthState(state).currentUser;
+export const selectAccessToken = (state: RootState) => selectAuthState(state).access_token;
+export const selectIsAuthenticated = (state: RootState) =>
+    Boolean(selectAuthState(state).access_token && selectAuthState(state).currentUser);
+export const selectIsAuthLoading = (state: RootState) => selectAuthState(state).isAuthLoading;
