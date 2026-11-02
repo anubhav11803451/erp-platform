@@ -1,41 +1,59 @@
 # API catalog
 
-**Last reviewed:** 2026-10-29<br>
+**Last reviewed:** 2026-11-02<br>
 **Base prefix:** `/v1/api` ([`main.ts`](../../apps/backend/src/main.ts))<br>
-**Scope:** controllers wired from `apps/backend/src`; legacy-reference controllers are not active routes.
+**Source state:** `review/delivered-feature-portfolio` at merge commit `ac672771194f7c96892ba73ff56d4b1ba8ad684d`. Route inventory is source-based; no API runtime was started for this review.
 
-The active Nest application has two controllers and five route handlers. The routes below preserve the controller-declared methods and paths. `Public` means there is no JWT guard on the handler; cookie/CSRF requirements are stated separately. No `ADMIN`/`STAFF` role guard is active in the current app.
+The active Nest application wires four controllers with 18 controller-declared route handlers. Methods and paths below combine each controller decorator with the global prefix. Swagger is configured separately at `/v1/api/docs` and is not included in the controller-handler count.
 
-| Method | Full path | Access / guard behavior | Behavior and source |
-| --- | --- | --- | --- |
-| POST | `/v1/api/auth/login` | No JWT guard; validates Platform Owner credentials. `ThrottlerGuard` is attached to this handler and `AuthModule` configures 5 requests per 60 seconds. | Issues access token and auth cookies — [`auth.controller.ts`](../../apps/backend/src/auth/auth.controller.ts), [`auth.module.ts`](../../apps/backend/src/auth/auth.module.ts), [`auth.service.ts`](../../apps/backend/src/auth/auth.service.ts). |
-| POST | `/v1/api/auth/refresh` | No JWT guard; requires a valid refresh-token cookie and a matching CSRF cookie / `X-CSRF-Token` header. | Rotates persisted refresh session and returns a new access-token response — [`auth.controller.ts`](../../apps/backend/src/auth/auth.controller.ts), [`auth.service.ts`](../../apps/backend/src/auth/auth.service.ts). |
-| POST | `/v1/api/auth/logout` | No JWT guard; requires matching CSRF cookie/header. A refresh cookie, if present, is used to revoke the session. | Revokes the matching session and clears cookies — [`auth.controller.ts`](../../apps/backend/src/auth/auth.controller.ts), [`auth.service.ts`](../../apps/backend/src/auth/auth.service.ts). |
-| GET | `/v1/api/auth/me` | `PlatformOwnerJwtAuthGuard`; the Passport strategy validates the current persisted, unrevoked, unexpired session and active `PlatformOwnerGrant`. | Returns the authenticated Owner account summary — [`auth.controller.ts`](../../apps/backend/src/auth/auth.controller.ts), [`platform-owner-jwt-auth.guard.ts`](../../apps/backend/src/auth/guards/platform-owner-jwt-auth.guard.ts), [`platform-owner-jwt.strategy.ts`](../../apps/backend/src/auth/strategies/platform-owner-jwt.strategy.ts). |
-| GET | `/v1/api/health` | Public; no controller guard. | Returns health status, timestamp, and uptime — [`health.controller.ts`](../../apps/backend/src/health.controller.ts). |
+## Active routes
 
-`AppModule` imports global configuration, `CoreModule`, and `AuthModule`, and mounts `HealthController`. `CoreModule` provides the shared `PrismaService`; `AuthModule` registers the throttler module and Platform Owner JWT strategy. Global Zod validation/serialization is configured in [`app.module.ts`](../../apps/backend/src/app.module.ts); the API prefix and middleware are configured in [`main.ts`](../../apps/backend/src/main.ts).
+| Method | Full path | Access behavior implemented in source |
+| --- | --- | --- |
+| `POST` | `/v1/api/auth/login` | No JWT guard; throttled. Requires exact configured `Origin`. Workspace intent verifies an eligible account and creates a session. Invitation intent also requires the continuation CSRF cookie/header and returns a continuation, not a workspace session. |
+| `POST` | `/v1/api/auth/refresh` | No JWT guard; throttled. Requires exact `Origin`, matching CSRF cookie/header, and refresh cookie; rotates the persisted session. |
+| `POST` | `/v1/api/auth/logout` | No JWT guard; throttled. If an auth context cookie is present, requires exact `Origin` and matching context CSRF; rejects simultaneous workspace and continuation contexts. Revokes/clears the corresponding context. |
+| `GET` | `/v1/api/auth/me` | `AccountSessionJwtAuthGuard`; requires a valid bearer access token backed by a current persisted session. Returns current account identity derived from persisted state. |
+| `POST` | `/v1/api/auth/invitations/exchange` | No JWT guard; throttled; exact `Origin`. Exchanges the one-time invitation bearer for an HttpOnly continuation context. |
+| `POST` | `/v1/api/auth/invitations/resume` | No JWT guard; throttled; exact `Origin`; continuation cookie required by service. |
+| `POST` | `/v1/api/auth/invitations/claim` | No JWT guard; throttled; exact `Origin`; continuation cookie and CSRF header required and verified against the continuation's stored CSRF hash. Existing eligible account claim. |
+| `POST` | `/v1/api/auth/invitations/claim/new-account` | No JWT guard; throttled; exact `Origin`; continuation cookie and CSRF validation. Establishes an unassigned account and submits its claim. |
+| `POST` | `/v1/api/auth/invitations/status` | No JWT guard; throttled; exact `Origin`; separate status-only HttpOnly credential cookie required by service. |
+| `GET` | `/v1/api/owner/legal-entities` | Class-level `PlatformOwnerJwtAuthGuard`; current Platform Owner session/identity/grant required. |
+| `POST` | `/v1/api/owner/legal-entities` | Class-level `PlatformOwnerJwtAuthGuard`; unsafe-method Origin and double-submit CSRF validation. Creates one LegalEntity. |
+| `POST` | `/v1/api/owner/legal-entities/:legalEntityId/institutions` | Platform Owner guard, throttled, security headers; creates an Institution and addressed invitation transactionally. |
+| `GET` | `/v1/api/owner/legal-entities/institutions/:institutionId/admin-invitation` | Platform Owner guard, throttled, security headers; reads latest first-Admin invitation status. |
+| `GET` | `/v1/api/owner/legal-entities/institutions/:institutionId/admin-invitation/claims` | Platform Owner guard, throttled, security headers; reads pending first-Admin claims. |
+| `POST` | `/v1/api/owner/legal-entities/institutions/:institutionId/admin-invitations/:invitationId/decision` | Platform Owner guard (including unsafe-method Origin/CSRF), throttled, security headers; approves, rejects, or revokes the addressed claim. Approval grants the fixed membership but does not issue a session. |
+| `POST` | `/v1/api/owner/legal-entities/institutions/:institutionId/admin-invitations/:invitationId/revoke` | Platform Owner guard (including unsafe-method Origin/CSRF), throttled, security headers; revokes an unclaimed invitation. |
+| `POST` | `/v1/api/owner/legal-entities/institutions/:institutionId/admin-invitations/:invitationId/replace` | Platform Owner guard (including unsafe-method Origin/CSRF), throttled, security headers; explicitly replaces/reissues an invitation. |
+| `GET` | `/v1/api/health` | Public; no JWT or role guard. Returns health status, timestamp, and uptime. |
 
-## Route/build boundary and inactive source
+Controller declarations and service ownership: [`AuthController`](../../apps/backend/src/auth/auth.controller.ts), [`InstitutionAdminInvitationController`](../../apps/backend/src/auth/institution-admin-invitation.controller.ts), [`OwnerController`](../../apps/backend/src/owner/owner.controller.ts), and [`HealthController`](../../apps/backend/src/health/health.controller.ts). The global prefix, CORS, cookie parser, security headers, and Swagger setup are in [`main.ts`](../../apps/backend/src/main.ts).
 
-- The active application does not import institution, membership, invitation, user-management, student, guardian, batch, enrollment, payment, attendance, or dashboard controllers. No Institution or LegalEntity route is present.
-- Older business controller/module source is retained under `apps/backend/legacy-reference/src/`; it is not wired by `AppModule` and is not included in this active-route table.
-- There is a build configuration discrepancy: [`nest-cli.json`](../../apps/backend/nest-cli.json) selects `tsconfig.json`, while [`tsconfig.build.json`](../../apps/backend/tsconfig.build.json) contains exclusions for legacy-reference, tests, and specs. A read-only `tsc --project tsconfig.json --listFilesOnly` check listed legacy-reference files, current specs, and the e2e test source. The user reports `pnpm --filter @erp/backend run build-local` passed and `pnpm dev` returned HTTP 200 for backend health and Owner login. These results establish successful backend build/runtime behavior as reported; they do not establish that the legacy inputs were excluded. The config discrepancy remains.
-- The frontend [`tsconfig.app.json`](../../apps/frontend/tsconfig.app.json) includes `src`; a read-only `tsc --project tsconfig.app.json --listFilesOnly` check listed inactive legacy business feature files. The user reports `pnpm --filter @erp/frontend exec vite build` passed. Vite bundling follows the active import graph, but this command does not run the full `build` script's `tsc -b` step; the user confirms the full frontend build/typecheck was not run. Thus frontend TypeScript inclusion and successful typecheck remain unresolved.
-- Frontend RTK Query calls only the active auth endpoints in the active auth feature. The app also contains a static landing page and Owner placeholder; no institution setup request or demo-lead request is connected. See [`auth-api-slice.ts`](../../apps/frontend/src/features/auth/auth-api-slice.ts) and the [feature inventory](../product/feature-inventory.md).
+## Modules, identity, and authorization boundary
 
-## Request/data ownership and auth boundary
+- Active modules are root `AppModule`, `AuthModule`, `CoreModule`, and `OwnerModule`. `AuthModule` configures a five-request/60-second throttler and registers the account-session, Owner, and Institution Admin guards/strategies. `OwnerModule` mounts the Owner controller; `AppModule` mounts the public health controller.
+- There is no active `@Roles` policy/decorator declaration in `apps/backend/src`. Authorization is enforced by guards: Owner routes use `PlatformOwnerJwtAuthGuard`, which checks current account-session validity, `PLATFORM_OWNER` identity, and a persisted `PlatformOwnerGrant`; unsafe methods also check exact `Origin` and matching CSRF cookie/header ([guard](../../apps/backend/src/common/guards/platform-owner-jwt-auth.guard.ts)).
+- `InstitutionAdminJwtAuthGuard` checks `INSTITUTION_ADMIN` identity and current membership, then attaches the server-derived Institution ID. It is registered by `AuthModule` but no active business controller applies it. UI `Access` and role-based navigation in `apps/frontend/src/config/permissions.ts` are visibility controls, not API authorization.
+- `/auth/me` is protected by `AccountSessionJwtAuthGuard`, then resolves the current identity. The account-session strategy checks the access-token subject/session pairing and current session expiry/revocation; Owner/Admin privileges are then read from current persisted identity/grant/membership state.
+- Invitation controllers do not use workspace JWT guards. They use exact-Origin checks, throttling, one-purpose cookies, service-level token/CSRF checks, and security response headers as described per handler.
+- No active route accepts an Institution-selected client role or exposes operational Student/Guardian/Batch/Enrollment/Attendance/Payment data. No institution-scoped operational isolation is demonstrated by the active routes.
 
-Platform Owner authority is represented by the presence of a `PlatformOwnerGrant` related to an `Account`; it is not an institution membership or a role selected by the browser. The JWT strategy loads the persisted `Session` and current Owner grant on each protected request. No active API currently accepts an Institution ID or returns institution-owned business data. The active routes therefore do not yet demonstrate institution-level data isolation.
+## Contracts, validation, and inactive source
 
-`POST /auth/login` uses the shared `platformOwnerSignInSchema`; the current public shared response types are Platform Owner account/sign-in/logout responses. The active package exports no institution or LegalEntity request/response contract. See [`packages/shared/src/schemas.ts`](../../packages/shared/src/schemas.ts), [`packages/shared/src/schemas/auth.ts`](../../packages/shared/src/schemas/auth.ts), and [`packages/shared/src/types/index.ts`](../../packages/shared/src/types/index.ts).
+The active public root `@erp/shared` barrel exports schemas from `auth`, `health`, `institution-admin-onboarding`, and `institution-onboarding`; those modules define 48 exported inferred TypeScript type aliases in total. Backend DTOs use the shared Zod schemas and `AppModule` installs global Zod validation/serialization. The shared contract source and active barrel are cataloged in [`data-model.md`](data-model.md).
 
-## Coverage
+Business controllers/modules retained in `apps/backend/legacy-reference/` are not imported by the active `AppModule` and are excluded from these routes. The separate active Prisma schema does not contain operational business models for those retained workflows.
+
+## Coverage and execution status
 
 | Area | Coverage |
 | --- | --- |
-| Controllers and handlers | 2 controllers, 5 route handlers in `apps/backend/src`. |
-| Modules | `AppModule`, `AuthModule`, and `CoreModule`; no other active application module. |
-| Auth/role metadata | Login throttle guard; Owner JWT guard on `/auth/me`; refresh/logout CSRF validation; no active role-decorator policy. |
-| Missing onboarding APIs | Institution create/read, LegalEntity grouping, first-Admin invitation, invitation acceptance, and staff management are absent from active controllers. |
-| Runtime/deployment | Route inventory is source-based. No deployed API, environment, database, or live migration state was checked. |
+| Active controllers/handlers | 4 controllers, 18 controller-declared handlers in `apps/backend/src`. |
+| Active modules | `AppModule`, `AuthModule`, `CoreModule`, `OwnerModule`. |
+| Auth/role policy | Current Account session, Owner grant, and Institution Admin membership guards; no `@Roles` policy found. |
+| Throttling | Module configured to 5 requests/60 seconds; guards are attached at handler level, not to every route. |
+| Unavailable operations | Staff/tutor management, student/family self-service, education operations, payment processing, email delivery, and external education integrations have no active controller route. |
+| Legacy boundary | Eight legacy business controllers/modules are retained but inactive. |
+| Runtime/deployment | No build, tests, live database, or runtime/API request was performed for this architecture review. Prior disposable migration/integration and isolated browser results are recorded in the feature-delivery record and are not represented as newly run. |

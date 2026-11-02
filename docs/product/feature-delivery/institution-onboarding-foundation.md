@@ -848,3 +848,7 @@ The eight architectural choices below are approved and integrated; no further ar
 ### User decision — claimant status after review expiry (resolved 2026-10-29)
 
 The approved status-only cookie and credential expire at the seven-day review deadline. Backend persists `EXPIRED`, but the claimant's expired credential cannot authenticate a status lookup, so the UI says status is unavailable/may have expired and directs the claimant to the Owner. The user selected “Keep the seven-day expiry; accept unavailable/may-have-expired claimant status.” This records acceptance of that product limitation only; it does not extend credential validity, change authorization, or establish release readiness.
+
+### Portfolio review status reconciliation — 2026-11-02
+
+The earlier “no merge ... authorized” statements above describe the authority state recorded at those earlier handoffs. For this portfolio review, the user confirmed that the prior work had been merged before the review branch was created. Git confirms the reviewed branch is based on merge commit `ac672771194f7c96892ba73ff56d4b1ba8ad684d` for PR #8, with `dev` and `origin/dev` pointing to that commit at inventory time. This reconciles the current source/merge status without inferring any additional approval or reconstructing an unrecorded merge authorization. No merge, deployment, release, or database action was performed or authorized by this portfolio review; deployment and release status remain unverified.

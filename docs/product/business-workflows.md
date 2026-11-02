@@ -1,40 +1,54 @@
 # Current business workflows
 
-**Last reviewed:** 2026-10-14<br>
-**Evidence boundary:** workflows below are reconstructed from current pages, API handlers/services, shared schemas, and Prisma relations. They are not validated customer journeys.
+**Last reviewed:** 2026-11-02<br>
+**Evidence boundary:** Static review of active frontend routes/features, backend route inventory, shared contracts, active persistence, and prior documented verification. These are source-supported journeys, not evidence of deployment, customer use, or usability. The Architecture Analyst's current counts and cross-layer evidence are in the [feature inventory](feature-inventory.md).
 
-## Current roles and actors
+## Current actors and active journeys
 
-| Actor | Established in code | Current workflow surface |
+| Actor | Established in active source | Current workflow |
 | --- | --- | --- |
-| Admin | `UserRole.ADMIN` | Manage users, students/guardians, batches, enrollment, and payment records; view dashboard including revenue. |
-| Staff/tutor | `UserRole.STAFF` | View assigned batches, enroll students, view student/guardian records and payment history, mark attendance, and view dashboard. Exact role access is in the [API catalog](../architecture/api-catalog.md). |
-| Student | Student record only | No login account or student-facing route is modeled. |
-| Guardian/parent | Guardian contact record only | Captured as a contact during student creation; no guardian login, portal, notification, or communication workflow is modeled. |
-| Institution owner/operator | No explicit organization role/model | The product description targets educational organizations, but the data model does not identify an institution or tenant. |
+| Prospective institution representative | Static landing page at `/`; no lead API/model | Can view marketing content. Demo/explore calls to action do not submit a lead or navigate to an active workflow. Claims on the page are not proof of delivered capabilities. |
+| Platform Owner | `PLATFORM_OWNER` identity and persisted `PlatformOwnerGrant` | Signs in at `/signin`; provisions LegalEntity groups and Institutions; creates a first-Admin invitation; reviews, approves/rejects, revokes, or replaces an invitation/claim. Bootstrap account creation is a separate command requiring an empty Account table, not public registration. |
+| First Institution Admin / claimant | Addressed invitation and `InstitutionAdminMembership` | Receives a manually shared one-time link, submits a claim, waits for Owner approval, then separately signs in. Claim alone grants no membership or workspace session. |
+| Institution Admin after approval | `INSTITUTION_ADMIN` identity and one Institution membership | Signs in through the shared `/signin` flow and reaches `/institution`, which displays identity and Institution details. There are no active operational ERP tasks or institution-scoped business-data endpoints in this workspace. |
+| Staff/tutor, learner, guardian/family | No corresponding active role, route, or account workflow | No current active staff management, learner operations, or family self-service. Retained legacy source is not an active journey. |
 
-## Implemented workflow paths
+### Implemented source journeys
 
-1. **Administer staff and tutors:** an Admin uses `/users` to create, edit, and delete accounts. `User.role` is `ADMIN` or `STAFF`; a Batch may reference a tutor.
-2. **Maintain a learner record:** an Admin uses `/students` to create or edit a Student. Student creation includes guardian contact fields; the service finds or creates a Guardian by email and links the Student.
-3. **Organize instruction:** an Admin creates or edits a Batch, optionally assigning a tutor. Staff can request their assigned batches. Batch dates exist, but scheduled sessions/timetables do not.
-4. **Enroll a learner:** Admin or Staff adds a Student to a Batch with an agreed total fee. The join record prevents duplicate student/batch pairs. Admin can disenroll one or more students.
-5. **Take attendance:** Staff or Admin selects one of their batches in the attendance UI, selects a date, and marks student statuses. The API upserts records per student/batch/date.
-6. **Record a payment:** an Admin records a payment linked to a student and batch after enrollment. Staff can read payment history. The current flow stores a record; it does not establish that money was processed by a provider.
-7. **Review activity:** Admin and Staff see student and batch counts plus recent payments and enrollments. Admin receives the revenue aggregate.
+1. **Workspace sign-in and session:** Platform Owners and approved Institution Admins use the shared sign-in endpoint. The server derives the resulting identity and workspace; invitation continuation uses an explicit non-session flow. Refresh/logout and current identity have active API paths.
+2. **Owner setup:** The Owner creates a coded LegalEntity group, then creates an Institution and its addressed first-Admin invitation in one transaction. LegalEntity creation is a separate operation. The one-time bearer URL is returned for manual sharing; no invitation email is sent.
+3. **First-Admin claim and review:** An invitee exchanges the link, claims using an eligible existing or new account, and sees pending/review outcomes. The Owner performs the separately approved identity check out of band and explicitly decides. Approval grants membership but not a session; the claimant signs in separately. Rejection, revocation, and expiry do not grant access.
+4. **Institution overview:** An approved Admin sees account and Institution context. This is an onboarding/account surface, not a student-management, attendance, finance, or dashboard workflow.
 
-## Incomplete or absent journeys
+The current inventory describes these capabilities as implemented in source, except the limited Institution overview, which is **partial**. This does not establish that the code is deployed or available to users. The exact routes, guards, contracts, models, and source evidence are in the [API catalog](../architecture/api-catalog.md), [data model](../architecture/data-model.md), and [feature inventory](feature-inventory.md).
 
-- **First institution/admin setup:** no organization creation or institution onboarding flow is modeled. The checked-in Prisma seed is commented out; a supported first-admin provisioning path is not established.
-- **Sign-up:** the page currently accepts form input, shows a success toast, and navigates without calling a registration API. The API endpoint is absent.
-- **Password recovery:** the page changes to a success message locally; no backend request or reset-token model/route exists.
-- **Family self-service:** students and guardians have no account, portal, notification, consent, or communication workflow in the inspected routes/models.
-- **Fees lifecycle:** the current payment path is a manually entered payment record. Fee schedules, invoices, due reminders, partial-payment rules, refunds, and reconciliation are not established.
-- **Issue reporting:** the bug report form is not connected to a backend service or persisted store.
-- **Marketing/demo request:** the public landing page advertises generic ERP modules, integrations, AI assistance, testimonials, and a demo request, but the reviewed backend/API has no demo lead workflow. These claims and actions are unverified by this repository and should not be treated as delivered education-ERP capability or customer evidence.
+## Outcomes not supported by active source
 
-These gaps may be intentional for an early MVP. Validate them with institution owners, administrators, tutors, and families before treating them as committed requirements.
+The earlier 2026-10-14 workflow descriptions for Admin/Staff users, students/guardians, batches, enrollment, attendance, manual payment records, and dashboard summaries describe retained legacy-reference source, not current active application journeys. The current active schema has no operational education-data models, and the active API does not expose those workflows.
 
-## UI/UX review evidence
+The following are absent or incomplete in the repository; absence alone is not evidence of customer demand or a committed requirement:
 
-The workflows above are reconstructed from source and are not evidence that real users can complete them easily. During a portfolio UI/UX review, record navigation and screen-level findings here with route/source links and label the evidence as static source review, browser inspection, automated accessibility check, or user testing. Do not claim usability or accessibility validation when those methods were not used. Route specific implementation defects to [`bug-triage.md`](bug-triage.md) and track screen-to-feature coverage in [`feature-inventory.md`](feature-inventory.md).
+- Daily education operations (staff/tutor management, learner/guardian records, groups/classes, enrollment, attendance, operational reporting).
+- Additional Institution Admin staff provisioning and role/action management.
+- Student/guardian accounts, portals, communications, or self-service.
+- Fee schedules, invoices, payment processing, settlement/reconciliation, refunds, or provider integrations.
+- Public registration and password recovery. Bootstrap is controlled/out-of-band; first-Admin account creation is invitation-only.
+- Automated invitation delivery/notifications; first-Admin link sharing is manual.
+- A working demo-lead capture or support/bug-reporting workflow (the standalone report form is a disconnected stub).
+- SIS/LMS or other external system integration.
+
+## Portfolio UI/UX review
+
+**Method:** UI/UX Designer static source review dated 2026-11-02 against the verified routes and documented workflows. No browser session, automated accessibility evaluation, or user testing was performed for this review.
+
+- On `/`, the “Request a Demo” and “Explore Features” controls have no active submission/navigation behavior in source. The page also advertises generic business modules/integrations and displays a hard-coded AI-demo response not substantiated by the active product inventory. Customer impact and any services outside this repository are unverified. See [bug triage](bug-triage.md).
+- On `/owner`, “Generate claim / Add Campus” leads to Institution creation and an invitation; source explicitly says it does not create a Campus record or send email. The label is inconsistent with the action.
+- On the `*` route, the not-found page presents a search affordance without a source-wired action and a “Contact support” link to `#`.
+- The invite/approval journey communicates pending review and keeps claim separate from grant, but relies on out-of-band manual delivery, verification, and separate post-approval sign-in. Whether this works for the intended Owner/Admin is unvalidated.
+- The sign-in, Owner, invitation, and Institution routes include loading, empty/error, decision, confirmation, and/or status states in source. Labels, focus/live-region, and responsive patterns are visible source cues only—not accessibility conformance.
+
+The feature record reports a **limited prior browser smoke on 2026-11-02** (390×844 overflow and mobile sidebar keyboard behavior, plus the described invitation/approval flow). This was not repeated for this review and is not user testing. Screen-reader, contrast, zoom, automated accessibility, and replaced-link replay remain unverified. The feature record also reports React script-tag and React Router `HydrateFallback` console observations; neither was independently reproduced or root-caused here.
+
+## Evidence and validation still needed
+
+No customer interviews, pilot outcomes, user research, target geography, buyer, or initial segment were established in this review. Validate the Owner/Admin setup journey and identify the first recurring operational job separately for tuition/coaching and K–12 contexts before treating any absent module as required. Record browser checks, accessibility tooling, and observed-user testing as distinct methods. Do not claim usability, accessibility conformance, deployment, or release from static source review.
