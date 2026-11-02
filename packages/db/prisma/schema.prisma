@@ -8,25 +8,54 @@ datasource db {
   provider = "postgresql"
 }
 
+enum AccountIdentityKind {
+  UNASSIGNED
+  PLATFORM_OWNER
+  INSTITUTION_ADMIN
+}
+
+enum InstitutionAdminInvitationStatus {
+  PENDING
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  REVOKED
+  EXPIRED
+  LEGACY_ACCEPTED
+}
+
 model Account {
-  id            String              @id @default(uuid())
-  email         String              @unique
-  password_hash String
-  created_at    DateTime            @default(now())
-  updated_at    DateTime            @updatedAt
-  owner_grant   PlatformOwnerGrant?
-  sessions      Session[]
+  id                             String                                   @id @default(uuid())
+  email                          String                                   @unique(map: "Account_email_key")
+  password_hash                  String
+  identity_kind                  AccountIdentityKind                      @default(UNASSIGNED)
+  created_at                     DateTime                                 @default(now())
+  updated_at                     DateTime                                 @updatedAt
+  owner_grant                    PlatformOwnerGrant?
+  sessions                       Session[]
+  institution_admin_membership   InstitutionAdminMembership?
+  accepted_admin_invitations     InstitutionAdminInvitation[]             @relation("AcceptedByAccount")
+  claimed_admin_invitations      InstitutionAdminInvitation[]             @relation("ClaimedByAccount")
+  admin_invitation_continuations InstitutionAdminInvitationContinuation[]
+
+  @@unique([id, identity_kind], map: "Account_id_identity_kind_key")
 }
 
 model PlatformOwnerGrant {
-  account_id String   @id
-  granted_at DateTime @default(now())
-  account    Account  @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  account_id                String                       @id
+  account_identity_kind     AccountIdentityKind          @default(PLATFORM_OWNER)
+  granted_at                DateTime                     @default(now())
+  account                   Account                      @relation(fields: [account_id, account_identity_kind], references: [id, identity_kind], onDelete: Cascade, onUpdate: Cascade, map: "OwnerGrant_account_kind_fkey")
+  decided_admin_invitations InstitutionAdminInvitation[] @relation("DecidedByOwnerGrant")
+
+  @@unique([account_id, account_identity_kind], map: "PlatformOwnerGrant_account_kind_key")
 }
 
 model Session {
   id                 String    @id @default(uuid())
   account_id         String
+  /// Shared by rotations of one login; retain predecessor rows/hashes while descendants are active.
+  rotation_family_id String
   refresh_token_hash String    @unique
   created_at         DateTime  @default(now())
   expires_at         DateTime
@@ -35,23 +64,99 @@ model Session {
 
   @@index([account_id])
   @@index([expires_at])
+  @@index([rotation_family_id], type: BTree)
 }
 
 model LegalEntity {
   id           String        @id @default(uuid())
   name         String
+  /// Nullable for legacy rows; all new LegalEntity create requests provide a code.
+  code         String?       @unique(map: "LegalEntity_code_key")
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
   institutions Institution[]
 }
 
 model Institution {
-  id              String      @id @default(uuid())
-  legal_entity_id String
-  name            String
-  created_at      DateTime    @default(now())
-  updated_at      DateTime    @updatedAt
-  legal_entity    LegalEntity @relation(fields: [legal_entity_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  id                String                       @id @default(uuid())
+  legal_entity_id   String
+  name              String
+  /// Nullable for legacy rows; full display codes are derived from the LegalEntity code.
+  code_suffix       String?
+  created_at        DateTime                     @default(now())
+  updated_at        DateTime                     @updatedAt
+  legal_entity      LegalEntity                  @relation(fields: [legal_entity_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  admin_memberships InstitutionAdminMembership[]
+  admin_invitations InstitutionAdminInvitation[]
 
   @@index([legal_entity_id], type: BTree)
+  @@unique([legal_entity_id, code_suffix], map: "Institution_legal_entity_id_code_suffix_key")
+}
+
+model InstitutionAdminMembership {
+  account_id            String              @id
+  account_identity_kind AccountIdentityKind @default(INSTITUTION_ADMIN)
+  institution_id        String
+  created_at            DateTime            @default(now())
+  account               Account             @relation(fields: [account_id, account_identity_kind], references: [id, identity_kind], onDelete: Cascade, onUpdate: Cascade, map: "InstitutionAdminMembership_account_kind_fkey")
+  institution           Institution         @relation(fields: [institution_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([account_id, account_identity_kind], map: "InstitutionAdminMembership_account_kind_key")
+  @@index([institution_id], type: BTree)
+}
+
+model InstitutionAdminInvitation {
+  id                           String                                   @id @default(uuid())
+  institution_id               String
+  token_hash                   String                                   @unique(map: "InstitutionAdminInvitation_token_hash_key")
+  /// Nullable for preserved legacy invitations that were issued without a recipient.
+  invited_email                String?
+  owner_contact_name           String?
+  owner_contact_phone          String?
+  status                       InstitutionAdminInvitationStatus         @default(PENDING)
+  created_at                   DateTime                                 @default(now())
+  expires_at                   DateTime
+  accepted_at                  DateTime?
+  accepted_by_account_id       String?
+  claimed_by_account_id        String?
+  claimed_at                   DateTime?
+  claimant_name                String?
+  review_expires_at            DateTime?
+  decided_by_account_id        String?
+  decided_at                   DateTime?
+  status_credential_hash       String?                                  @unique(map: "InstitutionAdminInvitation_status_credential_hash_key")
+  status_credential_expires_at DateTime?
+  revoked_at                   DateTime?
+  institution                  Institution                              @relation(fields: [institution_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  accepted_by_account          Account?                                 @relation("AcceptedByAccount", fields: [accepted_by_account_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  claimed_by_account           Account?                                 @relation("ClaimedByAccount", fields: [claimed_by_account_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  decided_by_owner_grant       PlatformOwnerGrant?                      @relation("DecidedByOwnerGrant", fields: [decided_by_account_id], references: [account_id], onDelete: Restrict, onUpdate: Cascade)
+  continuations                InstitutionAdminInvitationContinuation[]
+
+  // The outstanding-state partial unique index is PostgreSQL-specific and defined in migration SQL.
+  @@index([institution_id, status, created_at], type: BTree)
+  @@index([institution_id, status, expires_at], type: BTree)
+  @@index([institution_id, status, review_expires_at], type: BTree)
+  @@index([accepted_by_account_id], type: BTree)
+  @@index([claimed_by_account_id], type: BTree)
+  @@index([decided_by_account_id], type: BTree)
+}
+
+model InstitutionAdminInvitationContinuation {
+  id              String                     @id @default(uuid())
+  invitation_id   String
+  credential_hash String                     @unique(map: "InstitutionAdminInvitationContinuation_credential_hash_key")
+  account_id      String?
+  csrf_token_hash String
+  created_at      DateTime                   @default(now())
+  expires_at      DateTime
+  revoked_at      DateTime?
+  consumed_at     DateTime?
+  invitation      InstitutionAdminInvitation @relation(fields: [invitation_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  account         Account?                   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([invitation_id], type: BTree)
+  @@index([account_id], type: BTree)
+  @@index([expires_at], type: BTree)
+  @@index([revoked_at], type: BTree)
 }

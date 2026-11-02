@@ -1,0 +1,2 @@
+-- RenameIndex
+ALTER INDEX "InstitutionAdminInvitation_institution_id_status_review_expires" RENAME TO "InstitutionAdminInvitation_institution_id_status_review_exp_idx";
