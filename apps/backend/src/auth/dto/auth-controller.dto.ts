@@ -1,18 +1,16 @@
 import {
-    platformOwnerAccountResponseSchema,
+    authSessionResponseSchema,
+    authenticatedAccountIdentityResponseSchema,
     platformOwnerLogoutResponseSchema,
-    platformOwnerSignInResponseSchema,
-    platformOwnerSignInSchema,
+    signInRequestSchema,
 } from '@erp/shared';
 import { createZodDto } from 'nestjs-zod/dto';
 
-export class PlatformOwnerSignInDto extends createZodDto(platformOwnerSignInSchema) {}
-export class PlatformOwnerSignInResponseDto extends createZodDto(
-    platformOwnerSignInResponseSchema,
-) {}
+export class SignInDto extends createZodDto(signInRequestSchema) {}
+export const AuthSessionResponseDto = createZodDto(authSessionResponseSchema);
+export const AuthenticatedAccountIdentityResponseDto = createZodDto(
+    authenticatedAccountIdentityResponseSchema,
+);
 export class PlatformOwnerLogoutResponseDto extends createZodDto(
     platformOwnerLogoutResponseSchema,
-) {}
-export class PlatformOwnerAccountResponseDto extends createZodDto(
-    platformOwnerAccountResponseSchema,
 ) {}

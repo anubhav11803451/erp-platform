@@ -15,6 +15,7 @@ describe('PlatformOwnerJwtStrategy', () => {
                     account: {
                         id: 'account-id',
                         email: 'owner@example.test',
+                        identity_kind: 'PLATFORM_OWNER',
                         owner_grant: null,
                     },
                 }),

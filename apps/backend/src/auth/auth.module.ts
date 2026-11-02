@@ -8,12 +8,19 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { PlatformOwnerJwtAuthGuard } from '../common/guards/platform-owner-jwt-auth.guard';
 import { PlatformOwnerJwtStrategy } from '../common/strategies/platform-owner-jwt.strategy';
+import { AccountSessionJwtStrategy } from '../common/strategies/account-session-jwt.strategy';
+import { InstitutionAdminJwtAuthGuard } from '../common/guards/institution-admin-jwt-auth.guard';
+import { InstitutionAdminInvitationController } from './institution-admin-invitation.controller';
+import { InstitutionAdminInvitationService } from './institution-admin-invitation.service';
+import { InstitutionAdminInvitationContinuationCleanupService } from './institution-admin-invitation-continuation-cleanup.service';
+import { InvitationSecurityHeadersInterceptor } from '../common/interceptors/invitation-security-headers.interceptor';
+import { AccountSessionJwtAuthGuard } from '../common/guards/account-session-jwt-auth.guard';
 
 @Module({
     imports: [
         CoreModule,
         ThrottlerModule.forRoot([{ limit: 5, ttl: 60_000 }]),
-        PassportModule.register({ defaultStrategy: 'platform-owner-jwt' }),
+        PassportModule.register({ defaultStrategy: 'account-session-jwt' }),
         JwtModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
@@ -22,8 +29,18 @@ import { PlatformOwnerJwtStrategy } from '../common/strategies/platform-owner-jw
             }),
         }),
     ],
-    controllers: [AuthController],
-    providers: [AuthService, PlatformOwnerJwtStrategy, PlatformOwnerJwtAuthGuard],
-    exports: [PlatformOwnerJwtAuthGuard],
+    controllers: [AuthController, InstitutionAdminInvitationController],
+    providers: [
+        AuthService,
+        InstitutionAdminInvitationService,
+        InstitutionAdminInvitationContinuationCleanupService,
+        PlatformOwnerJwtStrategy,
+        AccountSessionJwtAuthGuard,
+        PlatformOwnerJwtAuthGuard,
+        AccountSessionJwtStrategy,
+        InstitutionAdminJwtAuthGuard,
+        InvitationSecurityHeadersInterceptor,
+    ],
+    exports: [PlatformOwnerJwtAuthGuard, InstitutionAdminJwtAuthGuard, ThrottlerModule],
 })
 export class AuthModule {}

@@ -37,7 +37,8 @@ export class PlatformOwnerJwtStrategy extends PassportStrategy(Strategy, 'platfo
             session.account_id !== payload.sub ||
             session.revoked_at ||
             session.expires_at <= new Date() ||
-            !session.account.owner_grant
+            !session.account.owner_grant ||
+            session.account.identity_kind !== 'PLATFORM_OWNER'
         ) {
             throw new UnauthorizedException();
         }
@@ -45,6 +46,7 @@ export class PlatformOwnerJwtStrategy extends PassportStrategy(Strategy, 'platfo
         return {
             id: session.account.id,
             email: session.account.email,
+            identity_kind: 'PLATFORM_OWNER' as const,
         };
     }
 }

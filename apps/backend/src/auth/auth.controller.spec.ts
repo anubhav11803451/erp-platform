@@ -3,63 +3,206 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ThrottlerModule } from '@nestjs/throttler';
+import cookieParser from 'cookie-parser';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import type { App } from 'supertest/types';
 import request from 'supertest';
+import { AccountSessionJwtAuthGuard } from '../common/guards/account-session-jwt-auth.guard';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { InstitutionAdminInvitationService } from './institution-admin-invitation.service';
 
-describe('AuthController login throttling', () => {
+describe('AuthController shared sign-in and session endpoints', () => {
     let app: INestApplication<App>;
     const authService = {
-        signIn: jest.fn().mockResolvedValue({
+        signInWorkspace: jest.fn().mockResolvedValue({
+            kind: 'SESSION',
             access_token: 'access-token',
-            csrf_token: 'csrf-token',
-            account: {
-                id: 'owner-id',
-                email: 'owner@example.test',
-                password_hash: 'must-not-be-serialized',
+            csrf_token: 'session-csrf-token',
+            identity: {
+                identity_kind: 'PLATFORM_OWNER',
+                account: { id: 'owner-id', email: 'owner@example.test' },
             },
         }),
+        refresh: jest.fn(),
+        logout: jest.fn().mockResolvedValue({ message: 'Logged out successfully' }),
+        getAuthenticatedIdentity: jest.fn(),
+    };
+    const invitationService = {
+        signInExistingAccount: jest.fn().mockResolvedValue({
+            institution: {
+                id: '00000000-0000-4000-8000-000000000001',
+                name: 'School',
+                code: 'SPEG-MAIN',
+            },
+            invited_email: 'admin@example.test',
+            invitation_expires_at: '2026-11-05T00:00:00.000Z',
+        }),
+        logoutContinuation: jest.fn().mockResolvedValue(undefined),
     };
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        authService.signInWorkspace.mockResolvedValue({
+            kind: 'SESSION',
+            access_token: 'access-token',
+            csrf_token: 'session-csrf-token',
+            identity: {
+                identity_kind: 'PLATFORM_OWNER',
+                account: { id: 'owner-id', email: 'owner@example.test' },
+            },
+        });
+        invitationService.signInExistingAccount.mockResolvedValue({
+            institution: {
+                id: '00000000-0000-4000-8000-000000000001',
+                name: 'School',
+                code: 'SPEG-MAIN',
+            },
+            invited_email: 'admin@example.test',
+            invitation_expires_at: '2026-11-05T00:00:00.000Z',
+        });
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [ThrottlerModule.forRoot([{ limit: 5, ttl: 60_000 }])],
             controllers: [AuthController],
             providers: [
                 { provide: AuthService, useValue: authService },
-                { provide: ConfigService, useValue: { get: jest.fn() } },
+                { provide: InstitutionAdminInvitationService, useValue: invitationService },
+                {
+                    provide: ConfigService,
+                    useValue: {
+                        get: jest.fn(),
+                        getOrThrow: jest.fn().mockReturnValue('http://localhost:5173'),
+                    },
+                },
+                AccountSessionJwtAuthGuard,
             ],
-        }).compile();
+        })
+            .overrideGuard(AccountSessionJwtAuthGuard)
+            .useValue({ canActivate: jest.fn(() => true) })
+            .compile();
 
         app = moduleFixture.createNestApplication();
+        app.use(cookieParser());
         app.useGlobalPipes(new ZodValidationPipe());
         app.useGlobalInterceptors(new ZodSerializerInterceptor(app.get(Reflector)));
         await app.init();
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
         await app.close();
     });
 
-    it('rejects the sixth login request in one minute before calling authentication', async () => {
+    it('throttles repeated workspace login attempts and serializes only the shared session contract', async () => {
         for (let attempt = 0; attempt < 5; attempt += 1) {
             const response = await request(app.getHttpServer())
                 .post('/auth/login')
-                .send({ email: 'owner@example.test', password: 'valid-password' })
+                .send({
+                    intent: 'WORKSPACE',
+                    email: 'owner@example.test',
+                    password: 'valid-password',
+                })
                 .expect(200);
-            expect(response.body.account).toEqual({
-                id: 'owner-id',
-                email: 'owner@example.test',
+            expect(response.body).toEqual({
+                kind: 'SESSION',
+                access_token: 'access-token',
+                csrf_token: 'session-csrf-token',
+                identity: {
+                    identity_kind: 'PLATFORM_OWNER',
+                    account: { id: 'owner-id', email: 'owner@example.test' },
+                },
             });
         }
 
         await request(app.getHttpServer())
             .post('/auth/login')
-            .send({ email: 'owner@example.test', password: 'valid-password' })
+            .send({
+                intent: 'WORKSPACE',
+                email: 'owner@example.test',
+                password: 'valid-password',
+            })
             .expect(429);
+        expect(authService.signInWorkspace).toHaveBeenCalledTimes(5);
+    });
 
-        expect(authService.signIn).toHaveBeenCalledTimes(5);
+    it('requires the continuation cookie, synchronizer CSRF, and exact Origin for invitation intent', async () => {
+        await request(app.getHttpServer())
+            .post('/auth/login')
+            .set('Origin', 'http://localhost:5173')
+            .send({
+                intent: 'INVITATION',
+                email: 'admin@example.test',
+                password: 'valid-password',
+            })
+            .expect(403);
+
+        await request(app.getHttpServer())
+            .post('/auth/login')
+            .set('Origin', 'https://unexpected.example')
+            .set('Cookie', 'erp360_iac=continuation; erp360_iac_ctk=csrf-token')
+            .set('x-csrf-token', 'csrf-token')
+            .send({
+                intent: 'INVITATION',
+                email: 'admin@example.test',
+                password: 'valid-password',
+            })
+            .expect(403);
+        expect(invitationService.signInExistingAccount).not.toHaveBeenCalled();
+    });
+
+    it('returns only the safe continuation context and never falls back to workspace login', async () => {
+        const result = await request(app.getHttpServer())
+            .post('/auth/login')
+            .set('Origin', 'http://localhost:5173')
+            .set('Cookie', 'erp360_iac=continuation; erp360_iac_ctk=csrf-token')
+            .set('x-csrf-token', 'csrf-token')
+            .send({
+                intent: 'INVITATION',
+                email: 'admin@example.test',
+                password: 'valid-password',
+            })
+            .expect(200);
+
+        expect(result.body).toEqual({
+            kind: 'INVITATION_CONTINUATION',
+            institution: {
+                id: '00000000-0000-4000-8000-000000000001',
+                name: 'School',
+                code: 'SPEG-MAIN',
+            },
+            invited_email: 'admin@example.test',
+            invitation_expires_at: '2026-11-05T00:00:00.000Z',
+        });
+        expect(result.body).not.toHaveProperty('access_token');
+        expect(result.body).not.toHaveProperty('continuation_token');
+        expect(result.headers['cache-control']).toBe('no-store');
+        expect(invitationService.signInExistingAccount).toHaveBeenCalledWith(
+            'continuation',
+            { email: 'admin@example.test', password: 'valid-password' },
+            'csrf-token',
+            expect.any(Object),
+        );
+        expect(authService.signInWorkspace).not.toHaveBeenCalled();
+    });
+
+    it('keeps workspace intent independent from any invitation cookies', async () => {
+        await request(app.getHttpServer())
+            .post('/auth/login')
+            .set('Cookie', 'erp360_iac=stale-continuation; erp360_iac_ctk=stale-csrf')
+            .send({
+                intent: 'WORKSPACE',
+                email: 'owner@example.test',
+                password: 'valid-password',
+            })
+            .expect(200);
+
+        expect(authService.signInWorkspace).toHaveBeenCalledTimes(1);
+        expect(invitationService.signInExistingAccount).not.toHaveBeenCalled();
+    });
+
+    it('does not expose the retired role-specific sign-in route', async () => {
+        await request(app.getHttpServer())
+            .post('/auth/institution-admin/sign-in')
+            .send({ email: 'admin@example.test', password: 'valid-password' })
+            .expect(404);
     });
 });

@@ -38,6 +38,7 @@ async function bootstrapPlatformOwner(): Promise<void> {
                     data: {
                         email: parsedCredentials.data.email,
                         password_hash: passwordHash,
+                        identity_kind: 'PLATFORM_OWNER',
                         owner_grant: { create: {} },
                     },
                 });
