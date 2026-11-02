@@ -89,8 +89,8 @@ model Institution {
   admin_memberships InstitutionAdminMembership[]
   admin_invitations InstitutionAdminInvitation[]
 
-  @@index([legal_entity_id], type: BTree)
   @@unique([legal_entity_id, code_suffix], map: "Institution_legal_entity_id_code_suffix_key")
+  @@index([legal_entity_id], type: BTree)
 }
 
 model InstitutionAdminMembership {

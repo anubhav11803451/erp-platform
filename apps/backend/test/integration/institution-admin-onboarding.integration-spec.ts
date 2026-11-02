@@ -1,5 +1,4 @@
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { PrismaClient } from '@erp/db/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { OwnerService } from '../../src/owner/owner.service';
@@ -47,11 +46,7 @@ describe('Institution Admin onboarding PostgreSQL invariants', () => {
         invitationService = new InstitutionAdminInvitationService(
             prisma as never,
             {
-                signAsync: jest.fn().mockResolvedValue('integration-access-token'),
-            } as unknown as JwtService,
-            {
                 get: (key: string) => (key === 'NODE_ENV' ? 'test' : undefined),
-                getOrThrow: () => 'http://localhost:5173',
             } as unknown as ConfigService,
         );
 
@@ -251,6 +246,7 @@ describe('Institution Admin onboarding PostgreSQL invariants', () => {
             ownerService.replaceFirstAdminInvitation(
                 institutionIds[1],
                 invitationId,
+                { invited_email: 'admin@example.test' },
                 'http://localhost:5173',
                 owner.id,
             ),
@@ -266,10 +262,28 @@ describe('Institution Admin onboarding PostgreSQL invariants', () => {
         ).resolves.toBeLessThanOrEqual(1);
     });
 
-    it('serializes concurrent issuance and keeps one pending invitation', async () => {
+    it('serializes concurrent replacement and keeps one pending invitation', async () => {
+        const db = requireDatabase();
+        const claimant = await createUnassignedAccount(db);
+        const owner = await createPlatformOwnerAccount(db);
+        const { invitationId } = await createPendingFlow(db, institutionIds[2], claimant.id);
+        const payload = { invited_email: 'admin@example.test' };
+
         const outcomes = await Promise.allSettled([
-            ownerService.issueFirstAdminInvitation(institutionIds[2], 'http://localhost:5173'),
-            ownerService.issueFirstAdminInvitation(institutionIds[2], 'http://localhost:5173'),
+            ownerService.replaceFirstAdminInvitation(
+                institutionIds[2],
+                invitationId,
+                payload,
+                'http://localhost:5173',
+                owner.id,
+            ),
+            ownerService.replaceFirstAdminInvitation(
+                institutionIds[2],
+                invitationId,
+                payload,
+                'http://localhost:5173',
+                owner.id,
+            ),
         ]);
 
         expect(outcomes.filter(({ status }) => status === 'fulfilled')).toHaveLength(1);
