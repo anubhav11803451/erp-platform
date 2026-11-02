@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import { LayoutDashboard, LogOut } from 'lucide-react';
+import { Building2, LayoutDashboard, LogOut } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,9 +11,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { GuestNav } from './guest-nav';
 import { useAuth } from '@/hooks/use-auth';
+import { useRoleAccess } from '@/hooks/use-role-access';
 import { Flex } from '../ui/flex';
 import { Typography } from '../ui/typography';
 
@@ -23,12 +24,21 @@ import { Typography } from '../ui/typography';
  */
 export function UserNav() {
     const { isAuthenticated, authUser, handleLogout } = useAuth();
+    const { user, isPlatformOwner } = useRoleAccess();
 
-    const user = authUser;
-
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated) {
         return <GuestNav />; // Should not happen on protected routes, but good practice
     }
+
+    const isInstitutionAdmin = user?.identity_kind === 'INSTITUTION_ADMIN';
+    const displayName = authUser?.email ?? (isInstitutionAdmin ? user.institution.name : 'Account');
+    const roleLabel = isPlatformOwner
+        ? 'Platform Owner'
+        : isInstitutionAdmin
+          ? 'Institution Admin'
+          : 'Account';
+    const homePath = isPlatformOwner ? '/owner' : '/institution';
+    const avatarInitial = displayName.charAt(0).toUpperCase();
 
     return (
         <Flex alignItems="center" className="ml-auto space-x-4">
@@ -36,27 +46,28 @@ export function UserNav() {
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                         <Avatar className="h-9 w-9">
-                            <AvatarImage
-                                // src={user?.avatarUrl || ''}
-                                src="https://github.com/shadcn.png"
-                                alt={user.email}
-                            />
-                            <AvatarFallback>{user.email.charAt(0).toUpperCase()}</AvatarFallback>
+                            <AvatarFallback>{avatarInitial}</AvatarFallback>
                         </Avatar>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
                         <Flex direction="column" className="space-y-1">
-                            <Typography variant="small">Platform Owner</Typography>
-                            <Typography variant="tiny">{user.email}</Typography>
+                            <Typography variant="small">{roleLabel}</Typography>
+                            <Typography variant="tiny">{displayName}</Typography>
                         </Flex>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                        <Link to="/owner">
-                            <LayoutDashboard className="mr-2 h-4 w-4" />
-                            <span>Platform workspace</span>
+                        <Link to={homePath}>
+                            {isPlatformOwner ? (
+                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                            ) : (
+                                <Building2 className="mr-2 h-4 w-4" />
+                            )}
+                            <span>
+                                {isPlatformOwner ? 'Platform workspace' : 'Institution workspace'}
+                            </span>
                         </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

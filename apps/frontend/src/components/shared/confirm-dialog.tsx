@@ -14,8 +14,10 @@ type ConfirmDialogProps = {
     onOpenChange: (open: boolean) => void;
     onConfirm: () => void;
     isLoading: boolean;
-    title?: string;
-    description?: string;
+    title: string;
+    description: string;
+    confirmLabel: string;
+    cancelLabel?: string;
 };
 
 export function ConfirmDialog({
@@ -23,8 +25,10 @@ export function ConfirmDialog({
     onOpenChange,
     onConfirm,
     isLoading,
-    title = 'Are you absolutely sure?',
-    description = 'This action cannot be undone and will permanently delete the data.',
+    title,
+    description,
+    confirmLabel,
+    cancelLabel = 'Cancel',
 }: ConfirmDialogProps) {
     return (
         <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
@@ -34,9 +38,16 @@ export function ConfirmDialog({
                     <AlertDialogDescription>{description}</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={onConfirm} disabled={isLoading}>
-                        {isLoading ? 'Deleting...' : 'Delete'}
+                    <AlertDialogCancel disabled={isLoading}>{cancelLabel}</AlertDialogCancel>
+                    <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={(event) => {
+                            event.preventDefault();
+                            onConfirm();
+                        }}
+                        disabled={isLoading}
+                    >
+                        {confirmLabel}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

@@ -20,6 +20,27 @@ export const routes = [{
       },
     },
 {
+      children: [
+{
+        path: 'invite',
+        children: [
+{
+          path: 'admin',
+          children: [
+{
+            path: '',
+            lazy: async () => {
+              const m = await import('./pages/(invitation)/invite/admin/page.tsx');
+              return { Component: m.default, ...m };
+            },
+          }
+          ],
+        }
+        ],
+      }
+      ],
+    },
+{
       lazy: async () => {
         const m = await import('./pages/(auth)/_layout.tsx');
         return { Component: m.default, ...m };
@@ -52,6 +73,18 @@ export const routes = [{
           path: '',
           lazy: async () => {
             const m = await import('./pages/(app)/owner/page.tsx');
+            return { Component: m.default, ...m };
+          },
+        }
+        ],
+      },
+{
+        path: 'institution',
+        children: [
+{
+          path: '',
+          lazy: async () => {
+            const m = await import('./pages/(app)/institution/page.tsx');
             return { Component: m.default, ...m };
           },
         }

@@ -1,6 +1,6 @@
 import { useRoleAccess } from './use-role-access';
 import type { FeatureKey } from '@/config/permissions';
-import { canRoleAccessFeature, getRoleAvailableFeatures } from '@/lib/utils';
+import { canRoleAccessFeature, getRoleAvailableFeatures } from '@/lib/utils/feature-access';
 
 export function useFeatureAccess() {
     const { role } = useRoleAccess();

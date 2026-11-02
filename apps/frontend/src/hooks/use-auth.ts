@@ -1,18 +1,16 @@
-import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { useAppSelector } from '@/app/hooks';
 import { useLoginMutation, useLogoutMutation } from '@/features/auth/auth-api-slice';
 import {
-    logOut,
     selectCurrentAccount,
     selectIsAuthenticated,
     selectIsAuthLoading,
 } from '@/features/auth/auth-slice';
 import { getApiErrorMessage } from '@/lib/utils';
-import type { PlatformOwnerSignInPayload } from '@erp/shared';
+import type { SignInPayload } from '@erp/shared';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 
 export function useAuth() {
-    const dispatch = useAppDispatch();
     const isAuthenticated = useAppSelector(selectIsAuthenticated);
     const isAuthLoading = useAppSelector(selectIsAuthLoading);
     const authUser = useAppSelector(selectCurrentAccount);
@@ -21,10 +19,13 @@ export function useAuth() {
     const [signIn, { isLoading: isSigningIn }] = useLoginMutation();
     const [logout, { isLoading: isSigningOut }] = useLogoutMutation();
 
-    async function handleSignIn(values: PlatformOwnerSignInPayload) {
+    async function handleSignIn(values: Pick<SignInPayload, 'email' | 'password'>) {
         try {
-            await signIn(values).unwrap();
-            navigate('/owner', { replace: true });
+            const session = await signIn({ ...values, intent: 'WORKSPACE' }).unwrap();
+            navigate(
+                session.identity.identity_kind === 'PLATFORM_OWNER' ? '/owner' : '/institution',
+                { replace: true }
+            );
         } catch (error: unknown) {
             throw new Error(
                 getApiErrorMessage(error, 'Unable to sign in. Check your details and try again.')
@@ -37,7 +38,6 @@ export function useAuth() {
             await logout().unwrap();
             toast.success('You have been signed out.');
         } catch (error: unknown) {
-            dispatch(logOut());
             toast.error(getApiErrorMessage(error, 'Your local session has been cleared.'));
         } finally {
             navigate('/signin', { replace: true });

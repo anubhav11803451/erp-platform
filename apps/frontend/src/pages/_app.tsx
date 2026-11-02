@@ -7,14 +7,23 @@ import { useRefreshMutation } from '@/features/auth/auth-api-slice';
 import { logOut, selectIsAuthLoading } from '@/features/auth/auth-slice';
 import { CSRF_TOKEN_COOKIE_NAME } from '@/lib/constants';
 import Cookies from 'js-cookie';
+import { useLocation } from 'react-router';
+
+const invitationAwarePaths = new Set(['/invite/admin']);
 
 export default function App() {
     const refreshCalled = useRef(false);
     const dispatch = useAppDispatch();
     const isAuthLoading = useAppSelector(selectIsAuthLoading);
     const [refresh] = useRefreshMutation();
+    const { pathname } = useLocation();
+    const isInvitationAwarePath = invitationAwarePaths.has(pathname);
 
     useEffect(() => {
+        if (isInvitationAwarePath) {
+            return;
+        }
+
         if (!refreshCalled.current) {
             refreshCalled.current = true;
             if (Cookies.get(CSRF_TOKEN_COOKIE_NAME)) {
@@ -23,9 +32,9 @@ export default function App() {
                 dispatch(logOut());
             }
         }
-    }, [dispatch, refresh]);
+    }, [dispatch, isInvitationAwarePath, pathname, refresh]);
 
-    if (isAuthLoading) {
+    if (isAuthLoading && !isInvitationAwarePath) {
         return <AuthLoading />;
     }
 

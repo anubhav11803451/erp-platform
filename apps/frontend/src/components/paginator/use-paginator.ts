@@ -1,53 +1,45 @@
-import { useMemo, useState } from "react";
-
 type UsePaginatorProps = {
     totalItems: number;
-    initialPage?: number;
-    initialPageSize?: number;
+    currentPage: number;
+    pageSize: number;
+    onPageChange: (page: number) => void;
+    onPageSizeChange: (pageSize: number) => void;
 };
 
 export const usePaginator = ({
     totalItems,
-    initialPage = 1,
-    initialPageSize = 10,
+    currentPage,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
 }: UsePaginatorProps) => {
-    const [currentPage, setCurrentPage] = useState(initialPage);
-    const [pageSize, setPageSize] = useState(initialPageSize);
-
-    const totalPages = Math.ceil(totalItems / pageSize);
-
-    const { offset } = useMemo(() => {
-        return {
-            offset: (currentPage - 1) * pageSize,
-        };
-    }, [currentPage, pageSize]);
-
-    const displayRange = useMemo(() => {
-        const start = offset + 1; // Adjusted to start from 1
-        const end = Math.min(offset + pageSize, totalItems);
-        return { start, end };
-    }, [offset, pageSize, totalItems]);
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    const boundedPage = Math.min(Math.max(currentPage, 1), totalPages);
+    const offset = (boundedPage - 1) * pageSize;
+    const displayRange = {
+        start: totalItems === 0 ? 0 : offset + 1,
+        end: Math.min(offset + pageSize, totalItems),
+    };
 
     const handleNext = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage((prev) => prev + 1);
+        if (boundedPage < totalPages) {
+            onPageChange(boundedPage + 1);
         }
     };
 
     const handlePrevious = () => {
-        if (currentPage > 1) {
-            setCurrentPage((prev) => prev - 1);
+        if (boundedPage > 1) {
+            onPageChange(boundedPage - 1);
         }
     };
 
     const handlePageSizeChange = (newPageSize: number) => {
-        setPageSize(newPageSize);
-        setCurrentPage(1); // Reset to first page
+        onPageSizeChange(newPageSize);
     };
 
     return {
         offset,
-        currentPage,
+        currentPage: boundedPage,
         pageSize,
         totalPages,
         displayRange,

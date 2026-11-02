@@ -2,18 +2,20 @@ import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '@/app/root-reducer';
 import { Mutex } from 'async-mutex';
 import Cookies from 'js-cookie';
-import type { PlatformOwnerSignInResponse } from '@erp/shared';
-import { logOut, setCredentials } from '@/features/auth/auth-slice';
+import { authSessionResponseSchema } from '@erp/shared';
+import { logOut, selectAccessToken, setCredentials } from '@/features/auth/auth-slice';
 import { CSRF_TOKEN_COOKIE_NAME } from '@/lib/constants';
 
 const mutex = new Mutex();
 
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/v1/api';
+
 const baseQuery = fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/v1/api',
+    baseUrl: API_BASE_URL,
     credentials: 'include',
     prepareHeaders: (headers, { getState, endpoint }) => {
-        const token = (getState() as RootState).auth.access_token;
-        if (token) {
+        const token = selectAccessToken(getState() as RootState);
+        if (token && endpoint !== 'login') {
             headers.set('authorization', `Bearer ${token}`);
         }
 
@@ -53,8 +55,9 @@ export const baseQueryWithReauth: typeof baseQuery = async (args, api, extraOpti
                 extraOptions
             );
 
-            if (refreshResult.data) {
-                api.dispatch(setCredentials(refreshResult.data as PlatformOwnerSignInResponse));
+            const refreshedSession = authSessionResponseSchema.safeParse(refreshResult.data);
+            if (refreshedSession.success && refreshedSession.data.kind === 'SESSION') {
+                api.dispatch(setCredentials(refreshedSession.data));
                 result = await baseQuery(args, api, extraOptions);
             } else {
                 api.dispatch(logOut());

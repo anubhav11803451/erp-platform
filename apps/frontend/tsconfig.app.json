@@ -6,5 +6,6 @@
             "@/*": ["./src/*"]
         }
     },
-    "include": ["src", "vite-plugin-file-routes.ts"]
+    "include": ["src", "vite-plugin-file-routes.ts"],
+    "exclude": ["legacy-reference"]
 }

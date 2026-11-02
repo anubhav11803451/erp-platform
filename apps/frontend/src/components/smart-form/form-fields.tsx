@@ -39,7 +39,11 @@ type FormFieldProps = {
 };
 
 // --- 1. TextField Component ---
-type TextFieldProps = FormFieldProps;
+type TextFieldProps = FormFieldProps & {
+    readOnly?: boolean;
+};
+
+type PasswordFieldProps = Omit<FormFieldProps, 'type'>;
 
 export function TextField({
     name,
@@ -49,6 +53,7 @@ export function TextField({
     required = false,
     description,
     disabled,
+    readOnly,
     autoComplete,
     autoFocus,
 }: TextFieldProps) {
@@ -72,6 +77,7 @@ export function TextField({
                         placeholder={placeholder}
                         required={required}
                         disabled={disabled}
+                        readOnly={readOnly}
                         autoComplete={autoComplete}
                         autoFocus={autoFocus}
                         aria-invalid={fieldState.invalid}
@@ -93,7 +99,7 @@ export function PasswordField({
     disabled,
     autoComplete,
     autoFocus,
-}: Omit<TextFieldProps, 'type'>) {
+}: PasswordFieldProps) {
     const { control } = useFormContext();
     const [isVisible, setIsVisible] = useState(false);
 

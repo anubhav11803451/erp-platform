@@ -1,19 +1,16 @@
 import { apiSlice } from '@/api/api-slice';
 import type {
-    InstitutionPairCreatePayload,
-    InstitutionPairCreateResponse,
-    LegalEntityListResponse,
+    LegalEntityCreateRequest,
+    LegalEntityCreateResponse,
+    LegalEntityDirectoryResponse,
 } from '@erp/shared';
 
 export const ownerApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        getLegalEntities: builder.query<LegalEntityListResponse, void>({
+        getLegalEntities: builder.query<LegalEntityDirectoryResponse, void>({
             query: () => '/owner/legal-entities',
         }),
-        createInitialLegalEntityPair: builder.mutation<
-            InstitutionPairCreateResponse,
-            InstitutionPairCreatePayload
-        >({
+        createLegalEntity: builder.mutation<LegalEntityCreateResponse, LegalEntityCreateRequest>({
             query: (payload) => ({
                 url: '/owner/legal-entities',
                 method: 'POST',
@@ -23,4 +20,4 @@ export const ownerApiSlice = apiSlice.injectEndpoints({
     }),
 });
 
-export const { useGetLegalEntitiesQuery, useCreateInitialLegalEntityPairMutation } = ownerApiSlice;
+export const { useGetLegalEntitiesQuery, useCreateLegalEntityMutation } = ownerApiSlice;

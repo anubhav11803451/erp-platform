@@ -1,17 +1,18 @@
 import { Link, Navigate, Outlet } from 'react-router';
 import { Loader, Globe } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import { useRoleAccess } from '@/hooks/use-role-access';
 import { Flex } from '@/components/ui/flex';
 import { Container } from '@/components/ui/container';
 import { FlexItem } from '@/components/ui/flex-item';
 import { ModeToggle } from '@/components/themes/theme-toggle';
 
 /**
- * Shared layout for Platform Owner authentication pages.
+ * Shared layout for workspace authentication pages.
  */
 const AuthLayout = () => {
     const { isAuthenticated, isAuthLoading } = useAuth();
-
+    const { isInstitutionAdmin } = useRoleAccess();
     if (isAuthLoading) {
         return (
             <div className="flex h-screen w-screen items-center justify-center">
@@ -21,7 +22,7 @@ const AuthLayout = () => {
     }
 
     if (isAuthenticated) {
-        return <Navigate to="/owner" replace />;
+        return <Navigate to={isInstitutionAdmin ? '/institution' : '/owner'} replace />;
     }
 
     return (
