@@ -1,0 +1,10 @@
+{
+    "installCommand": "pnpm install --recursive",
+    "buildCommand": "pnpm -w run build:frontend",
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/"
+        }
+    ]
+}
