@@ -15,6 +15,10 @@ import { InstitutionAdminInvitationService } from './institution-admin-invitatio
 import { InstitutionAdminInvitationContinuationCleanupService } from './institution-admin-invitation-continuation-cleanup.service';
 import { InvitationSecurityHeadersInterceptor } from '../common/interceptors/invitation-security-headers.interceptor';
 import { AccountSessionJwtAuthGuard } from '../common/guards/account-session-jwt-auth.guard';
+import { InstitutionStaffJwtAuthGuard } from '../common/guards/institution-staff-jwt-auth.guard';
+import { InstitutionStaffController } from './institution-staff.controller';
+import { InstitutionStaffInvitationController } from './institution-staff-invitation.controller';
+import { InstitutionStaffInvitationService } from './institution-staff-invitation.service';
 
 @Module({
     imports: [
@@ -29,18 +33,31 @@ import { AccountSessionJwtAuthGuard } from '../common/guards/account-session-jwt
             }),
         }),
     ],
-    controllers: [AuthController, InstitutionAdminInvitationController],
+    controllers: [
+        AuthController,
+        InstitutionAdminInvitationController,
+        InstitutionStaffController,
+        InstitutionStaffInvitationController,
+    ],
     providers: [
         AuthService,
         InstitutionAdminInvitationService,
         InstitutionAdminInvitationContinuationCleanupService,
+        InstitutionStaffInvitationService,
         PlatformOwnerJwtStrategy,
         AccountSessionJwtAuthGuard,
         PlatformOwnerJwtAuthGuard,
         AccountSessionJwtStrategy,
         InstitutionAdminJwtAuthGuard,
+        InstitutionStaffJwtAuthGuard,
         InvitationSecurityHeadersInterceptor,
     ],
-    exports: [PlatformOwnerJwtAuthGuard, InstitutionAdminJwtAuthGuard, ThrottlerModule],
+    exports: [
+        PlatformOwnerJwtAuthGuard,
+        InstitutionAdminJwtAuthGuard,
+        InstitutionStaffJwtAuthGuard,
+        InstitutionStaffInvitationService,
+        ThrottlerModule,
+    ],
 })
 export class AuthModule {}

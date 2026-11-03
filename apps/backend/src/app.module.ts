@@ -6,6 +6,7 @@ import { CoreModule } from './core/core.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthController } from './health/health.controller';
 import { OwnerModule } from './owner/owner.module';
+import { InstitutionOperationsModule } from './features/institution-operations/institution-operations.module';
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { OwnerModule } from './owner/owner.module';
         CoreModule,
         AuthModule,
         OwnerModule,
+        InstitutionOperationsModule,
     ],
     controllers: [HealthController],
     providers: [

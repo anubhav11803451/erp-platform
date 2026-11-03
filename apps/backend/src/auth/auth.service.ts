@@ -35,6 +35,15 @@ const WORKSPACE_ACCOUNT_RELATIONS = {
             },
         },
     },
+    institution_staff_membership: {
+        include: {
+            institution: {
+                include: {
+                    legal_entity: { select: { code: true } },
+                },
+            },
+        },
+    },
 } satisfies Prisma.AccountInclude;
 
 type WorkspaceAccount = Prisma.AccountGetPayload<{
@@ -270,16 +279,23 @@ export class AuthService {
     ): AuthenticatedAccountIdentityResponse {
         const accountSummary = { id: account.id, email: account.email.trim().toLowerCase() };
         const membership = account.institution_admin_membership;
+        const staffMembership = account.institution_staff_membership;
         const institutionAdmin = account.identity_kind === 'INSTITUTION_ADMIN';
+        const institutionStaff = account.identity_kind === 'INSTITUTION_STAFF';
         const platformOwner = account.identity_kind === 'PLATFORM_OWNER';
 
-        if (account.identity_kind === 'UNASSIGNED' && !account.owner_grant && !membership) {
+        if (
+            account.identity_kind === 'UNASSIGNED' &&
+            !account.owner_grant &&
+            !membership &&
+            !staffMembership
+        ) {
             return { identity_kind: 'UNASSIGNED', account: accountSummary };
         }
-        if (platformOwner && account.owner_grant && !membership) {
+        if (platformOwner && account.owner_grant && !membership && !staffMembership) {
             return { identity_kind: 'PLATFORM_OWNER', account: accountSummary };
         }
-        if (institutionAdmin && !account.owner_grant && membership) {
+        if (institutionAdmin && !account.owner_grant && !staffMembership && membership) {
             const { institution } = membership;
             const code =
                 institution.legal_entity.code && institution.code_suffix
@@ -287,6 +303,27 @@ export class AuthService {
                     : null;
             return {
                 identity_kind: 'INSTITUTION_ADMIN',
+                account: accountSummary,
+                institution: { id: institution.id, name: institution.name, code },
+            };
+        }
+        if (
+            institutionStaff &&
+            !account.owner_grant &&
+            !membership &&
+            staffMembership &&
+            staffMembership.account_id === account.id &&
+            staffMembership.account_identity_kind === 'INSTITUTION_STAFF' &&
+            staffMembership.revoked_at === null &&
+            staffMembership.institution_id === staffMembership.institution.id
+        ) {
+            const { institution } = staffMembership;
+            const code =
+                institution.legal_entity.code && institution.code_suffix
+                    ? `${institution.legal_entity.code}-${institution.code_suffix}`
+                    : null;
+            return {
+                identity_kind: 'INSTITUTION_STAFF',
                 account: accountSummary,
                 institution: { id: institution.id, name: institution.name, code },
             };

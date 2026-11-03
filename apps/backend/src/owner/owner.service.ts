@@ -574,19 +574,17 @@ export class OwnerService {
         transaction: Prisma.TransactionClient,
         institutionId: string,
     ): Promise<void> {
-        const [priorApproved, membership] = await Promise.all([
-            transaction.institutionAdminInvitation.findFirst({
-                where: {
-                    institution_id: institutionId,
-                    status: { in: ['APPROVED', 'LEGACY_ACCEPTED'] },
-                },
-                select: { id: true },
-            }),
-            transaction.institutionAdminMembership.findFirst({
-                where: { institution_id: institutionId },
-                select: { account_id: true },
-            }),
-        ]);
+        const priorApproved = await transaction.institutionAdminInvitation.findFirst({
+            where: {
+                institution_id: institutionId,
+                status: { in: ['APPROVED', 'LEGACY_ACCEPTED'] },
+            },
+            select: { id: true },
+        });
+        const membership = await transaction.institutionAdminMembership.findFirst({
+            where: { institution_id: institutionId },
+            select: { account_id: true },
+        });
         if (priorApproved || membership) {
             throw new ConflictException('An Institution Admin already exists for this Institution');
         }
