@@ -21,6 +21,7 @@ export const accountIdentityKindSchema = z.enum([
     'UNASSIGNED',
     'PLATFORM_OWNER',
     'INSTITUTION_ADMIN',
+    'INSTITUTION_STAFF',
 ]);
 
 export const institutionAdminInvitationStatusSchema = z.enum([
@@ -56,6 +57,12 @@ export const accountIdentityResponseSchema = z.discriminatedUnion('identity_kind
     z
         .object({
             identity_kind: z.literal('INSTITUTION_ADMIN'),
+            institution: institutionSummarySchema,
+        })
+        .strict(),
+    z
+        .object({
+            identity_kind: z.literal('INSTITUTION_STAFF'),
             institution: institutionSummarySchema,
         })
         .strict(),

@@ -60,6 +60,14 @@ const institutionAdminIdentitySchema = z
     })
     .strict();
 
+const institutionStaffIdentitySchema = z
+    .object({
+        identity_kind: z.literal('INSTITUTION_STAFF'),
+        account: authenticatedAccountSchema,
+        institution: workspaceInstitutionSchema,
+    })
+    .strict();
+
 const unassignedAccountIdentitySchema = z
     .object({
         identity_kind: z.literal('UNASSIGNED'),
@@ -81,11 +89,13 @@ export const authenticatedAccountIdentityResponseSchema = z.discriminatedUnion('
     unassignedAccountIdentitySchema,
     platformOwnerIdentitySchema,
     institutionAdminIdentitySchema,
+    institutionStaffIdentitySchema,
 ]);
 
 export const workspaceIdentityResponseSchema = z.discriminatedUnion('identity_kind', [
     platformOwnerIdentitySchema,
     institutionAdminIdentitySchema,
+    institutionStaffIdentitySchema,
 ]);
 
 export const workspaceSessionResponseSchema = z
