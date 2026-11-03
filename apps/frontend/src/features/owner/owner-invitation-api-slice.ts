@@ -1,6 +1,7 @@
 import { apiSlice } from '@/api/api-slice';
 import { API_BASE_URL } from '@/api/base-query';
 import { CSRF_TOKEN_COOKIE_NAME } from '@/lib/constants';
+import { parseResponse } from '@/lib/utils/api-response';
 import Cookies from 'js-cookie';
 import {
     institutionAdminInvitationCreateRequestSchema,
@@ -49,17 +50,6 @@ function ownerHeaders(accessToken: string | null): Headers {
     }
 
     return headers;
-}
-
-function parseResponse<T>(
-    payload: unknown,
-    schema: { safeParse: (input: unknown) => { success: true; data: T } | { success: false } }
-): T {
-    const parsed = schema.safeParse(payload);
-    if (!parsed.success) {
-        throw new Error('The server returned an invalid response.');
-    }
-    return parsed.data;
 }
 
 async function postOwnerJson<T>(

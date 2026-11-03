@@ -50,7 +50,7 @@ export function ExistingInvitationAccountForm({
         >
             {(form) => (
                 <>
-                    <FieldGroup className="**:data-[slot=input]:min-h-11 **:data-[slot=input-group-input]:min-h-11">
+                    <FieldGroup className="**:data-[slot=input] **:data-[slot=input-group-input]">
                         <TextField
                             name="email"
                             label="Invited email (fixed by the Platform Owner)"
@@ -71,7 +71,7 @@ export function ExistingInvitationAccountForm({
                     <Button
                         type="submit"
                         form="invitation-existing-account-form"
-                        className="min-h-11 w-full"
+                        className="w-full"
                         disabled={form.formState.isSubmitting}
                         aria-busy={form.formState.isSubmitting}
                     >
@@ -101,7 +101,7 @@ export function ClaimantNameForm({ onSubmit }: ClaimFormProps) {
         >
             {(form) => (
                 <>
-                    <FieldGroup className="**:data-[slot=input]:min-h-11">
+                    <FieldGroup className="**:data-[slot=input]">
                         <TextField
                             name="claimant_provided_name"
                             label="Your name"
@@ -114,7 +114,7 @@ export function ClaimantNameForm({ onSubmit }: ClaimFormProps) {
                     <Button
                         type="submit"
                         form="invitation-claimant-name-form"
-                        className="min-h-11 w-full"
+                        className="w-full"
                         disabled={form.formState.isSubmitting}
                         aria-busy={form.formState.isSubmitting}
                     >
@@ -181,7 +181,7 @@ export function NewInvitationAccountForm({ invitedEmail, onSubmit }: NewAccountF
                             </dt>
                             <dd className="font-medium break-all">{invitedEmail}</dd>
                         </dl>
-                        <FieldGroup className="**:data-[slot=input]:min-h-11 **:data-[slot=input-group-input]:min-h-11">
+                        <FieldGroup className="**:data-[slot=input] **:data-[slot=input-group-input]">
                             <PasswordField
                                 name="password"
                                 label="Create password"
@@ -209,7 +209,7 @@ export function NewInvitationAccountForm({ invitedEmail, onSubmit }: NewAccountF
                         <Button
                             type="submit"
                             form="invitation-new-account-form"
-                            className="min-h-11 w-full"
+                            className="w-full"
                             disabled={form.formState.isSubmitting}
                             aria-busy={form.formState.isSubmitting}
                         >

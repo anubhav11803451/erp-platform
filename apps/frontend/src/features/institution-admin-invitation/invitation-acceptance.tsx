@@ -85,7 +85,6 @@ export function InvitationAcceptance() {
                                             <Button
                                                 type="button"
                                                 variant="outline"
-                                                className="min-h-11"
                                                 onClick={() => void retryEntryCheck()}
                                             >
                                                 Try again
@@ -111,7 +110,6 @@ export function InvitationAcceptance() {
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="min-h-11"
                                         onClick={() => void retryEntryCheck()}
                                     >
                                         Try again
@@ -131,7 +129,6 @@ export function InvitationAcceptance() {
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="min-h-11"
                                         onClick={() => void retryEntryCheck()}
                                     >
                                         Try again
@@ -173,7 +170,7 @@ export function InvitationAcceptance() {
                                         <Button
                                             type="button"
                                             variant={accountMode === 'new' ? 'default' : 'outline'}
-                                            className="min-h-11 flex-1"
+                                            className="flex-1"
                                             aria-pressed={accountMode === 'new'}
                                             onClick={() => selectAccountMode('new')}
                                         >
@@ -184,7 +181,7 @@ export function InvitationAcceptance() {
                                             variant={
                                                 accountMode === 'existing' ? 'default' : 'outline'
                                             }
-                                            className="min-h-11 flex-1"
+                                            className="flex-1"
                                             aria-pressed={accountMode === 'existing'}
                                             onClick={() => selectAccountMode('existing')}
                                         >
@@ -209,7 +206,6 @@ export function InvitationAcceptance() {
                                                 <Button
                                                     type="button"
                                                     variant="outline"
-                                                    className="min-h-11"
                                                     onClick={() => void retryEntryCheck()}
                                                 >
                                                     Check claim status
