@@ -1,6 +1,4 @@
 import { API_BASE_URL } from '@/api/base-query';
-import { CSRF_TOKEN_COOKIE_NAME } from '@/lib/constants';
-import Cookies from 'js-cookie';
 import {
     institutionStaffInvitationAcceptRequestSchema,
     institutionStaffInvitationAcceptResponseSchema,
@@ -24,16 +22,15 @@ function apiUrl(path: string): string {
     return `${API_BASE_URL.replace(/\/+$/, '')}${path}`;
 }
 
-function requestHeaders(): Headers {
+function requestHeaders(csrfToken: string | null): Headers {
     const headers = new Headers({ 'content-type': 'application/json' });
-    const csrfToken = Cookies.get(CSRF_TOKEN_COOKIE_NAME);
     if (csrfToken) {
         headers.set('x-csrf-token', csrfToken);
     }
     return headers;
 }
 
-async function postJson(path: string, body: unknown): Promise<unknown> {
+async function postJson(path: string, body: unknown, csrfToken: string | null): Promise<unknown> {
     let response: Response;
     try {
         response = await fetch(apiUrl(path), {
@@ -41,7 +38,7 @@ async function postJson(path: string, body: unknown): Promise<unknown> {
             credentials: 'include',
             cache: 'no-store',
             referrerPolicy: 'no-referrer',
-            headers: requestHeaders(),
+            headers: requestHeaders(csrfToken),
             body: JSON.stringify(body),
         });
     } catch {
@@ -84,28 +81,30 @@ export function captureStaffInvitationToken(): string | null {
 }
 
 export async function loadStaffInvitationContext(
-    token: string
+    token: string,
+    csrfToken: string | null
 ): Promise<InstitutionStaffInvitationContextResponse> {
     const input = institutionStaffInvitationContextRequestSchema.safeParse({ token });
     if (!input.success) {
         throw new StaffInvitationApiError(null);
     }
     return parse(
-        await postJson('/auth/staff-invitations/context', input.data),
+        await postJson('/auth/staff-invitations/context', input.data, csrfToken),
         institutionStaffInvitationContextResponseSchema
     );
 }
 
 export async function acceptStaffInvitation(
     token: string,
-    password: string
+    password: string,
+    csrfToken: string | null
 ): Promise<InstitutionStaffInvitationAcceptResponse> {
     const input = institutionStaffInvitationAcceptRequestSchema.safeParse({ token, password });
     if (!input.success) {
         throw new StaffInvitationApiError(null);
     }
     return parse(
-        await postJson('/auth/staff-invitations/accept', input.data),
+        await postJson('/auth/staff-invitations/accept', input.data, csrfToken),
         institutionStaffInvitationAcceptResponseSchema
     );
 }

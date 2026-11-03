@@ -1,12 +1,14 @@
 import {
     authSessionResponseSchema,
     authenticatedAccountIdentityResponseSchema,
+    csrfBootstrapResponseSchema,
     platformOwnerLogoutResponseSchema,
     signInRequestSchema,
 } from '@erp/shared';
 import { createZodDto } from 'nestjs-zod/dto';
 
 export class SignInDto extends createZodDto(signInRequestSchema) {}
+export class CsrfBootstrapResponseDto extends createZodDto(csrfBootstrapResponseSchema) {}
 export const AuthSessionResponseDto = createZodDto(authSessionResponseSchema);
 Object.defineProperty(AuthSessionResponseDto, 'name', { value: 'AuthSessionResponseDto' });
 

@@ -6,6 +6,7 @@ import {
     institutionAdminInvitationClaimResponseSchema,
     institutionAdminInvitationClaimantStatusResponseSchema,
     institutionAdminInvitationContextResponseSchema,
+    institutionAdminInvitationExchangeResponseSchema,
     institutionAdminInvitationExchangeRequestSchema,
     institutionAdminInvitationNewAccountClaimSchema,
     institutionAdminClaimStatusResumeRequestSchema,
@@ -19,7 +20,6 @@ import {
 } from '@erp/shared';
 
 const invitationApiPath = '/auth/invitations';
-const continuationCsrfCookieName = 'erp360_iac_ctk';
 
 export type InvitationEntry =
     | { kind: 'invitation'; context: InstitutionAdminInvitationContextResponse }
@@ -37,30 +37,10 @@ export class InvitationApiError extends Error {
 
 let capturedBearer: string | null = null;
 let entryBootstrap: Promise<InvitationEntry> | null = null;
+let continuationCsrfToken: string | null = null;
 
 function apiUrl(path: string): string {
     return `${API_BASE_URL.replace(/\/+$/, '')}${path}`;
-}
-
-function readCookie(name: string): string | null {
-    if (typeof document === 'undefined') {
-        return null;
-    }
-
-    const cookie = document.cookie
-        .split(';')
-        .map((value) => value.trim())
-        .find((value) => value.startsWith(`${name}=`));
-
-    if (!cookie) {
-        return null;
-    }
-
-    try {
-        return decodeURIComponent(cookie.slice(name.length + 1));
-    } catch {
-        return null;
-    }
 }
 
 function requestHeaders(csrfToken?: string | null): Headers {
@@ -135,15 +115,18 @@ async function postInvitationLogin(
         institution: result.data.institution,
         invited_email: result.data.invited_email,
         invitation_expires_at: result.data.invitation_expires_at,
+        csrf_token: result.data.csrf_token,
     });
 }
 
 function parseContext(payload: unknown): InstitutionAdminInvitationContextResponse {
-    const result = institutionAdminInvitationContextResponseSchema.safeParse(payload);
+    const result = institutionAdminInvitationExchangeResponseSchema.safeParse(payload);
     if (!result.success) {
         throw new InvitationApiError(null);
     }
-    return result.data;
+    const { csrf_token, ...context } = result.data;
+    continuationCsrfToken = csrf_token;
+    return institutionAdminInvitationContextResponseSchema.parse(context);
 }
 
 function parseClaim(payload: unknown): InstitutionAdminInvitationClaimResponse {
@@ -203,6 +186,7 @@ async function resumeStatusOrContinuation(): Promise<InvitationEntry> {
     const body = institutionAdminClaimStatusResumeRequestSchema.parse({});
     try {
         const status = parseClaimantStatus(await postJson('/status', body));
+        continuationCsrfToken = null;
         return { kind: 'claimant-status', status };
     } catch (error: unknown) {
         if (!(error instanceof InvitationApiError) || error.status !== 401) {
@@ -216,6 +200,7 @@ async function resumeStatusOrContinuation(): Promise<InvitationEntry> {
 
 export function loadInvitationEntry(): Promise<InvitationEntry> {
     if (!entryBootstrap) {
+        continuationCsrfToken = null;
         const bearer = takeCapturedBearer();
         const request = bearer ? exchangeBearer(bearer) : resumeStatusOrContinuation();
         entryBootstrap = request.catch((error: unknown) => {
@@ -230,7 +215,7 @@ export async function signInForInvitation(
     credentials: InstitutionAdminInvitationAccountCredentials
 ): Promise<InstitutionAdminInvitationContextResponse> {
     const input = institutionAdminInvitationAccountCredentialsSchema.safeParse(credentials);
-    const csrfToken = readCookie(continuationCsrfCookieName);
+    const csrfToken = continuationCsrfToken;
     if (!input.success || !csrfToken) {
         throw new InvitationApiError(null);
     }
@@ -253,12 +238,14 @@ export async function claimExistingAccount(
         throw new InvitationApiError(null);
     }
 
-    const csrfToken = readCookie(continuationCsrfCookieName);
+    const csrfToken = continuationCsrfToken;
     if (!csrfToken) {
         throw new InvitationApiError(401);
     }
     try {
-        return parseClaim(await postJson('/claim', input.data, csrfToken));
+        const claim = parseClaim(await postJson('/claim', input.data, csrfToken));
+        continuationCsrfToken = null;
+        return claim;
     } finally {
         entryBootstrap = null;
     }
@@ -272,12 +259,14 @@ export async function claimNewAccount(
         throw new InvitationApiError(null);
     }
 
-    const csrfToken = readCookie(continuationCsrfCookieName);
+    const csrfToken = continuationCsrfToken;
     if (!csrfToken) {
         throw new InvitationApiError(401);
     }
     try {
-        return parseClaim(await postJson('/claim/new-account', input.data, csrfToken));
+        const claim = parseClaim(await postJson('/claim/new-account', input.data, csrfToken));
+        continuationCsrfToken = null;
+        return claim;
     } finally {
         entryBootstrap = null;
     }

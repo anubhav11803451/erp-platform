@@ -1,4 +1,6 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useAppSelector } from '@/app/hooks';
+import { selectCsrfToken } from '@/features/auth/auth-slice';
 import { z } from 'zod/v4';
 import { institutionStaffInvitationAcceptRequestSchema } from '@erp/shared';
 import type { InstitutionStaffInvitationContextResponse } from '@erp/shared';
@@ -39,6 +41,7 @@ function invalidLinkMessage(error: unknown): string {
 }
 
 export function useStaffInvitationAcceptance() {
+    const csrfToken = useAppSelector(selectCsrfToken);
     const [pageState, setPageState] = useState<PageState>('capturing');
     const [context, setContext] = useState<InstitutionStaffInvitationContextResponse | null>(null);
     const [token, setToken] = useState<string | null>(null);
@@ -49,22 +52,25 @@ export function useStaffInvitationAcceptance() {
     const requestStartedRef = useRef(false);
     const headingRef = useRef<HTMLHeadingElement>(null);
 
-    const checkContext = useCallback(async (invitationToken: string) => {
-        setError(null);
-        setCanRetryCheck(false);
-        try {
-            const result = await loadStaffInvitationContext(invitationToken);
-            setContext(result);
-            setPageState('ready');
-        } catch (requestError: unknown) {
-            setError(invalidLinkMessage(requestError));
-            setCanRetryCheck(
-                !(requestError instanceof StaffInvitationApiError) ||
-                    ![400, 401, 404, 409, 410].includes(requestError.status ?? 0)
-            );
-            setPageState('unavailable');
-        }
-    }, []);
+    const checkContext = useCallback(
+        async (invitationToken: string) => {
+            setError(null);
+            setCanRetryCheck(false);
+            try {
+                const result = await loadStaffInvitationContext(invitationToken, csrfToken);
+                setContext(result);
+                setPageState('ready');
+            } catch (requestError: unknown) {
+                setError(invalidLinkMessage(requestError));
+                setCanRetryCheck(
+                    !(requestError instanceof StaffInvitationApiError) ||
+                        ![400, 401, 404, 409, 410].includes(requestError.status ?? 0)
+                );
+                setPageState('unavailable');
+            }
+        },
+        [csrfToken]
+    );
 
     useLayoutEffect(() => {
         if (capturedRef.current) {
@@ -123,7 +129,7 @@ export function useStaffInvitationAcceptance() {
         }
 
         try {
-            await acceptStaffInvitation(token, password);
+            await acceptStaffInvitation(token, password, csrfToken);
             setToken(null);
             setPageState('accepted');
         } catch (requestError: unknown) {

@@ -1,14 +1,19 @@
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '@/app/root-reducer';
 import { Mutex } from 'async-mutex';
-import Cookies from 'js-cookie';
 import { authSessionResponseSchema } from '@erp/shared';
-import { logOut, selectAccessToken, setCredentials } from '@/features/auth/auth-slice';
-import { CSRF_TOKEN_COOKIE_NAME } from '@/lib/constants';
+import {
+    logOut,
+    selectAccessToken,
+    selectCsrfToken,
+    setCredentials,
+} from '@/features/auth/auth-slice';
 
 const mutex = new Mutex();
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/v1/api';
+export const API_BASE_URL = import.meta.env.PROD
+    ? '/v1/api'
+    : import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/v1/api';
 
 const baseQuery = fetchBaseQuery({
     baseUrl: API_BASE_URL,
@@ -19,11 +24,9 @@ const baseQuery = fetchBaseQuery({
             headers.set('authorization', `Bearer ${token}`);
         }
 
-        if (endpoint !== 'login') {
-            const csrfToken = Cookies.get(CSRF_TOKEN_COOKIE_NAME);
-            if (csrfToken) {
-                headers.set('x-csrf-token', csrfToken);
-            }
+        const csrfToken = selectCsrfToken(getState() as RootState);
+        if (csrfToken && endpoint !== 'login') {
+            headers.set('x-csrf-token', csrfToken);
         }
 
         return headers;
@@ -42,7 +45,7 @@ export const baseQueryWithReauth: typeof baseQuery = async (args, api, extraOpti
         return result;
     }
 
-    if (api.endpoint === 'login' || api.endpoint === 'logout') {
+    if (api.endpoint === 'bootstrapCsrf' || api.endpoint === 'login' || api.endpoint === 'logout') {
         return result;
     }
 

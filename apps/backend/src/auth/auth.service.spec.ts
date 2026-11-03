@@ -163,11 +163,38 @@ describe('AuthService shared workspace session', () => {
                 path: '/v1/api/auth',
             }),
         );
+        expect(response.cookie).toHaveBeenCalledWith(
+            'erp360_ctk',
+            expect.any(String),
+            expect.objectContaining({
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+            }),
+        );
         expect(response.cookie).not.toHaveBeenCalledWith(
             'erp360_ia_at',
             expect.anything(),
             expect.anything(),
         );
+    });
+
+    it('issues a host-only HttpOnly CSRF cookie and matching bootstrap response', () => {
+        const result = service.issueCsrfToken(response as unknown as Response);
+        const csrfCookie = response.cookie.mock.calls.find(([name]) => name === 'erp360_ctk');
+
+        expect(result).toEqual({ csrf_token: expect.any(String) });
+        expect(csrfCookie?.[1]).toBe(result.csrf_token);
+        expect(csrfCookie?.[2]).toEqual(
+            expect.objectContaining({
+                httpOnly: true,
+                secure: false,
+                sameSite: 'lax',
+                path: '/',
+                expires: expect.any(Date),
+            }),
+        );
+        expect(csrfCookie?.[2]).not.toHaveProperty('domain');
     });
 
     it('rejects an UNASSIGNED account and invitation intent without creating a session', async () => {

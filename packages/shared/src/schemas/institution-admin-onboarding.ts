@@ -102,7 +102,11 @@ export const institutionAdminInvitationContextResponseSchema = z
     .strict();
 
 export const institutionAdminInvitationExchangeResponseSchema =
-    institutionAdminInvitationContextResponseSchema;
+    institutionAdminInvitationContextResponseSchema
+        .extend({
+            csrf_token: z.string().min(1),
+        })
+        .strict();
 
 export const institutionAdminInvitationClaimRequestSchema = z
     .object({

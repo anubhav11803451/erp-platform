@@ -3,7 +3,7 @@ import {
     institutionAdminInvitationClaimRequestSchema,
     institutionAdminInvitationClaimResponseSchema,
     institutionAdminInvitationClaimantStatusResponseSchema,
-    institutionAdminInvitationContextResponseSchema,
+    institutionAdminInvitationExchangeResponseSchema,
     institutionAdminInvitationExchangeRequestSchema,
     institutionAdminInvitationNewAccountClaimSchema,
 } from '@erp/shared';
@@ -22,7 +22,7 @@ export class InvitationClaimStatusResumeRequestDto extends createZodDto(
     institutionAdminClaimStatusResumeRequestSchema,
 ) {}
 export class InvitationContextResponseDto extends createZodDto(
-    institutionAdminInvitationContextResponseSchema,
+    institutionAdminInvitationExchangeResponseSchema,
 ) {}
 export class InvitationClaimResponseDto extends createZodDto(
     institutionAdminInvitationClaimResponseSchema,

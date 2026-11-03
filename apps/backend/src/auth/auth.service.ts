@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@erp/db/client';
 import {
     authenticatedAccountIdentityResponseSchema,
+    csrfBootstrapResponseSchema,
     platformOwnerLogoutResponseSchema,
     workspaceIdentityResponseSchema,
     workspaceSessionResponseSchema,
@@ -11,6 +12,7 @@ import {
 import type {
     AuthenticatedAccountIdentityResponse,
     AuthSessionResponse,
+    CsrfBootstrapResponse,
     PlatformOwnerLogoutResponse,
     SignInPayload,
 } from '@erp/shared';
@@ -147,6 +149,13 @@ export class AuthService {
             csrf_token: csrfToken,
             identity: result.identity,
         });
+    }
+
+    issueCsrfToken(response: Response): CsrfBootstrapResponse {
+        const csrfToken = this.createOpaqueToken();
+        const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+        this.setCsrfCookie(response, csrfToken, expiresAt);
+        return csrfBootstrapResponseSchema.parse({ csrf_token: csrfToken });
     }
 
     async getAuthenticatedIdentity(
@@ -386,9 +395,13 @@ export class AuthService {
             path: REFRESH_COOKIE_PATH,
             expires: expiresAt,
         });
+        this.setCsrfCookie(response, csrfToken, expiresAt);
+    }
+
+    private setCsrfCookie(response: Response, csrfToken: string, expiresAt: Date): void {
         response.cookie(this.csrfTokenCookieName, csrfToken, {
-            httpOnly: false,
-            secure,
+            httpOnly: true,
+            secure: this.cookieIsSecure(response),
             sameSite: 'lax',
             path: '/',
             expires: expiresAt,
@@ -404,7 +417,7 @@ export class AuthService {
             path: REFRESH_COOKIE_PATH,
         });
         response.clearCookie(this.csrfTokenCookieName, {
-            httpOnly: false,
+            httpOnly: true,
             secure,
             sameSite: 'lax',
             path: '/',

@@ -5,8 +5,9 @@ import {
     type InstitutionStaffInvitationIssueResponse,
     type InstitutionStaffInvitationResponse,
 } from '@erp/shared';
-import { useAppDispatch } from '@/app/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { apiSlice } from '@/api/api-slice';
+import { selectCsrfToken } from '@/features/auth/auth-slice';
 import {
     issueStaffInvitationOnce,
     StaffInvitationIssueError,
@@ -24,6 +25,7 @@ export function useInstitutionStaffInvitationDialog({
     onClose: () => void;
 }) {
     const dispatch = useAppDispatch();
+    const csrfToken = useAppSelector(selectCsrfToken);
     const [error, setError] = useState<string | null>(null);
     const [created, setCreated] = useState<InstitutionStaffInvitationIssueResponse | null>(null);
     const [copyMessage, setCopyMessage] = useState('');
@@ -67,7 +69,8 @@ export function useInstitutionStaffInvitationDialog({
                     group_ids: selectedActiveGroupIds,
                     ...(replaceInvitation ? { replaceInvitationId: replaceInvitation.id } : {}),
                 },
-                accessToken
+                accessToken,
+                csrfToken
             );
             setCreated(result);
             dispatch(apiSlice.util.invalidateTags(['InstitutionTeam']));

@@ -70,7 +70,7 @@ describe('InstitutionAdminInvitationService claim flow', () => {
         );
     });
 
-    it('exchanges the bearer for a bounded continuation and readable synchronizer-CSRF cookie', async () => {
+    it('exchanges the bearer for a bounded continuation and HttpOnly synchronizer-CSRF cookie', async () => {
         const bearer = 'high-entropy-invitation-bearer';
         prisma.institutionAdminInvitation.findUnique.mockResolvedValue({
             id: invitationId,
@@ -101,9 +101,11 @@ describe('InstitutionAdminInvitationService claim flow', () => {
             institution,
             invited_email: 'admin@example.test',
             invitation_expires_at: expect.any(String),
+            csrf_token: expect.any(String),
         });
         expect(saved.credential_hash).toBe(hash(continuationCookie?.[1] as string));
-        expect(saved.csrf_token_hash).toBe(hash(csrfCookie?.[1] as string));
+        expect(saved.csrf_token_hash).toBe(hash(result.csrf_token));
+        expect(csrfCookie?.[1]).toBe(result.csrf_token);
         expect(continuationCookie?.[2]).toEqual(
             expect.objectContaining({
                 httpOnly: true,
@@ -112,8 +114,8 @@ describe('InstitutionAdminInvitationService claim flow', () => {
         );
         expect(csrfCookie?.[2]).toEqual(
             expect.objectContaining({
-                httpOnly: false,
-                path: '/',
+                httpOnly: true,
+                path: '/v1/api/auth',
             }),
         );
         expect(result).not.toHaveProperty('continuation_token');
@@ -201,12 +203,14 @@ describe('InstitutionAdminInvitationService claim flow', () => {
             institution,
             invited_email: 'admin@example.test',
             invitation_expires_at: expect.any(String),
+            csrf_token: expect.any(String),
         });
         const rotated =
             transaction.institutionAdminInvitationContinuation.updateMany.mock.calls[0][0];
         expect(rotated.data.account_id).toBe(accountId);
         expect(rotated.data.credential_hash).not.toBe(hash(continuationToken));
         expect(rotated.data.csrf_token_hash).toMatch(/^[a-f0-9]{64}$/);
+        expect(rotated.data.csrf_token_hash).toBe(hash(result.csrf_token));
         expect(transaction.session.create).not.toHaveBeenCalled();
         expect(result).not.toHaveProperty('access_token');
         expect(result).not.toHaveProperty('continuation_token');

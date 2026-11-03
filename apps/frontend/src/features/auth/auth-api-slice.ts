@@ -1,7 +1,7 @@
 import { apiSlice } from '@/api/api-slice';
 import type { SignInPayload, WorkspaceSessionResponse } from '@erp/shared';
-import { authSessionResponseSchema } from '@erp/shared';
-import { logOut, setCredentials } from './auth-slice';
+import { authSessionResponseSchema, csrfBootstrapResponseSchema } from '@erp/shared';
+import { logOut, setCredentials, setCsrfToken } from './auth-slice';
 
 type WorkspaceSignInPayload = Omit<SignInPayload, 'intent'> & { intent: 'WORKSPACE' };
 
@@ -20,6 +20,27 @@ function sessionFromResponse(payload: unknown): WorkspaceSessionResponse {
 
 const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
+        bootstrapCsrf: builder.mutation<void, void>({
+            queryFn: async (_arg, api, _extraOptions, baseQuery) => {
+                const response = await baseQuery({ url: '/auth/csrf', method: 'GET' });
+                if (response.error) {
+                    return { error: response.error };
+                }
+
+                const parsed = csrfBootstrapResponseSchema.safeParse(response.data);
+                if (!parsed.success) {
+                    return {
+                        error: {
+                            status: 'CUSTOM_ERROR',
+                            error: 'The security token could not be initialized.',
+                        },
+                    };
+                }
+
+                api.dispatch(setCsrfToken(parsed.data.csrf_token));
+                return { data: undefined };
+            },
+        }),
         login: builder.mutation<WorkspaceSessionResponse, WorkspaceSignInPayload>({
             query: ({ intent: _intent, ...credentials }) => ({
                 url: '/auth/login',
@@ -69,5 +90,6 @@ const authApiSlice = apiSlice.injectEndpoints({
     }),
 });
 
-export const { useLoginMutation, useRefreshMutation, useLogoutMutation } = authApiSlice;
+export const { useBootstrapCsrfMutation, useLoginMutation, useRefreshMutation, useLogoutMutation } =
+    authApiSlice;
 export default authApiSlice;

@@ -15,6 +15,7 @@ import { InstitutionAdminInvitationService } from './institution-admin-invitatio
 describe('AuthController shared sign-in and session endpoints', () => {
     let app: INestApplication<App>;
     const authService = {
+        issueCsrfToken: jest.fn().mockReturnValue({ csrf_token: 'bootstrap-csrf-token' }),
         signInWorkspace: jest.fn().mockResolvedValue({
             kind: 'SESSION',
             access_token: 'access-token',
@@ -43,6 +44,7 @@ describe('AuthController shared sign-in and session endpoints', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        authService.issueCsrfToken.mockReturnValue({ csrf_token: 'bootstrap-csrf-token' });
         authService.signInWorkspace.mockResolvedValue({
             kind: 'SESSION',
             access_token: 'access-token',
@@ -60,6 +62,7 @@ describe('AuthController shared sign-in and session endpoints', () => {
             },
             invited_email: 'admin@example.test',
             invitation_expires_at: '2026-11-05T00:00:00.000Z',
+            csrf_token: 'rotated-invitation-csrf-token',
         });
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [ThrottlerModule.forRoot([{ limit: 5, ttl: 60_000 }])],
@@ -90,6 +93,37 @@ describe('AuthController shared sign-in and session endpoints', () => {
 
     afterEach(async () => {
         await app.close();
+    });
+
+    it('bootstraps a no-store CSRF token for the exact Origin', async () => {
+        const result = await request(app.getHttpServer())
+            .get('/auth/csrf')
+            .set('Origin', 'http://localhost:5173')
+            .expect(200);
+
+        expect(result.body).toEqual({ csrf_token: 'bootstrap-csrf-token' });
+        expect(result.headers['cache-control']).toBe('no-store');
+        expect(authService.issueCsrfToken).toHaveBeenCalledWith(expect.any(Object));
+    });
+
+    it('accepts same-origin Fetch Metadata when a safe GET omits Origin', async () => {
+        await request(app.getHttpServer())
+            .get('/auth/csrf')
+            .set('Sec-Fetch-Site', 'same-origin')
+            .expect(200);
+
+        expect(authService.issueCsrfToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects untrusted or missing bootstrap origin metadata', async () => {
+        await request(app.getHttpServer())
+            .get('/auth/csrf')
+            .set('Origin', 'https://unexpected.example')
+            .set('Sec-Fetch-Site', 'same-origin')
+            .expect(403);
+
+        await request(app.getHttpServer()).get('/auth/csrf').expect(403);
+        expect(authService.issueCsrfToken).not.toHaveBeenCalled();
     });
 
     it('throttles repeated workspace login attempts and serializes only the shared session contract', async () => {
@@ -202,6 +236,7 @@ describe('AuthController shared sign-in and session endpoints', () => {
             },
             invited_email: 'admin@example.test',
             invitation_expires_at: '2026-11-05T00:00:00.000Z',
+            csrf_token: 'rotated-invitation-csrf-token',
         });
         expect(result.body).not.toHaveProperty('access_token');
         expect(result.body).not.toHaveProperty('continuation_token');

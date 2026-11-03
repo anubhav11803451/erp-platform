@@ -11,7 +11,7 @@ import type {
     InstitutionAdminInvitationClaimRequest,
     InstitutionAdminInvitationClaimResponse,
     InstitutionAdminInvitationClaimantStatusResponse,
-    InstitutionAdminInvitationContextResponse,
+    InstitutionAdminInvitationExchangeResponse,
     InstitutionAdminInvitationNewAccountClaim,
 } from '@erp/shared';
 import * as bcrypt from 'bcrypt';
@@ -21,6 +21,7 @@ import { PrismaService } from '../core/prisma.service';
 
 const REVIEW_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const CONTINUATION_COOKIE_PATH = '/v1/api/auth';
+const CONTINUATION_CSRF_COOKIE_PATH = '/v1/api/auth';
 const LEGACY_CONTINUATION_COOKIE_PATH = '/v1/api/auth/invitations';
 const STATUS_COOKIE_PATH = '/v1/api/auth/invitations/status';
 
@@ -67,7 +68,7 @@ export class InstitutionAdminInvitationService {
     async exchange(
         bearerToken: string,
         response: Response,
-    ): Promise<InstitutionAdminInvitationContextResponse> {
+    ): Promise<InstitutionAdminInvitationExchangeResponse> {
         this.assertCookieTopologyConfigured();
         const invitationHash = this.hashToken(bearerToken);
         const candidate = await this.prisma.institutionAdminInvitation.findUnique({
@@ -131,13 +132,14 @@ export class InstitutionAdminInvitationService {
             institution: result.institution,
             invited_email: result.invitedEmail,
             invitation_expires_at: result.invitationExpiresAt.toISOString(),
+            csrf_token: csrfToken,
         };
     }
 
     async resume(
         continuationToken: string | undefined,
         response: Response,
-    ): Promise<InstitutionAdminInvitationContextResponse> {
+    ): Promise<InstitutionAdminInvitationExchangeResponse> {
         this.assertCookieTopologyConfigured();
         if (!continuationToken) {
             throw this.invalidInvitation();
@@ -197,6 +199,7 @@ export class InstitutionAdminInvitationService {
             institution: result.institution,
             invited_email: result.invitedEmail,
             invitation_expires_at: result.invitationExpiresAt.toISOString(),
+            csrf_token: csrfToken,
         };
     }
 
@@ -205,7 +208,7 @@ export class InstitutionAdminInvitationService {
         credentials: InstitutionAdminInvitationAccountCredentials,
         csrfToken: string,
         response: Response,
-    ): Promise<InstitutionAdminInvitationContextResponse> {
+    ): Promise<InstitutionAdminInvitationExchangeResponse> {
         this.assertCookieTopologyConfigured();
         if (!continuationToken) {
             throw this.invalidInvitation();
@@ -331,6 +334,7 @@ export class InstitutionAdminInvitationService {
             institution: result.institution,
             invited_email: result.invitedEmail,
             invitation_expires_at: result.invitationExpiresAt.toISOString(),
+            csrf_token: nextCsrf,
         };
     }
 
@@ -722,11 +726,17 @@ export class InstitutionAdminInvitationService {
     }
 
     private setContinuationCsrfCookie(response: Response, token: string, expiresAt: Date): void {
-        response.cookie(this.continuationCsrfCookieName, token, {
+        response.clearCookie(this.continuationCsrfCookieName, {
             httpOnly: false,
             secure: this.cookieIsSecure(response),
             sameSite: this.sameSite,
             path: '/',
+        });
+        response.cookie(this.continuationCsrfCookieName, token, {
+            httpOnly: true,
+            secure: this.cookieIsSecure(response),
+            sameSite: this.sameSite,
+            path: CONTINUATION_CSRF_COOKIE_PATH,
             expires: expiresAt,
         });
     }
@@ -743,12 +753,17 @@ export class InstitutionAdminInvitationService {
     }
 
     private clearContinuationCsrfCookie(response: Response): void {
-        response.clearCookie(this.continuationCsrfCookieName, {
-            httpOnly: false,
-            secure: this.cookieIsSecure(response),
-            sameSite: this.sameSite,
-            path: '/',
-        });
+        for (const [path, httpOnly] of [
+            ['/', false],
+            [CONTINUATION_CSRF_COOKIE_PATH, true],
+        ] as const) {
+            response.clearCookie(this.continuationCsrfCookieName, {
+                httpOnly,
+                secure: this.cookieIsSecure(response),
+                sameSite: this.sameSite,
+                path,
+            });
+        }
     }
 
     private clearStatusCookie(response: Response): void {

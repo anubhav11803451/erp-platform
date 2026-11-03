@@ -1,6 +1,4 @@
 import { API_BASE_URL } from '@/api/base-query';
-import { CSRF_TOKEN_COOKIE_NAME } from '@/lib/constants';
-import Cookies from 'js-cookie';
 import {
     institutionStaffInvitationCreateRequestSchema,
     institutionStaffInvitationIssueResponseSchema,
@@ -45,7 +43,8 @@ function parseIssue(payload: unknown): InstitutionStaffInvitationIssueResponse {
  */
 export async function issueStaffInvitationOnce(
     payload: StaffInvitationInput,
-    accessToken: string | null
+    accessToken: string | null,
+    csrfToken: string | null
 ): Promise<InstitutionStaffInvitationIssueResponse> {
     if (!accessToken) {
         throw new Error('Your session is unavailable. Sign in again before inviting Staff.');
@@ -66,7 +65,6 @@ export async function issueStaffInvitationOnce(
         'content-type': 'application/json',
         authorization: `Bearer ${accessToken}`,
     });
-    const csrfToken = Cookies.get(CSRF_TOKEN_COOKIE_NAME);
     if (csrfToken) {
         headers.set('x-csrf-token', csrfToken);
     }
