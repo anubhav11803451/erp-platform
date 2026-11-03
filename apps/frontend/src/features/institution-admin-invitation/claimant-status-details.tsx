@@ -62,7 +62,7 @@ export function ClaimantStatusDetails({
                     )}
                     <Button
                         type="button"
-                        className="min-h-11 w-full"
+                        className="w-full"
                         onClick={() => void continueToSignIn()}
                         disabled={isSigningOut}
                         aria-busy={isSigningOut}
@@ -85,7 +85,7 @@ export function ClaimantStatusDetails({
             <Button
                 type="button"
                 variant="outline"
-                className="min-h-11 w-full"
+                className="w-full"
                 onClick={onRefresh}
                 disabled={refreshing}
                 aria-busy={refreshing}

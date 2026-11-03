@@ -1,7 +1,6 @@
 import { apiSlice } from '@/api/api-slice';
 import { API_BASE_URL } from '@/api/base-query';
-import { CSRF_TOKEN_COOKIE_NAME } from '@/lib/constants';
-import Cookies from 'js-cookie';
+import { parseResponse } from '@/lib/utils/api-response';
 import {
     institutionAdminInvitationCreateRequestSchema,
     institutionAdminInvitationCreateResponseSchema,
@@ -37,13 +36,12 @@ type DecideInvitationArgs = InvitationActionArgs & {
     decision: InstitutionAdminInvitationDecision;
 };
 
-function ownerHeaders(accessToken: string | null): Headers {
+function ownerHeaders(accessToken: string | null, csrfToken: string | null): Headers {
     const headers = new Headers({ 'content-type': 'application/json' });
     if (accessToken) {
         headers.set('authorization', `Bearer ${accessToken}`);
     }
 
-    const csrfToken = Cookies.get(CSRF_TOKEN_COOKIE_NAME);
     if (csrfToken) {
         headers.set('x-csrf-token', csrfToken);
     }
@@ -51,20 +49,10 @@ function ownerHeaders(accessToken: string | null): Headers {
     return headers;
 }
 
-function parseResponse<T>(
-    payload: unknown,
-    schema: { safeParse: (input: unknown) => { success: true; data: T } | { success: false } }
-): T {
-    const parsed = schema.safeParse(payload);
-    if (!parsed.success) {
-        throw new Error('The server returned an invalid response.');
-    }
-    return parsed.data;
-}
-
 async function postOwnerJson<T>(
     path: string,
     accessToken: string | null,
+    csrfToken: string | null,
     payload: unknown,
     schema: {
         safeParse: (input: unknown) => { success: true; data: T } | { success: false };
@@ -81,7 +69,7 @@ async function postOwnerJson<T>(
             credentials: 'include',
             cache: 'no-store',
             referrerPolicy: 'no-referrer',
-            headers: ownerHeaders(accessToken),
+            headers: ownerHeaders(accessToken, csrfToken),
             body: JSON.stringify(payload),
         });
     } catch {
@@ -115,7 +103,8 @@ async function postOwnerJson<T>(
 export async function createInstitutionAndIssueInvitationOnce(
     legalEntityId: string,
     payload: InstitutionAdminInvitationCreateRequest,
-    accessToken: string | null
+    accessToken: string | null,
+    csrfToken: string | null
 ): Promise<InstitutionAdminInvitationCreateResponse> {
     const input = institutionAdminInvitationCreateRequestSchema.safeParse(payload);
     if (!input.success) {
@@ -125,6 +114,7 @@ export async function createInstitutionAndIssueInvitationOnce(
     return postOwnerJson(
         `/owner/legal-entities/${legalEntityId}/institutions`,
         accessToken,
+        csrfToken,
         input.data,
         institutionAdminInvitationCreateResponseSchema
     );
@@ -138,7 +128,8 @@ export async function replaceOwnerInvitationOnce(
     institutionId: string,
     invitationId: string,
     payload: InstitutionAdminInvitationReissueRequest,
-    accessToken: string | null
+    accessToken: string | null,
+    csrfToken: string | null
 ): Promise<InstitutionAdminInvitationIssueResponse> {
     const input = institutionAdminInvitationReissueRequestSchema.safeParse(payload);
     if (!input.success) {
@@ -148,6 +139,7 @@ export async function replaceOwnerInvitationOnce(
     return postOwnerJson(
         `/owner/legal-entities/institutions/${institutionId}/admin-invitations/${invitationId}/replace`,
         accessToken,
+        csrfToken,
         input.data,
         institutionAdminInvitationIssueResponseSchema
     );

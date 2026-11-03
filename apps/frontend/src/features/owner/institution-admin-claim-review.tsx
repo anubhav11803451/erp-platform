@@ -1,108 +1,105 @@
-import { RefreshCw } from 'lucide-react';
+import { Clock, ShieldAlert, ShieldCheck } from 'lucide-react';
 import type {
     InstitutionAdminInvitationDecision,
     InstitutionAdminInvitationOwnerClaim,
 } from '@erp/shared';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Flex } from '@/components/ui/flex';
+import { Grid } from '@/components/ui/grid';
 import { Spinner } from '@/components/ui/spinner';
+import { Typography } from '@/components/ui/typography';
 import { formatDate } from '@/lib/utils/formatters';
-import { useOwnerClaimReview } from '@/hooks/owner-setup/claim-review-hooks';
+import type { OwnerClaimReviewState } from '@/hooks/owner-setup/claim-review-hooks';
 
 type Props = {
     institutionId: string;
     institutionName: string;
-    hasPendingClaim: boolean;
-    onDecisionRecorded: () => void;
-};
-
-const decisionLabels: Record<InstitutionAdminInvitationDecision, string> = {
-    APPROVE: 'Approve claim',
-    REJECT: 'Reject claim',
-    REVOKE: 'Revoke claim',
+    review: OwnerClaimReviewState;
 };
 
 function readableDate(value: string): string {
     return formatDate(new Date(value), 'PPP p');
 }
 
-function decisionGuidance(
-    decision: InstitutionAdminInvitationDecision,
-    institutionName: string,
-    claimant: InstitutionAdminInvitationOwnerClaim
-): { title: string; description: string } {
-    if (decision === 'APPROVE') {
-        return {
-            title: 'Approve this Institution Admin claim?',
-            description: `Confirm that you verified this person in person or using a phone number you had before sending the invitation. Do not treat the invitation email, sign-in email, or the name they entered as proof. Approval grants Institution Admin membership for ${institutionName}; it does not sign them in.`,
-        };
+function claimDetails(claim: InstitutionAdminInvitationOwnerClaim): [string, string][] {
+    const details: [string, string][] = [
+        ['Claimant name (unverified)', claim.claimant_provided_name],
+    ];
+
+    if (claim.owner_contact_name) {
+        details.push(['Name provided before inviting', claim.owner_contact_name]);
     }
 
-    return {
-        title: decision === 'REJECT' ? 'Reject this claim?' : 'Revoke this claim?',
-        description: `This records a terminal ${decision.toLowerCase()} decision for ${claimant.claimant_login_identifier}. No Institution access is granted. A fresh invitation is required for another attempt.`,
-    };
+    details.push(
+        ['Phone contact', claim.owner_contact_phone ?? 'Not provided'],
+        ['Login identifier', claim.claimant_login_identifier]
+    );
+
+    if (claim.invited_email && claim.invited_email !== claim.claimant_login_identifier) {
+        details.push(['Invitation email', claim.invited_email]);
+    }
+
+    details.push(
+        ['Claim submitted', readableDate(claim.claimed_at)],
+        ['Review deadline', readableDate(claim.review_expires_at)]
+    );
+
+    return details;
 }
 
-export function InstitutionAdminClaimReview({
-    institutionId,
-    institutionName,
-    hasPendingClaim,
-    onDecisionRecorded,
-}: Props) {
+export function InstitutionAdminClaimReview({ institutionId, institutionName, review }: Props) {
     const {
         claims,
         error,
         isFetching,
         isLoading,
         isDeciding,
+        recordingDecision,
         refetch,
-        pendingClaim,
-        pendingDecision,
+        reviewClaim,
+        reviewOpen,
         actionError,
         decisionNotice,
-        openDecision,
-        closeDecision,
-        confirmDecision,
-    } = useOwnerClaimReview({ institutionId, hasPendingClaim, onDecisionRecorded });
-    const dialog =
-        pendingClaim && pendingDecision
-            ? decisionGuidance(pendingDecision, institutionName, pendingClaim)
-            : null;
+        closeReview,
+        recordDecision,
+    } = review;
+
+    function decide(decision: InstitutionAdminInvitationDecision) {
+        if (reviewClaim) {
+            void recordDecision(reviewClaim, decision);
+        }
+    }
 
     return (
         <section aria-labelledby={`claim-review-title-${institutionId}`} className="space-y-3">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-1">
-                    <h3 id={`claim-review-title-${institutionId}`} className="sr-only">
-                        Claim Owner Review
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                        Verify this person in person or with a phone number you already had. The
-                        email and name below do not prove their identity.
-                    </p>
-                </div>
-                {isLoading && (
-                    <div
-                        role="status"
-                        aria-live="polite"
-                        className="text-muted-foreground flex items-center gap-2 text-sm"
-                    >
-                        <Spinner aria-hidden="true" />
-                        <span>Loading pending claim review…</span>
-                    </div>
-                )}
-            </div>
+            <h3 id={`claim-review-title-${institutionId}`} className="sr-only">
+                Claim Owner Review
+            </h3>
+
+            {isLoading && (
+                <Flex
+                    id={`claim-review-loading-${institutionId}`}
+                    alignItems="center"
+                    className="text-muted-foreground gap-2 text-sm"
+                    role="status"
+                    aria-live="polite"
+                >
+                    <Spinner aria-hidden="true" />
+                    <Typography as="span" variant="muted">
+                        Loading pending claim review…
+                    </Typography>
+                </Flex>
+            )}
 
             {error && (
                 <Alert variant="destructive" aria-live="assertive">
@@ -112,7 +109,6 @@ export function InstitutionAdminClaimReview({
                         <Button
                             type="button"
                             variant="outline"
-                            className="min-h-11"
                             onClick={() => void refetch()}
                             disabled={isFetching}
                         >
@@ -123,13 +119,6 @@ export function InstitutionAdminClaimReview({
                 </Alert>
             )}
 
-            {actionError && (
-                <Alert variant="destructive" aria-live="assertive">
-                    <AlertTitle>Decision not confirmed</AlertTitle>
-                    <AlertDescription>{actionError}</AlertDescription>
-                </Alert>
-            )}
-
             {decisionNotice && (
                 <Alert aria-live="polite">
                     <AlertTitle>Decision outcome</AlertTitle>
@@ -137,143 +126,164 @@ export function InstitutionAdminClaimReview({
                 </Alert>
             )}
 
-            {!isLoading &&
-                !isFetching &&
-                !error &&
-                claims.length === 0 &&
-                (hasPendingClaim ? (
-                    <Alert role="status" aria-live="polite">
-                        <AlertTitle>Claim review queue may be out of date</AlertTitle>
-                        <AlertDescription className="gap-3">
-                            <p>
-                                Invitation status shows a claim awaiting review, but it is not in
-                                this queue yet.
-                            </p>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="min-h-11"
-                                onClick={() => void refetch()}
-                                disabled={isFetching}
-                            >
-                                {isFetching ? (
-                                    <Spinner aria-label="Refreshing claim queue" />
-                                ) : (
-                                    <RefreshCw aria-hidden="true" />
-                                )}
-                                {isFetching ? 'Refreshing…' : 'Refresh claim queue'}
-                            </Button>
+            {!isLoading && !isFetching && !error && claims.length === 0 && (
+                <Alert role="status" aria-live="polite">
+                    <AlertTitle>Claim review queue may be out of date</AlertTitle>
+                    <AlertDescription className="gap-3">
+                        <p>
+                            Invitation status shows a claim awaiting review, but it is not in this
+                            queue yet.
+                        </p>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => void refetch()}
+                            disabled={isFetching}
+                        >
+                            {isFetching ? (
+                                <Spinner aria-label="Refreshing claim queue" />
+                            ) : (
+                                <Clock aria-hidden="true" />
+                            )}
+                            {isFetching ? 'Refreshing…' : 'Refresh claim queue'}
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {claims
+                .filter((claim) => !claim.invited_email)
+                .map((claim) => (
+                    <Alert key={claim.id} role="status">
+                        <AlertTitle>Legacy unbound claim cannot be approved</AlertTitle>
+                        <AlertDescription>
+                            This invitation has no fixed recipient email. It cannot grant access;
+                            close it and issue a new addressed invitation instead.
                         </AlertDescription>
                     </Alert>
-                ) : (
-                    <p className="text-muted-foreground text-sm" role="status" aria-live="polite">
-                        No claim is currently awaiting Owner review.
-                    </p>
                 ))}
 
-            {claims.map((claim) => (
-                <article key={claim.id} className="bg-muted/40 space-y-3 rounded-md p-3">
-                    <dl className="grid gap-3 text-sm sm:grid-cols-2">
-                        {claim.invited_email && (
-                            <div className="min-w-0">
-                                <dt className="font-medium">Invitation sent to</dt>
-                                <dd className="mt-1 break-all">{claim.invited_email}</dd>
+            <Dialog open={reviewOpen} onOpenChange={closeReview}>
+                <DialogContent className="max-h-[90dvh] gap-0 overflow-y-auto p-0 sm:max-w-xl">
+                    {reviewClaim && (
+                        <>
+                            <DialogHeader className="border-b p-5 pr-12">
+                                <Flex
+                                    id={`owner-claim-dialog-header-${reviewClaim.id}`}
+                                    alignItems="start"
+                                    className="gap-3"
+                                >
+                                    <ShieldCheck
+                                        aria-hidden="true"
+                                        className="text-primary mt-0.5 size-5 shrink-0"
+                                    />
+                                    <div className="space-y-2">
+                                        <DialogTitle>Owner Review: Claim Approval</DialogTitle>
+                                        <DialogDescription>{institutionName}</DialogDescription>
+                                    </div>
+                                </Flex>
+                            </DialogHeader>
+
+                            <div className="space-y-4 p-5">
+                                <Alert className="border-amber-500/30 bg-amber-500/10 text-amber-800">
+                                    <ShieldAlert
+                                        aria-hidden="true"
+                                        className="dark:text-amber-400"
+                                    />
+                                    <AlertTitle className="text-amber-800 dark:text-amber-300">
+                                        Verify separately in person or through a previously known
+                                        phone contact.
+                                    </AlertTitle>
+                                    <AlertDescription className="text-amber-800 dark:text-amber-300">
+                                        Do not use the email address or invitation link to verify
+                                        identity.
+                                    </AlertDescription>
+                                </Alert>
+
+                                <Grid
+                                    as="dl"
+                                    id={`owner-claim-details-${reviewClaim.id}`}
+                                    columns={1}
+                                    className="gap-0 rounded-md border p-4"
+                                >
+                                    {claimDetails(reviewClaim).map(([label, value], index) => (
+                                        <Flex
+                                            as="div"
+                                            id={`owner-claim-detail-${reviewClaim.id}-${index}`}
+                                            key={label}
+                                            alignItems="start"
+                                            justifyContent="between"
+                                            className="gap-4 border-b py-2 first:pt-0 last:border-b-0 last:pb-0"
+                                        >
+                                            <dt className="text-muted-foreground text-sm">
+                                                {label}
+                                            </dt>
+                                            <dd className="min-w-0 text-right text-sm break-all">
+                                                {value}
+                                            </dd>
+                                        </Flex>
+                                    ))}
+                                </Grid>
+
+                                {actionError && (
+                                    <Alert variant="destructive" aria-live="assertive">
+                                        <AlertTitle>Decision not confirmed</AlertTitle>
+                                        <AlertDescription>{actionError}</AlertDescription>
+                                    </Alert>
+                                )}
                             </div>
-                        )}
-                        {claim.owner_contact_name && (
-                            <div>
-                                <dt className="font-medium">Name you provided before inviting</dt>
-                                <dd className="mt-1">{claim.owner_contact_name}</dd>
-                            </div>
-                        )}
-                        {claim.owner_contact_phone && (
-                            <div>
-                                <dt className="font-medium">
-                                    Phone number you had before inviting
-                                </dt>
-                                <dd className="mt-1">{claim.owner_contact_phone}</dd>
-                            </div>
-                        )}
-                        <div className="min-w-0">
-                            <dt className="font-medium">Sign-in email (not verified)</dt>
-                            <dd className="mt-1 break-all">{claim.claimant_login_identifier}</dd>
-                        </div>
-                        <div className="min-w-0">
-                            <dt className="font-medium">
-                                Name they entered when claiming (not verified)
-                            </dt>
-                            <dd className="mt-1 break-words">{claim.claimant_provided_name}</dd>
-                        </div>
-                        <div>
-                            <dt className="font-medium">Claim submitted</dt>
-                            <dd className="mt-1">{readableDate(claim.claimed_at)}</dd>
-                        </div>
-                        <div>
-                            <dt className="font-medium">Review deadline</dt>
-                            <dd className="mt-1">{readableDate(claim.review_expires_at)}</dd>
-                        </div>
-                    </dl>
-                    {claim.invited_email ? (
-                        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                            {(['APPROVE', 'REJECT', 'REVOKE'] as const).map((decision) => (
+
+                            <DialogFooter className="flex-col-reverse border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                                 <Button
-                                    key={decision}
                                     type="button"
-                                    variant={decision === 'APPROVE' ? 'default' : 'outline'}
-                                    className="min-h-11"
-                                    onClick={() => openDecision(claim, decision)}
+                                    variant="destructive"
+                                    onClick={() => decide('REJECT')}
                                     disabled={isDeciding}
                                 >
-                                    {decisionLabels[decision]}
+                                    {recordingDecision === 'REJECT' ? (
+                                        <>
+                                            <Spinner aria-label="Recording rejection" />
+                                            Rejecting…
+                                        </>
+                                    ) : (
+                                        'Reject Claim'
+                                    )}
                                 </Button>
-                            ))}
-                        </div>
-                    ) : (
-                        <Alert role="status">
-                            <AlertTitle>Legacy unbound claim cannot be approved</AlertTitle>
-                            <AlertDescription>
-                                This invitation has no fixed recipient email. It cannot grant
-                                access; close it and issue a new addressed invitation instead.
-                            </AlertDescription>
-                        </Alert>
+                                <Flex
+                                    id={`owner-claim-dialog-actions-${reviewClaim.id}`}
+                                    alignItems="center"
+                                    justifyContent="end"
+                                    className="gap-2"
+                                >
+                                    <DialogClose asChild>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            disabled={isDeciding}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </DialogClose>
+                                    <Button
+                                        type="button"
+                                        onClick={() => decide('APPROVE')}
+                                        disabled={isDeciding}
+                                    >
+                                        {recordingDecision === 'APPROVE' ? (
+                                            <>
+                                                <Spinner aria-label="Recording approval" />
+                                                Approving…
+                                            </>
+                                        ) : (
+                                            'Confirm & Approve'
+                                        )}
+                                    </Button>
+                                </Flex>
+                            </DialogFooter>
+                        </>
                     )}
-                </article>
-            ))}
-
-            <AlertDialog open={Boolean(dialog)} onOpenChange={closeDecision}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>{dialog?.title}</AlertDialogTitle>
-                        <AlertDialogDescription>{dialog?.description}</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeciding}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            className={
-                                pendingDecision === 'APPROVE'
-                                    ? undefined
-                                    : 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                            }
-                            onClick={(event) => {
-                                event.preventDefault();
-                                void confirmDecision();
-                            }}
-                            disabled={isDeciding}
-                        >
-                            {isDeciding ? (
-                                <>
-                                    <Spinner aria-label="Recording Owner decision" />
-                                    Recording…
-                                </>
-                            ) : pendingDecision ? (
-                                `Confirm ${pendingDecision.toLowerCase()}`
-                            ) : (
-                                'Confirm'
-                            )}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                </DialogContent>
+            </Dialog>
         </section>
     );
 }

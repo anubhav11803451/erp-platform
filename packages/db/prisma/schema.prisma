@@ -12,6 +12,7 @@ enum AccountIdentityKind {
   UNASSIGNED
   PLATFORM_OWNER
   INSTITUTION_ADMIN
+  INSTITUTION_STAFF
 }
 
 enum InstitutionAdminInvitationStatus {
@@ -24,6 +25,23 @@ enum InstitutionAdminInvitationStatus {
   LEGACY_ACCEPTED
 }
 
+enum InstitutionStaffInvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+enum InstitutionGroupType {
+  SCHOOL_SECTION
+  COACHING_BATCH
+}
+
+enum InstitutionAttendanceMarkStatus {
+  PRESENT
+  ABSENT
+}
+
 model Account {
   id                             String                                   @id @default(uuid())
   email                          String                                   @unique(map: "Account_email_key")
@@ -34,9 +52,11 @@ model Account {
   owner_grant                    PlatformOwnerGrant?
   sessions                       Session[]
   institution_admin_membership   InstitutionAdminMembership?
+  institution_staff_membership   InstitutionStaffMembership?
   accepted_admin_invitations     InstitutionAdminInvitation[]             @relation("AcceptedByAccount")
   claimed_admin_invitations      InstitutionAdminInvitation[]             @relation("ClaimedByAccount")
   admin_invitation_continuations InstitutionAdminInvitationContinuation[]
+  attendance_marks_updated       InstitutionAttendanceMark[]
 
   @@unique([id, identity_kind], map: "Account_id_identity_kind_key")
 }
@@ -78,16 +98,26 @@ model LegalEntity {
 }
 
 model Institution {
-  id                String                       @id @default(uuid())
-  legal_entity_id   String
-  name              String
+  id                              String                                   @id @default(uuid())
+  legal_entity_id                 String
+  name                            String
   /// Nullable for legacy rows; full display codes are derived from the LegalEntity code.
-  code_suffix       String?
-  created_at        DateTime                     @default(now())
-  updated_at        DateTime                     @updatedAt
-  legal_entity      LegalEntity                  @relation(fields: [legal_entity_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  admin_memberships InstitutionAdminMembership[]
-  admin_invitations InstitutionAdminInvitation[]
+  code_suffix                     String?
+  created_at                      DateTime                                 @default(now())
+  updated_at                      DateTime                                 @updatedAt
+  legal_entity                    LegalEntity                              @relation(fields: [legal_entity_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  admin_memberships               InstitutionAdminMembership[]
+  admin_invitations               InstitutionAdminInvitation[]
+  /// Null for existing Institutions until an Admin configures an IANA timezone.
+  timezone                        String?
+  staff_memberships               InstitutionStaffMembership[]
+  staff_invitations               InstitutionStaffInvitation[]
+  staff_invitation_pending_groups InstitutionStaffInvitationPendingGroup[]
+  staff_group_assignments         InstitutionStaffGroupAssignment[]
+  groups                          InstitutionGroup[]
+  students                        InstitutionStudent[]
+  student_group_memberships       InstitutionStudentGroupMembership[]
+  attendance_marks                InstitutionAttendanceMark[]
 
   @@unique([legal_entity_id, code_suffix], map: "Institution_legal_entity_id_code_suffix_key")
   @@index([legal_entity_id], type: BTree)
@@ -159,4 +189,138 @@ model InstitutionAdminInvitationContinuation {
   @@index([account_id], type: BTree)
   @@index([expires_at], type: BTree)
   @@index([revoked_at], type: BTree)
+}
+
+model InstitutionStaffMembership {
+  account_id            String                            @id
+  account_identity_kind AccountIdentityKind               @default(INSTITUTION_STAFF)
+  institution_id        String
+  created_at            DateTime                          @default(now())
+  revoked_at            DateTime?
+  account               Account                           @relation(fields: [account_id, account_identity_kind], references: [id, identity_kind], onDelete: Cascade, onUpdate: Cascade, map: "InstitutionStaffMembership_account_kind_fkey")
+  institution           Institution                       @relation(fields: [institution_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  accepted_invitations  InstitutionStaffInvitation[]      @relation("AcceptedByStaffMembership")
+  group_assignments     InstitutionStaffGroupAssignment[]
+
+  @@unique([account_id, account_identity_kind], map: "InstitutionStaffMembership_account_kind_key")
+  @@unique([institution_id, account_id], map: "InstitutionStaffMembership_institution_account_key")
+  @@index([institution_id, revoked_at, created_at], type: BTree)
+}
+
+model InstitutionStaffInvitation {
+  id                       String                                   @id @default(uuid())
+  institution_id           String
+  token_hash               String                                   @unique(map: "InstitutionStaffInvitation_token_hash_key")
+  normalized_email         String
+  status                   InstitutionStaffInvitationStatus         @default(PENDING)
+  created_at               DateTime                                 @default(now())
+  expires_at               DateTime
+  accepted_at              DateTime?
+  accepted_by_account_id   String?
+  revoked_at               DateTime?
+  institution              Institution                              @relation(fields: [institution_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  accepted_by_membership   InstitutionStaffMembership?              @relation("AcceptedByStaffMembership", fields: [institution_id, accepted_by_account_id], references: [institution_id, account_id], onDelete: Restrict, onUpdate: Cascade)
+  pending_group_selections InstitutionStaffInvitationPendingGroup[]
+
+  // Pending email uniqueness is a PostgreSQL partial index defined in the migration.
+  @@unique([institution_id, id], map: "InstitutionStaffInvitation_institution_id_id_key")
+  @@index([institution_id, status, created_at], type: BTree)
+  @@index([institution_id, status, expires_at], type: BTree)
+  @@index([institution_id, accepted_by_account_id], type: BTree)
+}
+
+model InstitutionStaffInvitationPendingGroup {
+  institution_id String
+  invitation_id  String
+  group_id       String
+  institution    Institution                @relation(fields: [institution_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  invitation     InstitutionStaffInvitation @relation(fields: [institution_id, invitation_id], references: [institution_id, id], onDelete: Cascade, onUpdate: Cascade)
+  group          InstitutionGroup           @relation(fields: [institution_id, group_id], references: [institution_id, id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([institution_id, invitation_id, group_id])
+  @@index([institution_id, group_id], type: BTree)
+}
+
+model InstitutionStaffGroupAssignment {
+  id               String                     @id @default(uuid())
+  institution_id   String
+  staff_account_id String
+  group_id         String
+  assigned_at      DateTime                   @default(now())
+  revoked_at       DateTime?
+  institution      Institution                @relation(fields: [institution_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  staff_membership InstitutionStaffMembership @relation(fields: [institution_id, staff_account_id], references: [institution_id, account_id], onDelete: Cascade, onUpdate: Cascade)
+  group            InstitutionGroup           @relation(fields: [institution_id, group_id], references: [institution_id, id], onDelete: Restrict, onUpdate: Cascade)
+
+  // Active assignment uniqueness is a PostgreSQL partial index defined in the migration.
+  @@index([institution_id, staff_account_id, revoked_at], type: BTree)
+  @@index([institution_id, group_id, revoked_at], type: BTree)
+}
+
+model InstitutionGroup {
+  id                  String                                   @id @default(uuid())
+  institution_id      String
+  name                String
+  type                InstitutionGroupType
+  created_at          DateTime                                 @default(now())
+  updated_at          DateTime                                 @updatedAt
+  archived_at         DateTime?
+  institution         Institution                              @relation(fields: [institution_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  pending_invitations InstitutionStaffInvitationPendingGroup[]
+  staff_assignments   InstitutionStaffGroupAssignment[]
+  student_memberships InstitutionStudentGroupMembership[]
+
+  @@unique([institution_id, id], map: "InstitutionGroup_institution_id_id_key")
+  @@index([institution_id, archived_at, name], type: BTree)
+  @@index([institution_id, type, archived_at], type: BTree)
+}
+
+model InstitutionStudent {
+  id                String                              @id @default(uuid())
+  institution_id    String
+  display_name      String
+  local_id          String?
+  created_at        DateTime                            @default(now())
+  updated_at        DateTime                            @updatedAt
+  archived_at       DateTime?
+  institution       Institution                         @relation(fields: [institution_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  group_memberships InstitutionStudentGroupMembership[]
+
+  // Case-insensitive local-ID uniqueness is a PostgreSQL expression index in the migration.
+  @@unique([institution_id, id], map: "InstitutionStudent_institution_id_id_key")
+  @@index([institution_id, display_name], type: BTree)
+  @@index([institution_id, archived_at], type: BTree)
+}
+
+model InstitutionStudentGroupMembership {
+  institution_id String
+  student_id     String
+  group_id       String
+  created_at     DateTime                    @default(now())
+  archived_at    DateTime?
+  institution    Institution                 @relation(fields: [institution_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  student        InstitutionStudent          @relation(fields: [institution_id, student_id], references: [institution_id, id], onDelete: Restrict, onUpdate: Cascade)
+  group          InstitutionGroup            @relation(fields: [institution_id, group_id], references: [institution_id, id], onDelete: Restrict, onUpdate: Cascade)
+  attendance     InstitutionAttendanceMark[]
+
+  @@id([institution_id, student_id, group_id])
+  @@index([institution_id, group_id, archived_at], type: BTree)
+  @@index([institution_id, student_id, archived_at], type: BTree)
+}
+
+model InstitutionAttendanceMark {
+  institution_id           String
+  group_id                 String
+  student_id               String
+  attendance_date          DateTime                          @db.Date
+  status                   InstitutionAttendanceMarkStatus
+  updated_by_account_id    String
+  updated_at               DateTime                          @default(now()) @updatedAt
+  institution              Institution                       @relation(fields: [institution_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  student_group_membership InstitutionStudentGroupMembership @relation(fields: [institution_id, student_id, group_id], references: [institution_id, student_id, group_id], onDelete: Restrict, onUpdate: Cascade)
+  updated_by_account       Account                           @relation(fields: [updated_by_account_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([institution_id, group_id, student_id, attendance_date])
+  @@index([institution_id, group_id, attendance_date], type: BTree)
+  @@index([institution_id, student_id, attendance_date], type: BTree)
 }

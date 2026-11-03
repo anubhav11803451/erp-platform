@@ -1,7 +1,11 @@
+import { useId } from 'react';
 import type { Table } from '@tanstack/react-table';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { Flex } from '@/components/ui/flex';
+import { FlexItem } from '@/components/ui/flex-item';
+import { Grid } from '@/components/ui/grid';
 import {
     Select,
     SelectContent,
@@ -9,7 +13,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Flex } from '@/components/ui/flex';
 import { Typography } from '@/components/ui/typography';
 
 type DataTablePaginationProps<TData> = {
@@ -17,46 +20,65 @@ type DataTablePaginationProps<TData> = {
 };
 
 export function DataTablePagination<TData>({ table }: DataTablePaginationProps<TData>) {
+    const id = useId();
+    const totalRows = table.getFilteredRowModel().rows.length;
+    const pageSize = table.getState().pagination.pageSize;
+    const pageIndex = table.getState().pagination.pageIndex;
+    const pageRows = table.getRowModel().rows.length;
+    const firstRow = totalRows === 0 ? 0 : pageIndex * pageSize + 1;
+    const lastRow = Math.min(firstRow + pageRows - 1, totalRows);
+    const pageCount = table.getPageCount();
+
     return (
-        <Flex alignItems="center" justifyContent="between" className="space-x-2 px-2 py-4">
-            <div className="text-muted-foreground flex flex-1 text-sm">
-                {table.getFilteredSelectedRowModel().rows.length} of{' '}
-                {table.getFilteredRowModel().rows.length} row(s) selected.
-            </div>
+        <Grid
+            id={`data-table-pagination-${id}`}
+            columns={1}
+            className="items-center gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_auto]"
+        >
+            <FlexItem id={`data-table-pagination-range-${id}`}>
+                <Typography as="p" variant="muted" aria-live="polite">
+                    Showing {firstRow}-{lastRow} of {totalRows} results
+                </Typography>
+            </FlexItem>
             <Flex
+                id={`data-table-pagination-controls-${id}`}
                 alignItems="center"
                 wrap
-                className="justify-end gap-4 space-x-6 md:justify-start lg:space-x-8"
+                justifyContent="between"
+                className="gap-4 sm:justify-end"
             >
-                <Flex alignItems="center" className="space-x-2">
-                    <Typography variant="small">Rows per page</Typography>
-                    <Select
-                        value={`${table.getState().pagination.pageSize}`}
-                        onValueChange={(value) => {
-                            table.setPageSize(Number(value));
-                        }}
-                    >
-                        <SelectTrigger className="h-8 w-[70px]">
-                            <SelectValue placeholder={table.getState().pagination.pageSize} />
-                        </SelectTrigger>
-                        <SelectContent side="top">
-                            {[10, 20, 25, 30, 40, 50].map((pageSize) => (
-                                <SelectItem key={pageSize} value={`${pageSize}`}>
-                                    {pageSize}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </Flex>
-                <Flex
-                    alignItems="center"
-                    justifyContent="center"
-                    className="w-[100px] text-sm font-medium"
-                >
-                    Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-                </Flex>
-                <Flex alignItems="center" className="space-x-2">
+                <FlexItem id={`data-table-page-size-item-${id}`}>
+                    <Flex id={`data-table-page-size-${id}`} alignItems="center" className="gap-2">
+                        <Typography as="span" variant="small">
+                            Rows per page
+                        </Typography>
+                        <Select
+                            value={`${pageSize}`}
+                            onValueChange={(value) => {
+                                table.setPageSize(Number(value));
+                            }}
+                        >
+                            <SelectTrigger className="h-8 w-17.5">
+                                <SelectValue placeholder={pageSize} />
+                            </SelectTrigger>
+                            <SelectContent side="top">
+                                {[10, 20, 25, 30, 40, 50].map((pageSize) => (
+                                    <SelectItem key={pageSize} value={`${pageSize}`}>
+                                        {pageSize}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </Flex>
+                </FlexItem>
+                <FlexItem id={`data-table-page-number-${id}`} className="w-25 text-center">
+                    <Typography as="span" variant="small">
+                        Page {pageCount === 0 ? 0 : pageIndex + 1} of {pageCount}
+                    </Typography>
+                </FlexItem>
+                <Flex id={`data-table-page-navigation-${id}`} alignItems="center" className="gap-2">
                     <Button
+                        type="button"
                         variant="outline"
                         size="icon"
                         className="hidden size-8 lg:flex"
@@ -67,6 +89,7 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
                         <ChevronsLeft />
                     </Button>
                     <Button
+                        type="button"
                         variant="outline"
                         size="icon"
                         className="size-8"
@@ -77,6 +100,7 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
                         <ChevronLeft />
                     </Button>
                     <Button
+                        type="button"
                         variant="outline"
                         size="icon"
                         className="size-8"
@@ -87,10 +111,11 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
                         <ChevronRight />
                     </Button>
                     <Button
+                        type="button"
                         variant="outline"
                         size="icon"
                         className="hidden size-8 lg:flex"
-                        onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                        onClick={() => table.setPageIndex(Math.max(pageCount - 1, 0))}
                         disabled={!table.getCanNextPage()}
                     >
                         <span className="sr-only">Go to last page</span>
@@ -98,6 +123,6 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
                     </Button>
                 </Flex>
             </Flex>
-        </Flex>
+        </Grid>
     );
 }

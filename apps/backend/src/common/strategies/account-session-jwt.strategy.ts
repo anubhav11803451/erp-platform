@@ -29,13 +29,32 @@ export class AccountSessionJwtStrategy extends PassportStrategy(Strategy, 'accou
 
         const session = await this.prisma.session.findUnique({
             where: { id: payload.sid },
-            include: { account: true },
+            include: {
+                account: {
+                    include: {
+                        owner_grant: true,
+                        institution_admin_membership: true,
+                        institution_staff_membership: true,
+                    },
+                },
+            },
         });
         if (
             !session ||
             session.account_id !== payload.sub ||
             session.revoked_at ||
             session.expires_at <= new Date()
+        ) {
+            throw new UnauthorizedException();
+        }
+        if (
+            session.account.identity_kind === 'INSTITUTION_STAFF' &&
+            (!session.account.institution_staff_membership ||
+                session.account.institution_staff_membership.revoked_at ||
+                session.account.institution_staff_membership.account_identity_kind !==
+                    'INSTITUTION_STAFF' ||
+                session.account.institution_admin_membership ||
+                session.account.owner_grant)
         ) {
             throw new UnauthorizedException();
         }

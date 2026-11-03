@@ -20,9 +20,9 @@ The repository has separate Vercel configurations for `apps/frontend` and `apps/
 
 Use branch-specific Preview variables for the `dev` branch:
 
-- **Backend project:** `DATABASE_URL` using Prisma Postgres's pooled endpoint for application traffic, a Preview-only `JWT_SECRET`, `CLIENT_URL` set to the frontend's stable `dev` Preview origin, and `INSTITUTION_ADMIN_COOKIE_SAME_SITE` selected for the deployed origin/cookie topology.
+- **Backend project:** `DATABASE_URL` using Prisma Postgres's pooled endpoint for application traffic, a Preview-only `JWT_SECRET`, `CLIENT_URL` set to the frontend's stable `dev` Preview origin, and `INSTITUTION_ADMIN_COOKIE_SAME_SITE=lax` for the same-origin browser proxy.
 - **Backend project, only while running migrations/bootstrap:** `DIRECT_URL` using Prisma Postgres's direct endpoint. Keep the deployed application's `DATABASE_URL` pooled. Preserve the provider's `sslmode=require` query option in both URLs.
-- **Frontend project:** `VITE_API_BASE_URL` set to the backend's stable `dev` Preview URL followed by `/v1/api`.
+- **Frontend project:** `API_PROXY_ORIGIN` set to the backend's stable `dev` Preview **origin** (no path). The browser calls the same-origin `/v1/api` route; do not set a direct backend `VITE_API_BASE_URL` for Vercel deployments.
 - **Backend project, only while provisioning:** `PLATFORM_OWNER_EMAIL` and `PLATFORM_OWNER_PASSWORD` for a dedicated test Owner. These are not used by normal sign-in.
 
 Apply the reviewed Prisma migrations to the dedicated Preview database before provisioning an Owner. From the linked backend project directory, pull the Preview variables for `dev` to a new temporary file. The file contains secrets, so restrict its permissions, do not print or commit it, and remove it when finished:
@@ -57,7 +57,9 @@ pnpm --filter @erp/backend exec dotenv -e /tmp/erp-platform-preview.env -- \
 
 The bootstrap refuses to proceed unless the database's Account table is empty. It is not part of the Vercel build or deployment command and must not be added to an automatic deployment step. After it succeeds, remove the temporary file and the temporary `DIRECT_URL`, `PLATFORM_OWNER_EMAIL`, and `PLATFORM_OWNER_PASSWORD` Preview variables, then redeploy that project; the created account remains available for `/signin`. Never point this procedure at a production database.
 
-Vercel environment changes apply to new deployments, so redeploy after changing Preview settings. Keep the frontend API URL and backend client origin aligned with the stable branch Preview URLs; review the cookie SameSite setting against the actual deployed domains before testing sign-in.
+The frontend Vercel configuration requires `API_PROXY_ORIGIN` to be a trusted HTTPS origin and routes `/v1/api/*` to that fixed backend origin before applying the SPA fallback. Configure the Production frontend project with the backend Production origin in `API_PROXY_ORIGIN`; keep the backend `CLIENT_URL` set to the corresponding frontend origin. `VITE_API_BASE_URL` remains available for local development and is not used by production Vite builds.
+
+Vercel environment changes apply to new deployments, so redeploy after changing Preview settings. Keep the frontend and backend origin variables aligned with the stable branch Preview URLs before testing sign-in.
 
 ## Validation
 

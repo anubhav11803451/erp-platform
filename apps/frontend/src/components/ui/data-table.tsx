@@ -4,6 +4,7 @@ import * as React from 'react';
 import type {
     ColumnDef,
     ColumnFiltersState,
+    Row,
     SortingState,
     VisibilityState,
 } from '@tanstack/react-table';
@@ -20,7 +21,6 @@ import {
     Table,
     TableBody,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
@@ -29,15 +29,13 @@ import { DataTablePagination } from '../shared/data-table/data-table-pagination'
 import { cn } from '@/lib/utils';
 
 type DataTableProps<TData, TValue> = {
-    // NEW: Add hideColumns prop to hide specific columns by default
     className?: string;
     hideColumns?: (keyof TData)[];
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
-    /**
-     * NEW: The toolbar is now a function that receives the table instance.
-     * This gives the toolbar access to table state (e.g., table.getColumn()).
-     */
+    ariaLabel: string;
+    renderMobileRow?: (row: Row<TData>) => React.ReactNode;
+    // The toolbar can access table state, including column filters and visibility.
     toolbar?: (table: ReturnType<typeof useReactTable<TData>>) => React.ReactNode | null;
 };
 
@@ -46,10 +44,13 @@ export function DataTable<TData, TValue>({
     hideColumns,
     columns,
     data,
+    ariaLabel,
+    renderMobileRow,
     toolbar,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+    const [globalFilter, setGlobalFilter] = React.useState('');
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
         ...(hideColumns
             ? hideColumns.reduce(
@@ -77,26 +78,23 @@ export function DataTable<TData, TValue>({
         state: {
             sorting,
             columnFilters,
+            globalFilter,
             columnVisibility,
             rowSelection,
         },
+        onGlobalFilterChange: setGlobalFilter,
     });
 
     return (
         <div className="w-full space-y-4">
-            <div id="data-table-wrapper" className={cn('rounded-md border', className)}>
-                {toolbar && (
-                    <div id="data-table-toolbar-wrapper" className="mx-4 my-6">
-                        {toolbar(table)}
-                    </div>
-                )}
-                <Table id="data-table" className="border-collapse border-spacing-y-2">
-                    {/* --- Table --- */}
-                    <TableHeader id="data-table-header" className="bg-muted/50">
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id} className="bg-muted/50 rounded-t-md">
-                                {headerGroup.headers.map((header) => {
-                                    return (
+            <div className={cn('rounded-md border', className)}>
+                {toolbar && <div className="mx-4 my-6">{toolbar(table)}</div>}
+                <div className={renderMobileRow ? 'hidden md:block' : undefined}>
+                    <Table aria-label={ariaLabel} className="border-collapse border-spacing-y-2">
+                        <TableHeader className="bg-muted/50">
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id} className="bg-muted/50 rounded-t-md">
+                                    {headerGroup.headers.map((header) => (
                                         <TableHead
                                             key={header.id}
                                             className="pl-4 first:rounded-tl-[inherit] last:rounded-tr-[inherit]"
@@ -108,49 +106,62 @@ export function DataTable<TData, TValue>({
                                                       header.getContext()
                                                   )}
                                         </TableHead>
-                                    );
-                                })}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && 'selected'}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className="pl-4">
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </TableCell>
                                     ))}
                                 </TableRow>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow
+                                        key={row.id}
+                                        data-state={row.getIsSelected() && 'selected'}
+                                    >
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id} className="pl-4">
+                                                {flexRender(
+                                                    cell.column.columnDef.cell,
+                                                    cell.getContext()
+                                                )}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={table.getVisibleLeafColumns().length}
+                                        className="h-24 text-center"
+                                    >
+                                        No results.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+                {renderMobileRow && (
+                    <div
+                        role="list"
+                        aria-label={`${ariaLabel} cards`}
+                        className="space-y-3 p-3 md:hidden"
+                    >
+                        {table.getRowModel().rows.length ? (
+                            table.getRowModel().rows.map((row) => (
+                                <div key={row.id} role="listitem">
+                                    {renderMobileRow(row)}
+                                </div>
                             ))
                         ) : (
-                            // --- Empty State ---
-                            <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No results.
-                                </TableCell>
-                            </TableRow>
+                            <p className="text-muted-foreground py-6 text-center text-sm">
+                                No results.
+                            </p>
                         )}
-                    </TableBody>
-                    {/* --- Pagination --- */}
-                    <TableFooter className="bg-muted/50 rounded-b-md">
-                        <TableRow className="hover:bg-muted/50 rounded-[inherit]">
-                            <TableCell
-                                colSpan={columns.length}
-                                className="bg-muted/50 rounded-[inherit]"
-                            >
-                                <DataTablePagination table={table} />
-                            </TableCell>
-                        </TableRow>
-                    </TableFooter>
-                </Table>
+                    </div>
+                )}
+                <div className="border-t px-3">
+                    <DataTablePagination table={table} />
+                </div>
             </div>
         </div>
     );

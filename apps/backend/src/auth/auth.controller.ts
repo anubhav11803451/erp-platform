@@ -22,6 +22,7 @@ import { AuthService } from './auth.service';
 import {
     AuthSessionResponseDto,
     AuthenticatedAccountIdentityResponseDto,
+    CsrfBootstrapResponseDto,
     PlatformOwnerLogoutResponseDto,
     SignInDto,
 } from './dto/auth-controller.dto';
@@ -55,6 +56,17 @@ export class AuthController {
             this.configService.get<string>('INSTITUTION_ADMIN_CONTINUATION_CSRF_COOKIE_NAME') ||
             'erp360_iac_ctk';
         this.clientOrigin = new URL(this.configService.getOrThrow<string>('CLIENT_URL')).origin;
+    }
+
+    @Get('csrf')
+    @UseInterceptors(InvitationSecurityHeadersInterceptor)
+    @ZodResponse({
+        status: HttpStatus.OK,
+        type: CsrfBootstrapResponseDto,
+    })
+    csrfBootstrap(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
+        this.assertCsrfBootstrapOrigin(request);
+        return this.authService.issueCsrfToken(response);
     }
 
     @Post('login')
@@ -154,6 +166,20 @@ export class AuthController {
         if (request.header('origin') !== this.clientOrigin) {
             throw new ForbiddenException('Request origin rejected');
         }
+    }
+
+    private assertCsrfBootstrapOrigin(request: Request): void {
+        const origin = request.header('origin');
+        if (origin === this.clientOrigin) {
+            return;
+        }
+
+        // Safe same-origin GET requests may omit Origin but include Fetch Metadata.
+        if (!origin && request.header('sec-fetch-site') === 'same-origin') {
+            return;
+        }
+
+        throw new ForbiddenException('Request origin rejected');
     }
 
     private assertDoubleSubmitCsrf(request: Request, cookieName: string): void {

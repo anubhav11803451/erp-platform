@@ -276,6 +276,16 @@ describe('OwnerService institution and first-Admin onboarding', () => {
     });
 
     it('closes a legacy unbound pending claim and atomically issues a bound replacement', async () => {
+        let priorApprovalCheckFinished = false;
+        prisma.institutionAdminInvitation.findFirst.mockImplementation(async () => {
+            await Promise.resolve();
+            priorApprovalCheckFinished = true;
+            return null;
+        });
+        prisma.institutionAdminMembership.findFirst.mockImplementation(async () => {
+            expect(priorApprovalCheckFinished).toBe(true);
+            return null;
+        });
         prisma.institutionAdminInvitation.findUnique
             .mockResolvedValueOnce({
                 id: invitationId,

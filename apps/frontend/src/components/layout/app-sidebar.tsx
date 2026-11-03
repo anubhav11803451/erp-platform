@@ -25,8 +25,13 @@ import { Typography } from '../ui/typography';
  */
 export function AppSidebar() {
     const { handleLogout } = useAuth();
-    const { isPlatformOwner } = useRoleAccess();
-    const homePath = isPlatformOwner ? '/owner' : '/institution';
+    const { isPlatformOwner, isInstitutionStaff } = useRoleAccess();
+    const homePath = isPlatformOwner ? '/owner' : isInstitutionStaff ? '/staff' : '/institution';
+    const workspaceLabel = isPlatformOwner
+        ? 'Platform'
+        : isInstitutionStaff
+          ? 'Staff'
+          : 'Institution';
 
     return (
         // Use the shadcn Sidebar component
@@ -48,9 +53,7 @@ export function AppSidebar() {
             {/* --- Content --- */}
             <SidebarContent>
                 <SidebarGroup>
-                    <SidebarGroupLabel>
-                        {isPlatformOwner ? 'Platform' : 'Institution'}
-                    </SidebarGroupLabel>
+                    <SidebarGroupLabel>{workspaceLabel}</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarNav />
                     </SidebarGroupContent>

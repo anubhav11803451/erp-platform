@@ -104,7 +104,6 @@ export function LegalEntityForm() {
                     <Button
                         type="button"
                         variant="outline"
-                        className="min-h-11"
                         onClick={() => dispatch(closeOwnerSetupDialog())}
                         disabled={isSaving}
                     >
@@ -113,7 +112,6 @@ export function LegalEntityForm() {
                     <Button
                         type="submit"
                         form="legal-entity-form"
-                        className="min-h-11"
                         disabled={isSaving}
                         aria-busy={isSaving}
                     >
@@ -309,7 +307,6 @@ export function InstitutionForm() {
                                                 <Button
                                                     type="button"
                                                     variant="outline"
-                                                    className="min-h-11"
                                                     onClick={() => void onRefresh()}
                                                     disabled={isRefreshing}
                                                 >
@@ -328,7 +325,6 @@ export function InstitutionForm() {
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="min-h-11"
                                         onClick={() => handleOpenChange(false)}
                                         disabled={isSaving || isUnconfirmed}
                                     >
@@ -337,7 +333,6 @@ export function InstitutionForm() {
                                     <Button
                                         type="submit"
                                         form={`institution-create-form-${legalEntity.id}`}
-                                        className="min-h-11"
                                         disabled={isSaving || isUnconfirmed}
                                         aria-busy={isSaving}
                                     >

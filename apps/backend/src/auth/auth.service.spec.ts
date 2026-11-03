@@ -31,6 +31,26 @@ const adminAccount = {
         },
     },
 };
+const staffAccount = {
+    id: 'staff-account-id',
+    email: 'staff@example.test',
+    password_hash: '',
+    identity_kind: 'INSTITUTION_STAFF',
+    owner_grant: null,
+    institution_admin_membership: null,
+    institution_staff_membership: {
+        account_id: 'staff-account-id',
+        account_identity_kind: 'INSTITUTION_STAFF',
+        institution_id: '00000000-0000-4000-8000-000000000001',
+        revoked_at: null,
+        institution: {
+            id: '00000000-0000-4000-8000-000000000001',
+            name: 'School',
+            code_suffix: 'MAIN',
+            legal_entity: { code: 'SPEG' },
+        },
+    },
+};
 
 describe('AuthService shared workspace session', () => {
     let service: AuthService;
@@ -42,6 +62,7 @@ describe('AuthService shared workspace session', () => {
     beforeEach(async () => {
         ownerAccount.password_hash = await bcrypt.hash('correct-password', 4);
         adminAccount.password_hash = await bcrypt.hash('correct-password', 4);
+        staffAccount.password_hash = await bcrypt.hash('correct-password', 4);
         transaction = {
             account: { findUnique: jest.fn(), updateMany: jest.fn() },
             session: {
@@ -74,6 +95,18 @@ describe('AuthService shared workspace session', () => {
             adminAccount,
             {
                 identity_kind: 'INSTITUTION_ADMIN',
+                institution: {
+                    id: '00000000-0000-4000-8000-000000000001',
+                    name: 'School',
+                    code: 'SPEG-MAIN',
+                },
+            },
+        ],
+        [
+            'active Institution Staff',
+            staffAccount,
+            {
+                identity_kind: 'INSTITUTION_STAFF',
                 institution: {
                     id: '00000000-0000-4000-8000-000000000001',
                     name: 'School',
@@ -130,11 +163,38 @@ describe('AuthService shared workspace session', () => {
                 path: '/v1/api/auth',
             }),
         );
+        expect(response.cookie).toHaveBeenCalledWith(
+            'erp360_ctk',
+            expect.any(String),
+            expect.objectContaining({
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+            }),
+        );
         expect(response.cookie).not.toHaveBeenCalledWith(
             'erp360_ia_at',
             expect.anything(),
             expect.anything(),
         );
+    });
+
+    it('issues a host-only HttpOnly CSRF cookie and matching bootstrap response', () => {
+        const result = service.issueCsrfToken(response as unknown as Response);
+        const csrfCookie = response.cookie.mock.calls.find(([name]) => name === 'erp360_ctk');
+
+        expect(result).toEqual({ csrf_token: expect.any(String) });
+        expect(csrfCookie?.[1]).toBe(result.csrf_token);
+        expect(csrfCookie?.[2]).toEqual(
+            expect.objectContaining({
+                httpOnly: true,
+                secure: false,
+                sameSite: 'lax',
+                path: '/',
+                expires: expect.any(Date),
+            }),
+        );
+        expect(csrfCookie?.[2]).not.toHaveProperty('domain');
     });
 
     it('rejects an UNASSIGNED account and invitation intent without creating a session', async () => {
@@ -192,6 +252,103 @@ describe('AuthService shared workspace session', () => {
         expect(transaction.session.updateMany).not.toHaveBeenCalled();
         expect(transaction.session.create).not.toHaveBeenCalled();
         expect(response.clearCookie).toHaveBeenCalled();
+    });
+
+    it('rejects revoked or malformed Staff identity on sign-in and /me', async () => {
+        const revokedStaff = {
+            ...staffAccount,
+            institution_staff_membership: {
+                ...staffAccount.institution_staff_membership,
+                revoked_at: new Date(),
+            },
+        };
+        prisma.account.findUnique.mockResolvedValue(revokedStaff);
+        transaction.account.findUnique.mockResolvedValue(revokedStaff);
+
+        await expect(
+            service.signInWorkspace(
+                {
+                    intent: 'WORKSPACE',
+                    email: revokedStaff.email,
+                    password: 'correct-password',
+                },
+                response as unknown as Response,
+            ),
+        ).rejects.toThrow('Account identity is invalid');
+        expect(transaction.session.create).not.toHaveBeenCalled();
+
+        prisma.account.findUnique.mockResolvedValue({
+            ...staffAccount,
+            institution_staff_membership: null,
+        });
+        await expect(service.getAuthenticatedIdentity(staffAccount.id)).rejects.toThrow(
+            'Account identity is invalid',
+        );
+    });
+
+    it('rejects refresh when the Staff membership has been revoked', async () => {
+        prisma.$queryRaw.mockResolvedValue([
+            { id: 'staff-session-id', rotation_family_id: 'staff-session-id' },
+        ]);
+        transaction.session.findUnique.mockResolvedValue({
+            id: 'staff-session-id',
+            rotation_family_id: 'staff-session-id',
+            expires_at: new Date(Date.now() + 60_000),
+            revoked_at: null,
+            account: {
+                ...staffAccount,
+                institution_staff_membership: {
+                    ...staffAccount.institution_staff_membership,
+                    revoked_at: new Date(),
+                },
+            },
+        });
+
+        await expect(
+            service.refresh('staff-refresh-token', response as unknown as Response),
+        ).rejects.toThrow('Account identity is invalid');
+        expect(transaction.session.updateMany).not.toHaveBeenCalled();
+        expect(transaction.session.create).not.toHaveBeenCalled();
+        expect(response.clearCookie).toHaveBeenCalled();
+    });
+
+    it('preserves active Staff identity while rotating the shared session', async () => {
+        prisma.$queryRaw.mockResolvedValue([
+            { id: 'staff-session-family', rotation_family_id: 'staff-session-family' },
+        ]);
+        transaction.session.findUnique.mockResolvedValue({
+            id: 'staff-session-id',
+            rotation_family_id: 'staff-session-family',
+            expires_at: new Date(Date.now() + 60_000),
+            revoked_at: null,
+            account: staffAccount,
+        });
+
+        const result = await service.refresh(
+            'staff-refresh-token',
+            response as unknown as Response,
+        );
+
+        expect(result).toEqual(
+            expect.objectContaining({
+                identity: expect.objectContaining({
+                    identity_kind: 'INSTITUTION_STAFF',
+                    institution: {
+                        id: '00000000-0000-4000-8000-000000000001',
+                        name: 'School',
+                        code: 'SPEG-MAIN',
+                    },
+                }),
+            }),
+        );
+        expect(transaction.session.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    account_id: staffAccount.id,
+                    rotation_family_id: 'staff-session-family',
+                }),
+            }),
+        );
     });
 
     it('inherits the family on refresh and revokes only the submitted family on logout', async () => {

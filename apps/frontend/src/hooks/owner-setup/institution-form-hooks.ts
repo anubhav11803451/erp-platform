@@ -1,7 +1,7 @@
 import type { InstitutionAdminInvitationCreateRequest } from '@erp/shared';
 import { institutionAdminInvitationCreateRequestSchema } from '@erp/shared';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { selectAccessToken } from '@/features/auth/auth-slice';
+import { selectAccessToken, selectCsrfToken } from '@/features/auth/auth-slice';
 import { useGetLegalEntitiesQuery } from '@/features/owner/owner-api-slice';
 import { createInstitutionAndIssueInvitationOnce } from '@/features/owner/owner-invitation-api-slice';
 import {
@@ -15,6 +15,7 @@ import {
 export function useInstitutionFormHooks() {
     const dispatch = useAppDispatch();
     const accessToken = useAppSelector(selectAccessToken);
+    const csrfToken = useAppSelector(selectCsrfToken);
     const dialog = useAppSelector(selectOwnerSetupDialog);
     const selectedLegalEntityId = useAppSelector(selectSelectedLegalEntityId);
     const { data, refetch } = useGetLegalEntitiesQuery();
@@ -30,7 +31,12 @@ export function useInstitutionFormHooks() {
             throw new Error('Check the Institution and invitation details.');
         }
 
-        return createInstitutionAndIssueInvitationOnce(legalEntity.id, parsed.data, accessToken);
+        return createInstitutionAndIssueInvitationOnce(
+            legalEntity.id,
+            parsed.data,
+            accessToken,
+            csrfToken
+        );
     }
 
     async function refreshBeforeRetry() {

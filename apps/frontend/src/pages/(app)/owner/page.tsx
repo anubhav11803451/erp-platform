@@ -1,6 +1,5 @@
-import { Navigate } from 'react-router';
-import { Access } from '@/components/role-bac/access';
 import { OwnerSetup } from '@/features/owner/owner-setup';
+import { WorkspaceGate } from '@/components/shared/workspace-gate';
 import type { AppRouteHandle } from '@/lib/route-breadcrumbs';
 
 // Route metadata is exported for the file-route lazy module.
@@ -11,7 +10,7 @@ export const handle = {
 
 export default function OwnerHomePage() {
     return (
-        <Access feature="PLATFORM.SETUP" fallback={<Navigate to="/institution" replace />}>
+        <WorkspaceGate allowedRoles={['PLATFORM_OWNER']}>
             <section aria-labelledby="owner-page-title" className="space-y-6">
                 <div className="space-y-2">
                     <p className="text-muted-foreground text-sm font-medium">Platform workspace</p>
@@ -28,6 +27,6 @@ export default function OwnerHomePage() {
                 </div>
                 <OwnerSetup />
             </section>
-        </Access>
+        </WorkspaceGate>
     );
 }

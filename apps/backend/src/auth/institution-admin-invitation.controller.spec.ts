@@ -21,6 +21,7 @@ describe('InstitutionAdminInvitationController browser protections', () => {
             },
             invited_email: 'admin@example.test',
             invitation_expires_at: '2026-11-05T00:00:00.000Z',
+            csrf_token: 'continuation-csrf-token',
         }),
         resume: jest.fn(),
         claimExistingAccount: jest.fn(),
@@ -64,6 +65,7 @@ describe('InstitutionAdminInvitationController browser protections', () => {
             },
             invited_email: 'admin@example.test',
             invitation_expires_at: '2026-11-05T00:00:00.000Z',
+            csrf_token: 'continuation-csrf-token',
         });
     });
 
@@ -84,11 +86,11 @@ describe('InstitutionAdminInvitationController browser protections', () => {
             .expect(200);
         expect(result.headers['cache-control']).toBe('no-store');
         expect(result.headers['referrer-policy']).toBe('no-referrer');
+        expect(result.body.csrf_token).toEqual(expect.any(String));
         expect(invitationService.exchange).toHaveBeenCalledWith(
             'invitation-bearer',
             expect.any(Object),
         );
-        expect(result.body).not.toHaveProperty('csrf_token');
     });
 
     it('requires synchronizer CSRF on claim mutations and exact Origin on status reads', async () => {

@@ -22,7 +22,7 @@ export function OwnerDirectoryToolbar({
 
     return (
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap xl:flex-1 xl:flex-nowrap xl:justify-end">
-            <div className="relative min-w-0 flex-1 xl:max-w-64">
+            <div className="relative h-min min-w-0 flex-1 xl:max-w-64">
                 <Label htmlFor="legal-entity-directory-filter" className="sr-only">
                     Filter Legal Entities and Institutions
                 </Label>
@@ -36,13 +36,13 @@ export function OwnerDirectoryToolbar({
                     onChange={(event) => dispatch(setDirectoryFilter(event.currentTarget.value))}
                     placeholder="Filter Legal Entities or Institutions"
                     autoComplete="off"
-                    className="min-h-11 pl-9"
+                    className="pl-9"
                 />
             </div>
             <Button
                 type="button"
                 variant="outline"
-                className="min-h-11 shrink-0"
+                className="shrink-0"
                 onClick={onRefresh}
                 disabled={isFetching}
             >
@@ -51,7 +51,7 @@ export function OwnerDirectoryToolbar({
             </Button>
             <Button
                 type="button"
-                className="min-h-11 shrink-0"
+                className="shrink-0"
                 onClick={() => dispatch(openLegalEntityDialog())}
             >
                 New Legal Entity

@@ -62,13 +62,6 @@ export function useOwnerInvitationControls({
         state === 'EXPIRED' ||
         state === 'LEGACY_ACCEPTED';
     const hasClaim = Boolean(currentStatus?.claimed_at);
-    const panelTitle =
-        state === 'PENDING_APPROVAL' ||
-        state === 'APPROVED' ||
-        state === 'REJECTED' ||
-        (state === 'EXPIRED' && hasClaim)
-            ? 'Claim Owner Review'
-            : 'First Admin invitation';
     const codePrefix = legalEntityCode ? `${legalEntityCode}-` : '';
     const institutionCodeSuffix =
         institution.code && codePrefix && institution.code.startsWith(codePrefix)
@@ -131,7 +124,6 @@ export function useOwnerInvitationControls({
         statusUnavailable,
         canReplace,
         hasClaim,
-        panelTitle,
         institutionCodeSuffix,
         replacementTarget,
         setReplacementTarget,

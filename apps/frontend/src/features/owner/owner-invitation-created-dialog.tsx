@@ -46,7 +46,7 @@ export function OwnerInvitationCreatedDialog({
                                 value={created.invitation.one_time_invitation_url}
                                 readOnly
                                 onFocus={(event) => event.currentTarget.select()}
-                                className="min-h-11 font-mono text-xs"
+                                className="font-mono text-xs"
                             />
                             <p className="text-muted-foreground text-sm">
                                 It expires{' '}
@@ -58,12 +58,7 @@ export function OwnerInvitationCreatedDialog({
                             {copyMessage}
                         </p>
                         <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="min-h-11"
-                                onClick={() => void onCopy()}
-                            >
+                            <Button type="button" variant="outline" onClick={() => void onCopy()}>
                                 {copyMessage.startsWith('Invitation link copied') ? (
                                     <Check aria-hidden="true" />
                                 ) : (
@@ -71,7 +66,7 @@ export function OwnerInvitationCreatedDialog({
                                 )}
                                 Copy link
                             </Button>
-                            <Button type="button" className="min-h-11" onClick={onClose}>
+                            <Button type="button" onClick={onClose}>
                                 Done
                             </Button>
                         </DialogFooter>

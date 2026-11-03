@@ -111,7 +111,7 @@ export function InstitutionAdminInvitationReplacement({
                             value={oneTimeLink}
                             readOnly
                             onFocus={(event) => event.currentTarget.select()}
-                            className="min-h-11 font-mono text-xs"
+                            className="font-mono text-xs"
                         />
                     </div>
                     <p role="status" aria-live="polite" className="text-sm">
@@ -121,7 +121,6 @@ export function InstitutionAdminInvitationReplacement({
                         <Button
                             type="button"
                             variant="outline"
-                            className="min-h-11"
                             onClick={() => void copyInvitationLink()}
                         >
                             {copyMessage.startsWith('Invitation link copied') ? (
@@ -131,11 +130,7 @@ export function InstitutionAdminInvitationReplacement({
                             )}
                             Copy link
                         </Button>
-                        <Button
-                            type="button"
-                            className="min-h-11"
-                            onClick={() => handleOpenChange(false)}
-                        >
+                        <Button type="button" onClick={() => handleOpenChange(false)}>
                             Done
                         </Button>
                     </DialogFooter>
@@ -189,7 +184,6 @@ export function InstitutionAdminInvitationReplacement({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="min-h-11"
                                 onClick={() => handleOpenChange(false)}
                                 disabled={isReplacing}
                             >
@@ -198,7 +192,6 @@ export function InstitutionAdminInvitationReplacement({
                             <Button
                                 type="submit"
                                 form={`replacement-form-${institutionId}`}
-                                className="min-h-11"
                                 disabled={isReplacing}
                                 aria-busy={isReplacing}
                             >

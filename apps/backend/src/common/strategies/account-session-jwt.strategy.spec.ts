@@ -63,4 +63,39 @@ describe('AccountSessionJwtStrategy', () => {
             UnauthorizedException,
         );
     });
+
+    it('rejects a still-live session as soon as its Staff membership is revoked', async () => {
+        const prisma = {
+            session: {
+                findUnique: jest.fn().mockResolvedValue({
+                    id: 'session-id',
+                    account_id: 'staff-id',
+                    revoked_at: null,
+                    expires_at: new Date(Date.now() + 60_000),
+                    account: {
+                        id: 'staff-id',
+                        email: 'staff@example.test',
+                        identity_kind: 'INSTITUTION_STAFF',
+                        owner_grant: null,
+                        institution_admin_membership: null,
+                        institution_staff_membership: {
+                            account_identity_kind: 'INSTITUTION_STAFF',
+                            revoked_at: new Date(),
+                        },
+                    },
+                }),
+            },
+        };
+        const strategy = new AccountSessionJwtStrategy(
+            {
+                get: jest.fn().mockReturnValue('erp360_at'),
+                getOrThrow: jest.fn().mockReturnValue('test-secret'),
+            } as unknown as ConfigService,
+            prisma as unknown as PrismaService,
+        );
+
+        await expect(strategy.validate({ sub: 'staff-id', sid: 'session-id' })).rejects.toThrow(
+            UnauthorizedException,
+        );
+    });
 });

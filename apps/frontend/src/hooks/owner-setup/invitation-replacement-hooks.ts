@@ -5,6 +5,8 @@ import type {
     InstitutionAdminInvitationStatusResponse,
 } from '@erp/shared';
 import { replaceOwnerInvitationOnce } from '@/features/owner/owner-invitation-api-slice';
+import { useAppSelector } from '@/app/hooks';
+import { selectCsrfToken } from '@/features/auth/auth-slice';
 
 type UseOwnerInvitationReplacementProps = {
     institutionId: string;
@@ -43,6 +45,7 @@ export function useOwnerInvitationReplacement({
     accessToken,
     onReplaced,
 }: UseOwnerInvitationReplacementProps) {
+    const csrfToken = useAppSelector(selectCsrfToken);
     const [oneTimeLink, setOneTimeLink] = useState<string | null>(null);
     const [copyMessage, setCopyMessage] = useState('');
     const [actionError, setActionError] = useState('');
@@ -56,7 +59,8 @@ export function useOwnerInvitationReplacement({
                 institutionId,
                 currentStatus.id,
                 recipient,
-                accessToken
+                accessToken,
+                csrfToken
             );
             onReplaced(statusFromIssue(replacement, recipient));
             setOneTimeLink(replacement.one_time_invitation_url);

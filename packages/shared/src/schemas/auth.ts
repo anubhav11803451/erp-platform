@@ -25,10 +25,17 @@ export const platformOwnerLogoutResponseSchema = z.object({
     message: z.string().min(1),
 });
 
+export const csrfBootstrapResponseSchema = z
+    .object({
+        csrf_token: z.string().min(1),
+    })
+    .strict();
+
 export type PlatformOwnerSignInPayload = z.infer<typeof platformOwnerSignInSchema>;
 export type PlatformOwnerAccountResponse = z.infer<typeof platformOwnerAccountResponseSchema>;
 export type PlatformOwnerSignInResponse = z.infer<typeof platformOwnerSignInResponseSchema>;
 export type PlatformOwnerLogoutResponse = z.infer<typeof platformOwnerLogoutResponseSchema>;
+export type CsrfBootstrapResponse = z.infer<typeof csrfBootstrapResponseSchema>;
 
 const authenticatedAccountSchema = z
     .object({
@@ -60,6 +67,14 @@ const institutionAdminIdentitySchema = z
     })
     .strict();
 
+const institutionStaffIdentitySchema = z
+    .object({
+        identity_kind: z.literal('INSTITUTION_STAFF'),
+        account: authenticatedAccountSchema,
+        institution: workspaceInstitutionSchema,
+    })
+    .strict();
+
 const unassignedAccountIdentitySchema = z
     .object({
         identity_kind: z.literal('UNASSIGNED'),
@@ -81,11 +96,13 @@ export const authenticatedAccountIdentityResponseSchema = z.discriminatedUnion('
     unassignedAccountIdentitySchema,
     platformOwnerIdentitySchema,
     institutionAdminIdentitySchema,
+    institutionStaffIdentitySchema,
 ]);
 
 export const workspaceIdentityResponseSchema = z.discriminatedUnion('identity_kind', [
     platformOwnerIdentitySchema,
     institutionAdminIdentitySchema,
+    institutionStaffIdentitySchema,
 ]);
 
 export const workspaceSessionResponseSchema = z
@@ -103,6 +120,7 @@ export const invitationContinuationResponseSchema = z
         institution: workspaceInstitutionSchema,
         invited_email: normalizedEmailResponseSchema,
         invitation_expires_at: z.iso.datetime(),
+        csrf_token: z.string().min(1),
     })
     .strict();
 

@@ -10,62 +10,58 @@ import {
 
 type UseOwnerClaimReviewProps = {
     institutionId: string;
-    hasPendingClaim: boolean;
+    enabled: boolean;
     onDecisionRecorded: () => void;
 };
 
 export function useOwnerClaimReview({
     institutionId,
-    hasPendingClaim,
+    enabled,
     onDecisionRecorded,
 }: UseOwnerClaimReviewProps) {
-    const { data, error, isFetching, isLoading, refetch } = useGetFirstAdminInvitationClaimsQuery({
-        institutionId,
-    });
-    const [decideInvitation, { isLoading: isDeciding }] = useDecideFirstAdminInvitationMutation();
-    const [pendingClaim, setPendingClaim] = useState<InstitutionAdminInvitationOwnerClaim | null>(
-        null
+    const { data, error, isFetching, isLoading, refetch } = useGetFirstAdminInvitationClaimsQuery(
+        { institutionId },
+        { skip: !enabled }
     );
-    const [pendingDecision, setPendingDecision] =
+    const [decideInvitation, { isLoading: isDeciding }] = useDecideFirstAdminInvitationMutation();
+    const [reviewClaimId, setReviewClaimId] = useState<string | null>(null);
+    const [recordingDecision, setRecordingDecision] =
         useState<InstitutionAdminInvitationDecision | null>(null);
     const [actionError, setActionError] = useState('');
     const [decisionNotice, setDecisionNotice] = useState('');
+    const claims = data?.claims ?? [];
+    const reviewClaim = claims.find((claim) => claim.id === reviewClaimId) ?? null;
 
     useEffect(() => {
-        if (hasPendingClaim) {
-            void refetch();
+        if (!enabled) {
+            setReviewClaimId(null);
         }
-    }, [hasPendingClaim, refetch]);
+    }, [enabled]);
 
-    function openDecision(
+    function openReview(claim: InstitutionAdminInvitationOwnerClaim) {
+        setActionError('');
+        setDecisionNotice('');
+        setReviewClaimId(claim.id);
+    }
+
+    function closeReview(open: boolean) {
+        if (isDeciding || open) {
+            return;
+        }
+        setReviewClaimId(null);
+    }
+
+    async function recordDecision(
         claim: InstitutionAdminInvitationOwnerClaim,
         decision: InstitutionAdminInvitationDecision
     ) {
         setActionError('');
-        setDecisionNotice('');
-        setPendingClaim(claim);
-        setPendingDecision(decision);
-    }
-
-    function closeDecision(open: boolean) {
-        if (isDeciding || open) {
-            return;
-        }
-        setPendingClaim(null);
-        setPendingDecision(null);
-    }
-
-    async function confirmDecision() {
-        if (!pendingClaim || !pendingDecision) {
-            return;
-        }
-
-        setActionError('');
+        setRecordingDecision(decision);
         try {
             const result = await decideInvitation({
                 institutionId,
-                invitationId: pendingClaim.id,
-                decision: pendingDecision,
+                invitationId: claim.id,
+                decision,
             }).unwrap();
             if (result.status === 'EXPIRED') {
                 setDecisionNotice(
@@ -80,33 +76,37 @@ export function useOwnerClaimReview({
                     }`
                 );
             }
-            setPendingClaim(null);
-            setPendingDecision(null);
+            setReviewClaimId(null);
             onDecisionRecorded();
             void refetch();
+            return true;
         } catch {
             setActionError(
                 'The decision could not be confirmed. Refresh the claim queue before trying again.'
             );
-            setPendingClaim(null);
-            setPendingDecision(null);
             void refetch();
+            return false;
+        } finally {
+            setRecordingDecision(null);
         }
     }
 
     return {
-        claims: data?.claims ?? [],
+        claims,
         error,
         isFetching,
         isLoading,
         isDeciding,
+        recordingDecision,
         refetch,
-        pendingClaim,
-        pendingDecision,
+        reviewClaim,
+        reviewOpen: Boolean(reviewClaim),
         actionError,
         decisionNotice,
-        openDecision,
-        closeDecision,
-        confirmDecision,
+        openReview,
+        closeReview,
+        recordDecision,
     };
 }
+
+export type OwnerClaimReviewState = ReturnType<typeof useOwnerClaimReview>;

@@ -1,17 +1,20 @@
-import { Building2, Copy, RefreshCw } from 'lucide-react';
 import type {
     InstitutionAdminInvitationStatusResponse,
     LegalEntityDirectoryGroup,
 } from '@erp/shared';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Spinner } from '@/components/ui/spinner';
+import { Flex } from '@/components/ui/flex';
 import { formatDate } from '@/lib/utils/formatters';
 import { InstitutionAdminClaimReview } from './institution-admin-claim-review';
 import { InstitutionAdminInvitationReplacement } from './institution-admin-invitation-replacement';
+import {
+    InstitutionAdminInvitationStatusCard,
+    type InstitutionAdminInvitationDetail,
+    type InstitutionAdminInvitationStatusAction,
+} from './institution-admin-invitation-status-card';
+import { useOwnerClaimReview } from '@/hooks/owner-setup/claim-review-hooks';
 import { useOwnerInvitationControls } from '@/hooks/owner-setup/invitation-controls-hooks';
 
 type Props = {
@@ -23,38 +26,116 @@ function readableDate(value: string): string {
     return formatDate(new Date(value), 'PPP p');
 }
 
-function invitationStatusLabel(
-    status: InstitutionAdminInvitationStatusResponse['status'] | undefined,
-    isLoading: boolean,
-    statusUnavailable: boolean,
-    notFound: boolean
+function getInvitationSummary(
+    status: InstitutionAdminInvitationStatusResponse,
+    hasClaim: boolean
 ): string {
-    if (status === 'PENDING') return 'Claim Invited';
-    if (status === 'PENDING_APPROVAL') return 'Review Pending Claim';
-    if (status === 'APPROVED') return 'Approved';
-    if (status === 'REJECTED') return 'Rejected';
-    if (status === 'REVOKED') return 'Revoked';
-    if (status === 'EXPIRED') return 'Expired';
-    if (status === 'LEGACY_ACCEPTED') return 'Legacy Claim';
-    if (isLoading) return 'Loading status';
-    if (statusUnavailable) return 'Status unavailable';
-    if (notFound) return 'Invitation not found';
-    return 'Status unknown';
+    if (status.status === 'PENDING') {
+        return `Invitation sent · expires ${readableDate(status.expires_at)}`;
+    }
+    if (status.status === 'PENDING_APPROVAL') {
+        return `Review pending claim · submitted ${readableDate(status.claimed_at ?? status.created_at)}`;
+    }
+    if (status.status === 'APPROVED') {
+        return `Approved · decision recorded ${readableDate(status.decided_at ?? status.created_at)}`;
+    }
+    if (status.status === 'REJECTED') {
+        return `Rejected · decision recorded ${readableDate(status.decided_at ?? status.created_at)}`;
+    }
+    if (status.status === 'REVOKED') {
+        return `Revoked · issued ${readableDate(status.created_at)}`;
+    }
+    if (status.status === 'EXPIRED') {
+        return `${hasClaim ? 'Claim review expired' : 'Invitation expired'} · ${readableDate(status.review_expires_at ?? status.expires_at)}`;
+    }
+    return 'Legacy unbound claim · it cannot be approved or used to grant access';
 }
 
-function invitationStatusTone(
-    status: InstitutionAdminInvitationStatusResponse['status'] | undefined
-) {
-    if (status === 'APPROVED') {
-        return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
+function getInvitationDetails(
+    status: InstitutionAdminInvitationStatusResponse
+): InstitutionAdminInvitationDetail[] {
+    if (status.status === 'APPROVED') {
+        return [
+            {
+                label: 'Login identifier',
+                value: status.claimant_login_identifier ?? status.invited_email ?? 'Not available',
+                monospace: true,
+            },
+            {
+                label: 'Claimant-provided name',
+                value: status.claimant_provided_name ?? 'Not available',
+            },
+            {
+                label: 'Claim submitted',
+                value: status.claimed_at ? readableDate(status.claimed_at) : 'Not available',
+            },
+            {
+                label: 'Review deadline',
+                value: status.review_expires_at
+                    ? readableDate(status.review_expires_at)
+                    : 'Not available',
+            },
+        ];
     }
-    if (status === 'PENDING_APPROVAL') {
-        return 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400';
+
+    const details: InstitutionAdminInvitationDetail[] = [];
+    if (status.invited_email) {
+        details.push({ label: 'Invited email', value: status.invited_email, monospace: true });
     }
-    if (status === 'REJECTED') {
-        return 'border-destructive/30 bg-destructive/10 text-destructive';
+    if (status.owner_contact_name) {
+        details.push({ label: 'Name provided before inviting', value: status.owner_contact_name });
     }
-    return 'text-muted-foreground';
+    if (status.owner_contact_phone) {
+        details.push({ label: 'Phone contact', value: status.owner_contact_phone });
+    }
+    if (status.claimant_login_identifier) {
+        details.push({
+            label: 'Sign-in email (unverified)',
+            value: status.claimant_login_identifier,
+            monospace: true,
+        });
+    }
+    if (status.claimant_provided_name) {
+        details.push({
+            label: 'Name entered when claiming (unverified)',
+            value: status.claimant_provided_name,
+        });
+    }
+    if (status.claimed_at) {
+        details.push({ label: 'Claim submitted', value: readableDate(status.claimed_at) });
+    }
+    if (status.review_expires_at) {
+        details.push({ label: 'Review deadline', value: readableDate(status.review_expires_at) });
+    }
+    return details;
+}
+
+function getInvitationFooterMessage(
+    status: InstitutionAdminInvitationStatusResponse | undefined,
+    hasClaim: boolean
+): string | undefined {
+    if (!status) return undefined;
+    if (status.status === 'PENDING') {
+        return 'No Institution membership or session is granted until the claim is approved.';
+    }
+    if (status.status === 'PENDING_APPROVAL') {
+        return 'Verify separately in person or through a phone contact known before inviting; email and the invitation link are not proof.';
+    }
+    if (status.status === 'APPROVED') {
+        return 'Approval grants membership but does not issue a session. The claimant must sign in separately.';
+    }
+    if (status.status === 'REJECTED') {
+        return 'The rejected claim granted no Institution access.';
+    }
+    if (status.status === 'REVOKED') {
+        return 'The invitation is revoked. No membership or session is created by revocation.';
+    }
+    if (status.status === 'EXPIRED') {
+        return hasClaim
+            ? 'The expired claim did not grant Institution access.'
+            : 'The expired invitation did not grant Institution access.';
+    }
+    return 'This legacy unbound claim grants no new access.';
 }
 
 export function InstitutionAdminInvitationControls({ institution, legalEntityCode }: Props) {
@@ -72,7 +153,6 @@ export function InstitutionAdminInvitationControls({ institution, legalEntityCod
         statusUnavailable,
         canReplace,
         hasClaim,
-        panelTitle,
         institutionCodeSuffix,
         replacementTarget,
         setReplacementTarget,
@@ -85,123 +165,57 @@ export function InstitutionAdminInvitationControls({ institution, legalEntityCod
         confirmRevocation,
         handleReplacement,
     } = useOwnerInvitationControls({ institution, legalEntityCode });
-    const statusLabel = invitationStatusLabel(state, isLoading, statusUnavailable, notFound);
+    const claimReview = useOwnerClaimReview({
+        institutionId,
+        enabled: state === 'PENDING_APPROVAL',
+        onDecisionRecorded: () => void refetch(),
+    });
+    const details = currentStatus ? getInvitationDetails(currentStatus) : [];
+    const summary = currentStatus ? getInvitationSummary(currentStatus, hasClaim) : undefined;
+    const footerMessage = getInvitationFooterMessage(currentStatus, hasClaim);
+    const pendingClaim = claimReview.claims.find((claim) => Boolean(claim.invited_email));
+    const statusAction: InstitutionAdminInvitationStatusAction | undefined =
+        state === 'PENDING_APPROVAL' && pendingClaim
+            ? {
+                  label: 'Review Pending Claim',
+                  onClick: () => claimReview.openReview(pendingClaim),
+                  disabled: claimReview.isDeciding,
+              }
+            : undefined;
 
     return (
-        <article className="bg-card space-y-3 rounded-lg border p-3 sm:p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex min-w-0 items-center gap-3">
-                    <span className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-md">
-                        <Building2 aria-hidden="true" className="text-muted-foreground size-5" />
-                    </span>
-                    <div className="min-w-0 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="font-semibold wrap-break-word">{institutionName}</h3>
-                            <Badge variant="outline" className="font-mono">
-                                {institutionCodeSuffix}
-                            </Badge>
-                        </div>
-                        <p className="text-muted-foreground text-sm">Role: Institution Admin</p>
-                    </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
-                    <Badge
-                        variant="outline"
-                        className={invitationStatusTone(state)}
-                        role="status"
-                        aria-live="polite"
-                    >
-                        {statusLabel}
-                    </Badge>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="size-11"
-                        aria-label={
-                            institution.code
-                                ? `Copy Institution code ${institution.code}`
-                                : 'Institution code unavailable to copy'
-                        }
-                        onClick={() => void copyInstitutionCode()}
-                        disabled={!institution.code}
-                    >
-                        <Copy aria-hidden="true" />
-                    </Button>
-                </div>
-            </div>
-
-            {codeCopyMessage && (
-                <p
-                    role={codeCopyFailed ? 'alert' : 'status'}
-                    aria-live={codeCopyFailed ? 'assertive' : 'polite'}
-                    className={
-                        codeCopyFailed
-                            ? 'text-destructive text-sm'
-                            : 'text-muted-foreground text-sm'
-                    }
-                >
-                    {codeCopyMessage}
-                </p>
-            )}
-
-            <div className="bg-background/60 space-y-3 rounded-md border p-3 sm:p-4">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0 space-y-1">
-                        <h4 className="font-medium">{panelTitle}</h4>
-                        {isLoading ? (
-                            <Skeleton className="h-4 w-56" />
-                        ) : currentStatus ? (
-                            <p className="text-muted-foreground text-sm" role="status">
-                                {state === 'PENDING' &&
-                                    `Invitation sent · expires ${readableDate(currentStatus.expires_at)}`}
-                                {state === 'PENDING_APPROVAL' &&
-                                    `Review pending claim · submitted ${readableDate(currentStatus.claimed_at ?? currentStatus.created_at)}`}
-                                {state === 'EXPIRED' &&
-                                    `${hasClaim ? 'Claim review expired' : 'Invitation expired'} · ${readableDate(currentStatus.review_expires_at ?? currentStatus.expires_at)}`}
-                                {state === 'REVOKED' &&
-                                    `Revoked · issued ${readableDate(currentStatus.created_at)}`}
-                                {state === 'APPROVED' &&
-                                    `Approved · decision recorded ${readableDate(currentStatus.decided_at ?? currentStatus.created_at)}`}
-                                {state === 'REJECTED' &&
-                                    `Rejected · decision recorded ${readableDate(currentStatus.decided_at ?? currentStatus.created_at)}`}
-                                {state === 'LEGACY_ACCEPTED' &&
-                                    'Legacy unbound claim · it cannot be approved or used to grant access'}
-                            </p>
-                        ) : isFetching && !notFound ? (
-                            <span role="status" className="text-muted-foreground text-sm">
-                                <Spinner aria-label="Loading invitation status" /> Checking status…
-                            </span>
-                        ) : null}
-                    </div>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        className="min-h-11 shrink-0 self-start"
-                        onClick={() => void refetch()}
-                        disabled={isFetching}
-                    >
-                        <RefreshCw aria-hidden="true" />
-                        {isFetching ? 'Refreshing…' : 'Refresh status'}
-                    </Button>
-                </div>
-
+        <>
+            <InstitutionAdminInvitationStatusCard
+                institutionId={institutionId}
+                institutionName={institutionName}
+                institutionCode={institution.code ?? institutionCodeSuffix}
+                status={state}
+                isLoading={isLoading}
+                isFetching={isFetching}
+                statusUnavailable={statusUnavailable}
+                notFound={notFound}
+                statusAction={statusAction}
+                summary={summary}
+                details={details}
+                footerMessage={footerMessage}
+                codeCopyMessage={codeCopyMessage}
+                codeCopyFailed={codeCopyFailed}
+                onCopyInstitutionCode={() => void copyInstitutionCode()}
+                onRefresh={() => void refetch()}
+            >
                 {actionError && (
                     <Alert variant="destructive" aria-live="assertive">
                         <AlertTitle>Invitation action not confirmed</AlertTitle>
                         <AlertDescription>{actionError}</AlertDescription>
                     </Alert>
                 )}
-
                 {state === 'PENDING_APPROVAL' && (
                     <InstitutionAdminClaimReview
                         institutionId={institutionId}
                         institutionName={institutionName}
-                        hasPendingClaim
-                        onDecisionRecorded={() => void refetch()}
+                        review={claimReview}
                     />
                 )}
-
                 {statusUnavailable ? (
                     <Alert variant="destructive">
                         <AlertTitle>Invitation status unavailable</AlertTitle>
@@ -217,100 +231,24 @@ export function InstitutionAdminInvitationControls({ institution, legalEntityCod
                             created. No separate invitation can be issued here.
                         </AlertDescription>
                     </Alert>
-                ) : currentStatus && state !== 'PENDING_APPROVAL' ? (
-                    <div className="space-y-3">
-                        {(currentStatus.invited_email ||
-                            currentStatus.claimed_at ||
-                            currentStatus.owner_contact_name ||
-                            currentStatus.owner_contact_phone) && (
-                            <dl className="grid gap-3 text-sm sm:grid-cols-2">
-                                {state !== 'APPROVED' && currentStatus.invited_email && (
-                                    <div className="min-w-0">
-                                        <dt className="font-medium">Invited email</dt>
-                                        <dd className="mt-1 break-all">
-                                            {currentStatus.invited_email}
-                                        </dd>
-                                    </div>
-                                )}
-                                {state !== 'APPROVED' && currentStatus.owner_contact_name && (
-                                    <div>
-                                        <dt className="font-medium">
-                                            Name you provided before inviting
-                                        </dt>
-                                        <dd className="mt-1">{currentStatus.owner_contact_name}</dd>
-                                    </div>
-                                )}
-                                {state !== 'APPROVED' && currentStatus.owner_contact_phone && (
-                                    <div>
-                                        <dt className="font-medium">
-                                            Phone number you had before inviting
-                                        </dt>
-                                        <dd className="mt-1">
-                                            {currentStatus.owner_contact_phone}
-                                        </dd>
-                                    </div>
-                                )}
-                                {currentStatus.claimant_login_identifier && (
-                                    <div className="min-w-0">
-                                        <dt className="font-medium">
-                                            Sign-in email
-                                            {state === 'APPROVED' ? '' : ' (unverified)'}
-                                        </dt>
-                                        <dd className="mt-1 break-all">
-                                            {currentStatus.claimant_login_identifier}
-                                        </dd>
-                                    </div>
-                                )}
-                                {currentStatus.claimant_provided_name && (
-                                    <div className="min-w-0">
-                                        <dt className="font-medium">
-                                            Name they entered when claiming
-                                            {state === 'APPROVED' ? '' : ' (unverified)'}
-                                        </dt>
-                                        <dd className="mt-1 break-words">
-                                            {currentStatus.claimant_provided_name}
-                                        </dd>
-                                    </div>
-                                )}
-                                {currentStatus.claimed_at && (
-                                    <div>
-                                        <dt className="font-medium">Claim submitted</dt>
-                                        <dd className="mt-1">
-                                            {readableDate(currentStatus.claimed_at)}
-                                        </dd>
-                                    </div>
-                                )}
-                                {currentStatus.review_expires_at && (
-                                    <div>
-                                        <dt className="font-medium">Review deadline</dt>
-                                        <dd className="mt-1">
-                                            {readableDate(currentStatus.review_expires_at)}
-                                        </dd>
-                                    </div>
-                                )}
-                            </dl>
-                        )}
-                        {state === 'APPROVED' && (
-                            <p className="text-muted-foreground text-sm">
-                                Approval grants membership but does not issue a session. The
-                                claimant must sign in separately.
-                            </p>
-                        )}
-                        {state === 'LEGACY_ACCEPTED' && (
-                            <Alert>
-                                <AlertTitle>Legacy claim cannot be approved</AlertTitle>
-                                <AlertDescription>
-                                    This unbound record grants no new access. Explicitly close it by
-                                    issuing a fresh invitation to a known recipient.
-                                </AlertDescription>
-                            </Alert>
-                        )}
-                        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                ) : null}
+                {currentStatus && state === 'LEGACY_ACCEPTED' && (
+                    <Alert>
+                        <AlertTitle>Legacy claim cannot be approved</AlertTitle>
+                        <AlertDescription>
+                            This unbound record grants no new access. Explicitly close it by issuing
+                            a fresh invitation to a known recipient.
+                        </AlertDescription>
+                    </Alert>
+                )}
+                {currentStatus &&
+                    state !== 'PENDING_APPROVAL' &&
+                    (state === 'PENDING' || canReplace) && (
+                        <Flex wrap className="gap-2">
                             {state === 'PENDING' && (
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    className="min-h-11"
                                     onClick={() => setRevokeOpen(true)}
                                 >
                                     Revoke invitation
@@ -320,7 +258,6 @@ export function InstitutionAdminInvitationControls({ institution, legalEntityCod
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    className="min-h-11"
                                     onClick={() => setReplacementTarget(currentStatus)}
                                 >
                                     {!currentStatus.invited_email || state === 'LEGACY_ACCEPTED'
@@ -328,10 +265,9 @@ export function InstitutionAdminInvitationControls({ institution, legalEntityCod
                                         : 'Issue fresh invitation'}
                                 </Button>
                             )}
-                        </div>
-                    </div>
-                ) : null}
-            </div>
+                        </Flex>
+                    )}
+            </InstitutionAdminInvitationStatusCard>
 
             {replacementTarget && (
                 <InstitutionAdminInvitationReplacement
@@ -358,6 +294,6 @@ export function InstitutionAdminInvitationControls({ institution, legalEntityCod
                 description="The invitation link will no longer be usable. No membership or session is created by revocation."
                 confirmLabel={isRevoking ? 'Revoking…' : 'Revoke invitation'}
             />
-        </article>
+        </>
     );
 }
