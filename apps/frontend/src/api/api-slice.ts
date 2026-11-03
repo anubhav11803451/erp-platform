@@ -6,6 +6,13 @@ export const apiSlice = createApi({
     reducerPath: 'api',
     //  wrapper function that handles automatic re-authentication on top of baseQuery
     baseQuery: baseQueryWithReauth,
+    tagTypes: [
+        'InstitutionProfile',
+        'InstitutionGroups',
+        'InstitutionStudents',
+        'InstitutionAttendance',
+        'InstitutionTeam',
+    ],
     endpoints: () => ({
         // Endpoints will be "injected" from other files
     }),

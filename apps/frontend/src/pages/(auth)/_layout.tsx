@@ -2,6 +2,7 @@ import { Link, Navigate, Outlet } from 'react-router';
 import { Loader, Globe } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRoleAccess } from '@/hooks/use-role-access';
+import { workspacePathForRole } from '@/lib/utils/workspace-path';
 import { Flex } from '@/components/ui/flex';
 import { Container } from '@/components/ui/container';
 import { FlexItem } from '@/components/ui/flex-item';
@@ -12,7 +13,7 @@ import { ModeToggle } from '@/components/themes/theme-toggle';
  */
 const AuthLayout = () => {
     const { isAuthenticated, isAuthLoading } = useAuth();
-    const { isInstitutionAdmin } = useRoleAccess();
+    const { role } = useRoleAccess();
     if (isAuthLoading) {
         return (
             <div className="flex h-screen w-screen items-center justify-center">
@@ -22,7 +23,7 @@ const AuthLayout = () => {
     }
 
     if (isAuthenticated) {
-        return <Navigate to={isInstitutionAdmin ? '/institution' : '/owner'} replace />;
+        return <Navigate to={workspacePathForRole(role)} replace />;
     }
 
     return (

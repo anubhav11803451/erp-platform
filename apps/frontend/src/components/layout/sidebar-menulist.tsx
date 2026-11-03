@@ -21,7 +21,7 @@ export function SidebarMenuList({ items }: SidebarMenuListProps) {
                             variant={isActive ? 'outline' : 'default'}
                             className={cn('w-full justify-start')}
                         >
-                            <Link to={href}>
+                            <Link to={href} aria-current={isActive ? 'page' : undefined}>
                                 <Icon className="mr-2 h-4 w-4" />
                                 <span>{label}</span>
                             </Link>

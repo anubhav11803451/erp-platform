@@ -21,13 +21,11 @@ export default function AppLayout() {
     return (
         <SidebarProvider>
             <AppSidebar />
-            <SidebarInset>
+            <SidebarInset id="main-content">
                 <AppHeader />
-                <main id="main-content" className="flex-1">
-                    <Flex direction="column" className="flex-1 gap-4 px-6">
-                        <Outlet />
-                    </Flex>
-                </main>
+                <Flex direction="column" className="flex-1 gap-4 px-6 py-6">
+                    <Outlet />
+                </Flex>
             </SidebarInset>
         </SidebarProvider>
     );

@@ -113,7 +113,7 @@ export default function AttendancePage() {
             {/* --- Attendance Form --- */}
             {selectedBatchId ? (
                 isLoadingAttendance ? (
-                    <div className="flex h-[200px] items-center justify-center">
+                    <div className="flex h-50 items-center justify-center">
                         <Loader className="text-primary h-8 w-8 animate-spin" />
                     </div>
                 ) : isAttendanceError ? (

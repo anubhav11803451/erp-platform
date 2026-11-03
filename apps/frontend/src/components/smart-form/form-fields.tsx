@@ -28,6 +28,7 @@ import { Eye, EyeClosed } from 'lucide-react';
 
 type FormFieldProps = {
     name: string;
+    idPrefix?: string;
     label?: string;
     type?: React.HTMLInputTypeAttribute;
     description?: string;
@@ -47,6 +48,7 @@ type PasswordFieldProps = Omit<FormFieldProps, 'type'>;
 
 export function TextField({
     name,
+    idPrefix,
     label,
     type = 'text',
     placeholder,
@@ -58,6 +60,7 @@ export function TextField({
     autoFocus,
 }: TextFieldProps) {
     const { control } = useFormContext();
+    const fieldId = idPrefix ? `${idPrefix}-${name}` : name;
 
     return (
         <Controller
@@ -66,13 +69,13 @@ export function TextField({
             render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                     {label && (
-                        <FieldLabel htmlFor={field.name}>
+                        <FieldLabel htmlFor={fieldId}>
                             {label} {required && <span className="text-red-500">*</span>}
                         </FieldLabel>
                     )}
                     <Input
                         {...field}
-                        id={field.name}
+                        id={fieldId}
                         type={type}
                         placeholder={placeholder}
                         required={required}
@@ -92,6 +95,7 @@ export function TextField({
 
 export function PasswordField({
     name,
+    idPrefix,
     label,
     placeholder,
     required = false,
@@ -102,6 +106,7 @@ export function PasswordField({
 }: PasswordFieldProps) {
     const { control } = useFormContext();
     const [isVisible, setIsVisible] = useState(false);
+    const fieldId = idPrefix ? `${idPrefix}-${name}` : name;
 
     return (
         <Controller
@@ -110,14 +115,14 @@ export function PasswordField({
             render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                     {label && (
-                        <FieldLabel htmlFor={field.name}>
+                        <FieldLabel htmlFor={fieldId}>
                             {label} {required && <span className="text-red-500">*</span>}
                         </FieldLabel>
                     )}
                     <InputGroup>
                         <InputGroupInput
                             {...field}
-                            id={field.name}
+                            id={fieldId}
                             placeholder={placeholder}
                             required={required}
                             disabled={disabled}
@@ -252,13 +257,16 @@ type SelectFieldProps<T extends SelectOption> = FormFieldProps & {
 
 export function SelectField<T extends SelectOption>({
     name,
+    idPrefix,
     label,
     placeholder,
     required = false,
     description,
+    disabled,
     options,
 }: SelectFieldProps<T>) {
     const { control } = useFormContext();
+    const fieldId = idPrefix ? `${idPrefix}-${name}` : `rhf-smart-form-${name}`;
 
     return (
         <Controller
@@ -267,15 +275,20 @@ export function SelectField<T extends SelectOption>({
             render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                     {label && (
-                        <FieldLabel htmlFor={`rhf-smart-form-${field.name}`}>
+                        <FieldLabel htmlFor={fieldId}>
                             {label} {required && <span className="text-red-500">*</span>}
                         </FieldLabel>
                     )}
-                    <Select name={field.name} value={field.value} onValueChange={field.onChange}>
+                    <Select
+                        name={field.name}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={disabled}
+                    >
                         <SelectTrigger
-                            id={`rhf-smart-form-${field.name}`}
-                            disabled={field.disabled}
-                            aria-disabled={field.disabled}
+                            id={fieldId}
+                            disabled={disabled || field.disabled}
+                            aria-disabled={disabled || field.disabled}
                             aria-invalid={fieldState.invalid}
                         >
                             <SelectValue placeholder={placeholder || 'Select an option'} />

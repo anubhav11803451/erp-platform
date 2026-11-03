@@ -8,6 +8,11 @@ import { logOut, selectIsAuthLoading } from '@/features/auth/auth-slice';
 import { CSRF_TOKEN_COOKIE_NAME } from '@/lib/constants';
 import Cookies from 'js-cookie';
 import { useLocation } from 'react-router';
+import { RouteErrorBoundary } from '@/components/shared/route-error-boundary';
+
+export function ErrorBoundary() {
+    return <RouteErrorBoundary />;
+}
 
 const invitationAwarePaths = new Set(['/invite/admin']);
 

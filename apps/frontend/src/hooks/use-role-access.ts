@@ -13,6 +13,7 @@ export function useRoleAccess() {
         role,
         isPlatformOwner: role === 'PLATFORM_OWNER',
         isInstitutionAdmin: role === 'INSTITUTION_ADMIN',
+        isInstitutionStaff: role === 'INSTITUTION_STAFF',
         hasRole,
     };
 }
