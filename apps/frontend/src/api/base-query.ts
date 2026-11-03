@@ -11,9 +11,7 @@ import {
 
 const mutex = new Mutex();
 
-export const API_BASE_URL = import.meta.env.PROD
-    ? '/v1/api'
-    : import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/v1/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/v1/api';
 
 const baseQuery = fetchBaseQuery({
     baseUrl: API_BASE_URL,
